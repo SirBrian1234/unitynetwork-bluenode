@@ -28,6 +28,12 @@
 					<configuration>
 						<source>1.7</source>
 						<target>1.7</target>
+						<archive>
+							<manifest>
+								<addClasspath>true</addClasspath>
+								<mainClass>kostiskag.unitynetwork.bluenode.App</mainClass>
+							</manifest>
+						</archive>
 					</configuration>
 				</plugin>
 			</plugins>
