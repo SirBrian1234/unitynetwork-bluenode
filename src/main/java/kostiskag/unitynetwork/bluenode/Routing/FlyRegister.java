@@ -1,17 +1,13 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.Routing;
 
-import kostiskag.unitynetwork.bluenode.TrackClient.TrackingBlueNodeFunctions;
-import kostiskag.unitynetwork.bluenode.TrackClient.TrackingRedNodeFunctions;
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
-import kostiskag.unitynetwork.bluenode.BlueNodeClient.RemoteHandle;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.TrackClient.TrackingBlueNodeFunctions;
+import kostiskag.unitynetwork.bluenode.TrackClient.TrackingRedNodeFunctions;
+import kostiskag.unitynetwork.bluenode.BlueNodeClient.RemoteHandle;
 
 /**
  *
@@ -53,17 +49,17 @@ public class FlyRegister extends Thread {
             String sourcevaddress = pair.sourcevaddress;
             String destvaddress = pair.destvaddress;
             
-            lvl3BlueNode.ConsolePrint(pre + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
+            App.ConsolePrint(pre + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
 
             //maybe it associated one loop back
-            if (lvl3BlueNode.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
-                lvl3BlueNode.ConsolePrint(pre + "Allready associated entry");
+            if (App.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
+                App.ConsolePrint(pre + "Allready associated entry");
                 continue;
             } else {                
                 String BNHostname = TrackingRedNodeFunctions.checkOnlineByAddr(destvaddress);                
                 if (BNHostname != null) {
                     //we might have him associated but we may not have his rrd
-                    if (!lvl3BlueNode.BlueNodesTable.checkBlueNode(BNHostname)) {
+                    if (!App.BlueNodesTable.checkBlueNode(BNHostname)) {
                         String phaddress = TrackingBlueNodeFunctions.getPhysical(BNHostname);
                         String[] args = phaddress.split(":");
                         String address = args[0];
@@ -79,13 +75,13 @@ public class FlyRegister extends Thread {
                     } else {
                         RemoteHandle.BlueNodeExchange(BNHostname, sourcevaddress, destvaddress);
                     }
-                    if (lvl3BlueNode.BlueNodesTable.checkBlueNode(BNHostname)) {                        
-                        lvl3BlueNode.TrafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", 3, 1);
+                    if (App.BlueNodesTable.checkBlueNode(BNHostname)) {                        
+                        App.TrafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", 3, 1);
                     } else {
-                        lvl3BlueNode.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, 3, 1);                                                
+                        App.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, 3, 1);                                                
                     }
                 } else {
-                   lvl3BlueNode.ConsolePrint(pre + "NOT FOUND "+destvaddress+" ON NETWORK");                     
+                   App.ConsolePrint(pre + "NOT FOUND "+destvaddress+" ON NETWORK");                     
                 }
             }
         }

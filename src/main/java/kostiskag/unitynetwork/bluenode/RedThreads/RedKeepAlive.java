@@ -1,13 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.RedThreads;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
 import java.net.InetAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import kostiskag.unitynetwork.bluenode.App;
 
 /*
  *
@@ -29,17 +25,17 @@ public class RedKeepAlive extends Thread {
 
     public RedKeepAlive(String vaddress) {
         this.vaddress = vaddress;
-        time = kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode.keepAliveTime;              
+        time = kostiskag.unitynetwork.bluenode.App.keepAliveTime;              
         data = kostiskag.unitynetwork.bluenode.Routing.IpPacket.MakeUPacket(payload, null, null, true);
     }
 
     @Override
     public void run() {
-        lvl3BlueNode.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName());
+        App.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName());
       
         while (!kill) {            
             for (int i = 0; i < 3; i++) {
-                lvl3BlueNode.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getQueueMan().offer(data);                
+                App.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getQueueMan().offer(data);                
             }
 
             try {
@@ -48,7 +44,7 @@ public class RedKeepAlive extends Thread {
                 Logger.getLogger(RedKeepAlive.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        lvl3BlueNode.ConsolePrint(pre + " ENDED FOR " + vaddress);
+        App.ConsolePrint(pre + " ENDED FOR " + vaddress);
     }
 
     public void kill() {

@@ -1,6 +1,6 @@
 package kostiskag.unitynetwork.bluenode.RunData.Tables;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
+import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.RunData.Instances.RedNodeInstance;
 
@@ -22,7 +22,7 @@ public class RedNodesTable {
         for (int i = 0; i < size; i++) {
             table[i] = new RedNodeInstance();
         }
-        lvl3BlueNode.ConsolePrint(pre + "INITIALIZED " + size);
+        App.ConsolePrint(pre + "INITIALIZED " + size);
     }
 
     public RedNodeInstance getRedNodeInstanceByHn(String hostname) {
@@ -31,7 +31,7 @@ public class RedNodesTable {
                 return table[i];
             }
         }
-        lvl3BlueNode.ConsolePrint(pre + "NO ENTRY FOR " + hostname + " IN TABLE");
+        App.ConsolePrint(pre + "NO ENTRY FOR " + hostname + " IN TABLE");
         return null;
     }
     
@@ -41,7 +41,7 @@ public class RedNodesTable {
                 return table[i];
             }
         }
-        lvl3BlueNode.ConsolePrint(pre + "NO ENTRY FOR " + vaddress + " IN TABLE");
+        App.ConsolePrint(pre + "NO ENTRY FOR " + vaddress + " IN TABLE");
         return null;
     }        
 
@@ -49,7 +49,7 @@ public class RedNodesTable {
         if (table.length > id) {
             return table[id];
         } else {
-            lvl3BlueNode.ConsolePrint(pre + "NO ENTRY " + id + " IN TABLE");
+            App.ConsolePrint(pre + "NO ENTRY " + id + " IN TABLE");
             return null;
         }
     }
@@ -57,11 +57,11 @@ public class RedNodesTable {
     public int lease(RedNodeInstance auth) {
         if (count < size) {
             table[count] = auth;
-            lvl3BlueNode.ConsolePrint(pre + count + " LEASED " + auth.getVaddress() + " ~ " + auth.getPhAddress());
+            App.ConsolePrint(pre + count + " LEASED " + auth.getVaddress() + " ~ " + auth.getPhAddress());
             count++;
             return count;
         } else {
-            lvl3BlueNode.ConsolePrint(pre + "NO MORE SPACE INSIDE ADDRESSTABLE");
+            App.ConsolePrint(pre + "NO MORE SPACE INSIDE ADDRESSTABLE");
             return -1;
         }
     }   
@@ -78,13 +78,13 @@ public class RedNodesTable {
                     table[count - 1] = null;                    
                     count--;
 
-                    lvl3BlueNode.ConsolePrint(pre + "RELEASED ENTRY");
+                    App.ConsolePrint(pre + "RELEASED ENTRY");
                     updateTable();
                     return;
                 }
             }
         }
-        lvl3BlueNode.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
+        App.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
     }
 
     public Boolean checkOnline(String vAddress) {
@@ -97,10 +97,10 @@ public class RedNodesTable {
     }
 
     public void delete(int[] delTable) {
-        lvl3BlueNode.ConsolePrint(pre + "FORCE DELETING " + delTable.length + " LOCAL RED NODES");
+        App.ConsolePrint(pre + "FORCE DELETING " + delTable.length + " LOCAL RED NODES");
         for (int i = delTable.length; i > 0; i--) {
             String address = getRedNodeInstance(delTable[i - 1]).getVaddress();
-            lvl3BlueNode.ConsolePrint(pre + "DELETING " + address);
+            App.ConsolePrint(pre + "DELETING " + address);
             getRedNodeInstanceByAddr(address).forceDelete();
             release(address);
         }
@@ -108,7 +108,7 @@ public class RedNodesTable {
     }        
 
     public void updateTable() {
-        if (lvl3BlueNode.gui == true) {
+        if (App.gui == true) {
             int rows = MainWindow.hostable.getRowCount();
             for (int i = 0; i < rows; i++) {
                 MainWindow.hostable.removeRow(0);

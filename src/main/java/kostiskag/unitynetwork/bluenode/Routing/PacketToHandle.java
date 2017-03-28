@@ -1,6 +1,6 @@
 package kostiskag.unitynetwork.bluenode.Routing;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.*;
+import kostiskag.unitynetwork.bluenode.App;
 
 /*
  *
@@ -24,7 +24,7 @@ public class PacketToHandle extends Thread {
 
     @Override
     public void run() {
-        lvl3BlueNode.ConsolePrint(pre + "started routing at thread " + Thread.currentThread().getName());
+        App.ConsolePrint(pre + "started routing at thread " + Thread.currentThread().getName());
 
         while (true) {
             /*
@@ -34,7 +34,7 @@ public class PacketToHandle extends Thread {
              */
 
             try {
-                data = lvl3BlueNode.manager.poll();
+                data = App.manager.poll();
             } catch (java.lang.NullPointerException ex1) {
                 continue;
             } catch (java.util.NoSuchElementException ex) {
@@ -47,28 +47,28 @@ public class PacketToHandle extends Thread {
                 if (version.equals("45")) {
                     this.destvaddress = IpPacket.getDestAddress(data).getHostAddress();
                     this.sourcevaddress = IpPacket.getSourceAddress(data).getHostAddress();
-                    lvl3BlueNode.TrafficPrint(pre + "IP " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
+                    App.TrafficPrint(pre + "IP " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
                 } else {
                     this.destvaddress = IpPacket.getUDestAddress(data).getHostAddress();
                     this.sourcevaddress = IpPacket.getUSourceAddress(data).getHostAddress();
-                    lvl3BlueNode.TrafficPrint(pre + version + " " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
+                    App.TrafficPrint(pre + version + " " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
                 }
 
-                if (lvl3BlueNode.localRedNodesTable.checkOnline(destvaddress) == true) {
+                if (App.localRedNodesTable.checkOnline(destvaddress) == true) {
                     //load the packet data to target users lifo
-                    lvl3BlueNode.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offer(data);
-                    lvl3BlueNode.TrafficPrint(pre + "LOCAL DESTINATION", 3, 0);
-                } else if (lvl3BlueNode.joined) {
-                    if (lvl3BlueNode.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
-                        String hostname = lvl3BlueNode.remoteRedNodesTable.getRedRemoteAddress(destvaddress).getBlueNodeHostname();
-                        lvl3BlueNode.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().offer(data);
-                        lvl3BlueNode.TrafficPrint(pre + "REMOTE DESTINATION -> " + hostname, 3, 1);
+                    App.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offer(data);
+                    App.TrafficPrint(pre + "LOCAL DESTINATION", 3, 0);
+                } else if (App.joined) {
+                    if (App.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
+                        String hostname = App.remoteRedNodesTable.getRedRemoteAddress(destvaddress).getBlueNodeHostname();
+                        App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().offer(data);
+                        App.TrafficPrint(pre + "REMOTE DESTINATION -> " + hostname, 3, 1);
                     } else {
-                        lvl3BlueNode.TrafficPrint(pre + "NOT KNOWN BN WITH " + destvaddress, 3, 1);
-                        lvl3BlueNode.flyreg.seekDest(sourcevaddress, destvaddress);
+                        App.TrafficPrint(pre + "NOT KNOWN BN WITH " + destvaddress, 3, 1);
+                        App.flyreg.seekDest(sourcevaddress, destvaddress);
                     }
                 } else {
-                    lvl3BlueNode.TrafficPrint(pre + "NOT IN THIS BN " + destvaddress, 3, 1);
+                    App.TrafficPrint(pre + "NOT IN THIS BN " + destvaddress, 3, 1);
                 }
             } else {
                 System.err.println("wrong header packet detected in router " + Thread.currentThread());

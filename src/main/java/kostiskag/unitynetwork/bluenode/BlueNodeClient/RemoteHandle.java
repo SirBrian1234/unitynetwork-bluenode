@@ -1,10 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.BlueNodeClient;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.*;
+import kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
@@ -33,67 +29,67 @@ public class RemoteHandle {
         } 
 
         BlueNodeClientFunctions.addRemoteBlueNode(address, blueauthport, BNHostname, true, false);
-        if (lvl3BlueNode.BlueNodesTable.checkBlueNode(BNHostname)) {
+        if (App.BlueNodesTable.checkBlueNode(BNHostname)) {
             addRemoteRedNode(destvaddress, BNHostname);
             FeedReturnRoute(BNHostname, sourcevaddress);
         }
     }
 
     public static void BlueNodeExchange(String BNHostname, String sourcevaddress, String destvaddress) {
-        if (lvl3BlueNode.BlueNodesTable.checkBlueNode(BNHostname)) {
+        if (App.BlueNodesTable.checkBlueNode(BNHostname)) {
             addRemoteRedNode(destvaddress, BNHostname);
             RemoteHandle.FeedReturnRoute(BNHostname, sourcevaddress);
         }
     }
 
     public static void removeBlueNode(String BlueNodeHostname) {
-        lvl3BlueNode.ConsolePrint(pre + "REMOVING 1 BLUE NODE");
+        App.ConsolePrint(pre + "REMOVING 1 BLUE NODE");
         removeBlueNodesRedAssociations(BlueNodeHostname);
         BlueNodeClientFunctions.removeBlueNodeProjection(BlueNodeHostname);
-        lvl3BlueNode.remoteRedNodesTable.updateTable();
-        lvl3BlueNode.BlueNodesTable.removeSingle(BlueNodeHostname);
+        App.remoteRedNodesTable.updateTable();
+        App.BlueNodesTable.removeSingle(BlueNodeHostname);
     }
 
     public static void upingBlueNodes(int[] table) {
         for (int i = table.length; i > 0; i--) {
-            String hostname = lvl3BlueNode.BlueNodesTable.getBlueNodeInstance(table[i - 1]).getHostname();
+            String hostname = App.BlueNodesTable.getBlueNodeInstance(table[i - 1]).getHostname();
             if (!BlueNodeClientFunctions.checkBlueNode(hostname)) {               
                 removeBlueNodesRedAssociations(table[i - 1]);
-                lvl3BlueNode.BlueNodesTable.removeSingle(hostname);
+                App.BlueNodesTable.removeSingle(hostname);
             }
         }
-        lvl3BlueNode.BlueNodesTable.updateTable();
-        lvl3BlueNode.remoteRedNodesTable.updateTable();
+        App.BlueNodesTable.updateTable();
+        App.remoteRedNodesTable.updateTable();
     }
 
     public static void removeBlueNodes(int[] table) {
-        lvl3BlueNode.ConsolePrint(pre + "REMOVING PROJECTIONS FOR " + table.length + " BLUE NODES");
+        App.ConsolePrint(pre + "REMOVING PROJECTIONS FOR " + table.length + " BLUE NODES");
         for (int i = table.length; i > 0; i--) {
             removeBlueNodesRedAssociations(i - 1);
             BlueNodeClientFunctions.removeBlueNodeProjection(i - 1);
         }
-        lvl3BlueNode.remoteRedNodesTable.updateTable();
-        lvl3BlueNode.BlueNodesTable.delete(table);
+        App.remoteRedNodesTable.updateTable();
+        App.BlueNodesTable.delete(table);
     }
 
     //red node stuff
     public static void addRemoteRedNode(String vaddress, String BlueNodeHostname) {
         //first we check if bluenode is on table - kathisteraaas prwta eleghoume ama uparxei
-        if (!lvl3BlueNode.remoteRedNodesTable.checkAssociated(vaddress)) {
-            lvl3BlueNode.ConsolePrint(pre + "ADDING REMOTE RED NODE " + vaddress + " " + BlueNodeHostname);
-            if (lvl3BlueNode.BlueNodesTable.checkBlueNode(BlueNodeHostname) == false) {
-                lvl3BlueNode.ConsolePrint(pre + "NO BLUE NODE FOUND ON DATABASE REGISTER THE BLUE NODE FIRST");
+        if (!App.remoteRedNodesTable.checkAssociated(vaddress)) {
+            App.ConsolePrint(pre + "ADDING REMOTE RED NODE " + vaddress + " " + BlueNodeHostname);
+            if (App.BlueNodesTable.checkBlueNode(BlueNodeHostname) == false) {
+                App.ConsolePrint(pre + "NO BLUE NODE FOUND ON DATABASE REGISTER THE BLUE NODE FIRST");
             } else {
-                lvl3BlueNode.ConsolePrint(pre + "USING A REASSOSIATED BLUENODE");
+                App.ConsolePrint(pre + "USING A REASSOSIATED BLUENODE");
                 //go and ask bn if he knows the guy            
                 String redhostname = BlueNodeClientFunctions.getRedHostname(BlueNodeHostname, vaddress);
                 if (redhostname.equals("OFFLINE")) {
-                    lvl3BlueNode.ConsolePrint(pre + "REMOTE RED NODE " + vaddress + " IS NOT ON THIS BLUE NODE");
+                    App.ConsolePrint(pre + "REMOTE RED NODE " + vaddress + " IS NOT ON THIS BLUE NODE");
                 } else if (!redhostname.equals("")) {
-                    lvl3BlueNode.remoteRedNodesTable.lease(vaddress, redhostname, BlueNodeHostname);
-                    lvl3BlueNode.ConsolePrint(pre + "REMOTE RED NODE " + vaddress + " ~ " + redhostname + " LEASED");
+                    App.remoteRedNodesTable.lease(vaddress, redhostname, BlueNodeHostname);
+                    App.ConsolePrint(pre + "REMOTE RED NODE " + vaddress + " ~ " + redhostname + " LEASED");
                 } else {
-                    lvl3BlueNode.ConsolePrint(pre + "REMOTE RED NODE " + vaddress + " FAILED");
+                    App.ConsolePrint(pre + "REMOTE RED NODE " + vaddress + " FAILED");
                 }
             }
         }
@@ -101,26 +97,26 @@ public class RemoteHandle {
 
     public static void GetRemoteRedNodes(int[] table) {
         for (int i = table.length; i > 0; i--) {
-            String hostname = lvl3BlueNode.BlueNodesTable.getBlueNodeInstance(table[i - 1]).getHostname();
-            lvl3BlueNode.ConsolePrint(pre + "GETTING REMOTE RED NODES FROM " + hostname);
+            String hostname = App.BlueNodesTable.getBlueNodeInstance(table[i - 1]).getHostname();
+            App.ConsolePrint(pre + "GETTING REMOTE RED NODES FROM " + hostname);
             if (BlueNodeClientFunctions.getRemoteRedNodesU(hostname) == -1) {
                 removeBlueNodesRedAssociations(table[i - 1]);
-                lvl3BlueNode.BlueNodesTable.removeSingle(hostname);
+                App.BlueNodesTable.removeSingle(hostname);
             }
         }
-        lvl3BlueNode.remoteRedNodesTable.updateTable();
+        App.remoteRedNodesTable.updateTable();
     }
 
     public static void ExchangeRedNodes(int[] table) {
         for (int i = table.length; i > 0; i--) {
-            String hostname = lvl3BlueNode.BlueNodesTable.getBlueNodeInstance(table[i - 1]).getHostname();
-            lvl3BlueNode.ConsolePrint(pre + "EXCHANGING RED NODES WITH " + hostname);
+            String hostname = App.BlueNodesTable.getBlueNodeInstance(table[i - 1]).getHostname();
+            App.ConsolePrint(pre + "EXCHANGING RED NODES WITH " + hostname);
             if (BlueNodeClientFunctions.ExchangeRedNodesU(hostname) == -1) {
                 removeBlueNodesRedAssociations(table[i - 1]);
-                lvl3BlueNode.BlueNodesTable.removeSingle(hostname);
+                App.BlueNodesTable.removeSingle(hostname);
             }
         }
-        lvl3BlueNode.remoteRedNodesTable.updateTable();
+        App.remoteRedNodesTable.updateTable();
     }
 
     public static void checkRemoteRedNodes(int[] table) {
@@ -130,31 +126,31 @@ public class RemoteHandle {
         String BNHostname;
 
         for (int i = table.length; i > 0; i--) {
-            vaddress = lvl3BlueNode.remoteRedNodesTable.getRedRemoteAddress(table[i - 1]).getVAddress();
-            lvl3BlueNode.ConsolePrint(pre + "CHECKING REMOTE RED NODE " + vaddress);
+            vaddress = App.remoteRedNodesTable.getRedRemoteAddress(table[i - 1]).getVAddress();
+            App.ConsolePrint(pre + "CHECKING REMOTE RED NODE " + vaddress);
             out = BlueNodeClientFunctions.checkRemoteRedNode(vaddress);
             if (out == 1) {
-                lvl3BlueNode.ConsolePrint(pre + "UPDATING " + vaddress);
-                lvl3BlueNode.remoteRedNodesTable.getRedRemoteAddress(vaddress).updateTime();
+                App.ConsolePrint(pre + "UPDATING " + vaddress);
+                App.remoteRedNodesTable.getRedRemoteAddress(vaddress).updateTime();
             } else if (out == 0) {
-                lvl3BlueNode.remoteRedNodesTable.releaseByAddr(vaddress);
+                App.remoteRedNodesTable.releaseByAddr(vaddress);
             } else {
-                BNHostname = lvl3BlueNode.remoteRedNodesTable.getRedRemoteAddress(table[i - 1]).getBlueNodeHostname();
-                lvl3BlueNode.ConsolePrint(pre + "KILLING OFFLINE BLUENODE " + BNHostname);
-                lvl3BlueNode.BlueNodesTable.removeSingle(BNHostname);
-                lvl3BlueNode.remoteRedNodesTable.releaseByAddr(vaddress);
+                BNHostname = App.remoteRedNodesTable.getRedRemoteAddress(table[i - 1]).getBlueNodeHostname();
+                App.ConsolePrint(pre + "KILLING OFFLINE BLUENODE " + BNHostname);
+                App.BlueNodesTable.removeSingle(BNHostname);
+                App.remoteRedNodesTable.releaseByAddr(vaddress);
             }
         }
-        lvl3BlueNode.remoteRedNodesTable.updateTable();
+        App.remoteRedNodesTable.updateTable();
     }
 
     public static void removeBlueNodesRedAssociations(int i) {
-        String hostname = lvl3BlueNode.BlueNodesTable.getBlueNodeInstance(i).getHostname();
-        lvl3BlueNode.remoteRedNodesTable.removeAssociations(hostname);
+        String hostname = App.BlueNodesTable.getBlueNodeInstance(i).getHostname();
+        App.remoteRedNodesTable.removeAssociations(hostname);
     }
 
     public static void removeBlueNodesRedAssociations(String BlueNodeHostname) {
-        lvl3BlueNode.remoteRedNodesTable.removeAssociations(BlueNodeHostname);
+        App.remoteRedNodesTable.removeAssociations(BlueNodeHostname);
     }
 
     public static void FeedReturnRoute(String BNHostname, String sourcevaddress) {

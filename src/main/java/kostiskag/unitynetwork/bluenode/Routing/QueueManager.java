@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.Routing;
 
 import java.util.LinkedList;
@@ -11,7 +7,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author kostis lvl3RedNode.ReceivedPacketQueue
+ * @author kostis
  */
 
 public class QueueManager extends Thread {

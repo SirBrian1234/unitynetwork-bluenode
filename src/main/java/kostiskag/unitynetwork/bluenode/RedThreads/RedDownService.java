@@ -1,12 +1,12 @@
 package kostiskag.unitynetwork.bluenode.RedThreads;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
-import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
-import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import java.io.IOException;
 import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
+import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 
 /*
  * down service listens for virtual packets then sends them to the target
@@ -30,18 +30,18 @@ public class RedDownService extends Thread {
 
     public RedDownService(String vaddress) {
         this.vaddress = vaddress;
-        destPort = lvl3BlueNode.UDPports.requestPort();
+        destPort = App.UDPports.requestPort();
         pre = pre + vaddress + " ";
     }
 
     @Override
     public void run() {
-        lvl3BlueNode.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName() + " ON PORT " + destPort);
+        App.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName() + " ON PORT " + destPort);
      
         try {
             serverSocket = new DatagramSocket(destPort);
         } catch (java.net.BindException ex) {
-            lvl3BlueNode.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
+            App.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
         } catch (SocketException ex) {
             Logger.getLogger(RedDownService.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -57,7 +57,7 @@ public class RedDownService extends Thread {
                 if (len > 0 && len <= 1500) {
                     data = new byte[len];
                     System.arraycopy(receivePacket.getData(), 0, data, 0, len);
-                    if (lvl3BlueNode.gui && didTrigger == false) {
+                    if (App.gui && didTrigger == false) {
                         MainWindow.jCheckBox3.setSelected(true);
                         didTrigger = true;
                     }
@@ -69,11 +69,11 @@ public class RedDownService extends Thread {
                         if (args.length > 1) {                            
                             if (args[0].equals("00000")){
                                 //keep alive
-                                lvl3BlueNode.TrafficPrint(pre + version+" "+"[KEEP ALIVE]" ,0,0);
+                                App.TrafficPrint(pre + version+" "+"[KEEP ALIVE]" ,0,0);
                             }  else if (args[0].equals("00001")) {
                                 //le wild rednode ping!                                               
-                                lvl3BlueNode.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).setUPing(true);
-                                lvl3BlueNode.TrafficPrint(pre + "LE WILD RN UPING APPEARS",1,0);
+                                App.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).setUPing(true);
+                                App.TrafficPrint(pre + "LE WILD RN UPING APPEARS",1,0);
                             } 
                         } else {
                             System.out.println(pre + "wrong length");
@@ -85,25 +85,25 @@ public class RedDownService extends Thread {
                         if (args.length > 1) {                            
                             if (args[0].equals("00004")){
                                 //ack
-                                lvl3BlueNode.TrafficPrint(pre + "[ACK] -> "+IpPacket.getUDestAddress(data).getHostAddress() ,2,0);
-                                lvl3BlueNode.manager.offer(data); 
+                                App.TrafficPrint(pre + "[ACK] -> "+IpPacket.getUDestAddress(data).getHostAddress() ,2,0);
+                                App.manager.offer(data); 
                             }  
                         } else {
                             System.out.println(pre + "wrong length");
                         }
                     } else {             
-                        lvl3BlueNode.TrafficPrint(pre + "IPv4",3,0);
-                        lvl3BlueNode.manager.offer(data);                        
+                        App.TrafficPrint(pre + "IPv4",3,0);
+                        App.manager.offer(data);                        
                     }
                 }
             } catch (java.net.SocketException ex1) {
-                lvl3BlueNode.ConsolePrint(pre + "SOCKET DIED FOR " + vaddress);
+                App.ConsolePrint(pre + "SOCKET DIED FOR " + vaddress);
             } catch (IOException ex) {
                 Logger.getLogger(RedDownService.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        lvl3BlueNode.ConsolePrint(pre + " ENDED FOR " + vaddress);        
-        lvl3BlueNode.UDPports.releasePort(portToUse);
+        App.ConsolePrint(pre + " ENDED FOR " + vaddress);        
+        App.UDPports.releasePort(portToUse);
         destPort = -1;
         portToUse = -1;
     }

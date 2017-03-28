@@ -1,10 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.GUI;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
+import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.BlueNodeClient.RemoteHandle;
 
 /**
@@ -144,24 +140,24 @@ public class AddBlueNode extends javax.swing.JFrame implements Runnable {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        if (lvl3BlueNode.joined) {
+        if (App.joined) {
             String address = jTextField1.getText();
 
             try {
                 authport = Integer.parseInt(jTextField2.getText());
             } catch (NumberFormatException e) {
-                lvl3BlueNode.ConsolePrint("authport error 1");
+                App.ConsolePrint("authport error 1");
                 return;
             }
 
             if (!(authport > 0 && authport <= 65535)) {
-                lvl3BlueNode.ConsolePrint("authport error 2");
+                App.ConsolePrint("authport error 2");
                 return;
             }
-            lvl3BlueNode.ConsolePrint("ADDING A BLUE NODE "+address+" "+authport+" "+jTextField3.getText()+" "+jCheckBox2.isSelected()+jCheckBox1.isSelected());
+            App.ConsolePrint("ADDING A BLUE NODE "+address+" "+authport+" "+jTextField3.getText()+" "+jCheckBox2.isSelected()+jCheckBox1.isSelected());
             RemoteHandle.addBlueNode(address, authport, jTextField3.getText(), jCheckBox2.isSelected(), jCheckBox1.isSelected());            
         } else {
-            lvl3BlueNode.ConsolePrint("NOT JOINED YET");
+            App.ConsolePrint("NOT JOINED YET");
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 

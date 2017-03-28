@@ -1,11 +1,6 @@
 package kostiskag.unitynetwork.bluenode.RunData;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
-
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+import kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
@@ -17,7 +12,7 @@ public class IPpoll {
     
     public IPpoll() {
         count = 0;
-        lvl3BlueNode.ConsolePrint("GRAVE WARNING BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nTHAT MEANS THAT ANYONE WHO KNOWS BN AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
+        App.ConsolePrint("GRAVE WARNING BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nTHAT MEANS THAT ANYONE WHO KNOWS BN AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
     }
     
     public String poll(){

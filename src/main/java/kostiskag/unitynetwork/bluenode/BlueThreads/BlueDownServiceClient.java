@@ -1,27 +1,21 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.BlueThreads;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
-import kostiskag.unitynetwork.bluenode.RedThreads.RedlUpService;
-import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
-import kostiskag.unitynetwork.bluenode.GUI.*;
 import java.io.IOException;
 import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.GUI.*;
+import kostiskag.unitynetwork.bluenode.RedThreads.RedlUpService;
+import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 
 /**
  *
  * @author kostis
  * 
- * remember = BDSClient is a client to BNS UP so he SENDS
- * 
  */
-
 public class BlueDownServiceClient extends Thread{
+	//remember = BDSClient is a client to BNS UP so he SENDS
     private String pre = "^DownClient (UP) ";
     private boolean kill = false;
     
@@ -57,7 +51,7 @@ public class BlueDownServiceClient extends Thread{
     
     @Override
     public void run() {
-        lvl3BlueNode.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName()+ " ON PORT "+downport);        
+        App.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName()+ " ON PORT "+downport);        
         
         try {
             serverSocket = new DatagramSocket();
@@ -68,7 +62,7 @@ public class BlueDownServiceClient extends Thread{
         while (!kill) {            
             
             try {
-                data = lvl3BlueNode.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().poll();
+                data = App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().poll();
             } catch (java.lang.NullPointerException ex1){
                 continue;
             } catch (java.util.NoSuchElementException ex) {
@@ -86,31 +80,31 @@ public class BlueDownServiceClient extends Thread{
                     if (args.length > 1) {
                         if (args[0].equals("00000")) {
                             //keep alive
-                            lvl3BlueNode.TrafficPrint(pre + version + " " + "[KEEP ALIVE]", 0, 1);
+                            App.TrafficPrint(pre + version + " " + "[KEEP ALIVE]", 0, 1);
                         } else if (args[0].equals("00002")) {
                             //le wild blue node uping!
-                            lvl3BlueNode.BlueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);
-                            lvl3BlueNode.TrafficPrint(pre + "LE WILD RN UPING LEAVES", 1, 1);
+                            App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);
+                            App.TrafficPrint(pre + "LE WILD RN UPING LEAVES", 1, 1);
                         } else if (args[0].equals("00003")) {
                             //le wild blue node dping!
-                            lvl3BlueNode.dping = true;
-                            lvl3BlueNode.TrafficPrint(pre + "LE WILD RN DPING LEAVES", 1, 1);
+                            App.dping = true;
+                            App.TrafficPrint(pre + "LE WILD RN DPING LEAVES", 1, 1);
                         }
                     }
                 }                  
-                if (lvl3BlueNode.gui && trigger == false) {
+                if (App.gui && trigger == false) {
                     MainWindow.jCheckBox6.setSelected(true);
                     trigger = true;
                 }
             } catch (java.net.SocketException ex1) {
-                lvl3BlueNode.ConsolePrint(pre + " SOCKET DIED FOR " + hostname);
+                App.ConsolePrint(pre + " SOCKET DIED FOR " + hostname);
             } catch (IOException ex) {                
-                lvl3BlueNode.ConsolePrint(pre + "SOCKET ERROR FOR " + hostname);
+                App.ConsolePrint(pre + "SOCKET ERROR FOR " + hostname);
             }
         }
-        lvl3BlueNode.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
-        lvl3BlueNode.UDPports.releasePort(sourcePort);  
-        lvl3BlueNode.ConsolePrint(pre + "ENDED FOR " + hostname);        
+        App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
+        App.UDPports.releasePort(sourcePort);  
+        App.ConsolePrint(pre + "ENDED FOR " + hostname);        
     }
 
     public void kill() {

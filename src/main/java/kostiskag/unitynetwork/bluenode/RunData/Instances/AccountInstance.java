@@ -1,16 +1,12 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.RunData.Instances;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
-import kostiskag.unitynetwork.bluenode.Functions.MD5Functions;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import kostiskag.unitynetwork.bluenode.Functions.*;
+import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.Functions.MD5Functions;
+import kostiskag.unitynetwork.bluenode.Functions.ipAddrFunctions;
 
 /**
  *
@@ -30,10 +26,10 @@ public class AccountInstance {
             this.vadress = ipAddrFunctions._10ipAddrToNumber(vadress);
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(AccountInstance.class.getName()).log(Level.SEVERE, null, ex);
-            lvl3BlueNode.die();
+            App.die();
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(AccountInstance.class.getName()).log(Level.SEVERE, null, ex);
-            lvl3BlueNode.die();
+            App.die();
         }
     }        
     

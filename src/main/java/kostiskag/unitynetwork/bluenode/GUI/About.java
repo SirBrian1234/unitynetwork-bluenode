@@ -1,26 +1,12 @@
 package kostiskag.unitynetwork.bluenode.GUI;
 
-import java.awt.Desktop;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  *
  * @author kostis
  */
 public class About extends javax.swing.JFrame {
 
-    /**
-     * Creates new form About
-     */
+    // Creates new form About
     public About() {
         initComponents();
     }

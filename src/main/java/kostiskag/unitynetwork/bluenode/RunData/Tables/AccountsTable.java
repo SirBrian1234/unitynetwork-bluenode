@@ -1,10 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.RunData.Tables;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
+import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.Instances.AccountInstance;
 
 /**
@@ -21,7 +17,7 @@ public class AccountsTable {
         array = new AccountInstance[100];
         count = 0;
         len=100;
-        lvl3BlueNode.ConsolePrint(pre+"using local user table");
+        App.ConsolePrint(pre+"using local user table");
     }
         
     public void insert(String username, String password, String hostname, String vadress){
@@ -41,7 +37,7 @@ public class AccountsTable {
     
      public void verbose(){
         for(int i=0; i<count; i++){
-            lvl3BlueNode.ConsolePrint(array[i].verbose());
+            App.ConsolePrint(array[i].verbose());
         }
     }
 }

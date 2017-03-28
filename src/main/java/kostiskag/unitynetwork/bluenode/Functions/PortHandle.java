@@ -1,11 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.Functions;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
 import java.util.Stack;
+import kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
@@ -32,7 +28,7 @@ public class PortHandle {
             portToUse = startport + (int)(Math.random() * ((endport - startport) + 1));
          }
          while (checkTable(portToUse));
-         lvl3BlueNode.ConsolePrint(pre + "USING A NEW PORT " + portToUse);
+         App.ConsolePrint(pre + "USING A NEW PORT " + portToUse);
          tableAdd(portToUse);
          return portToUse;
     }
@@ -43,7 +39,7 @@ public class PortHandle {
             do {
                 portToUse = startport + (int)(Math.random() * ((endport - startport) + 1));
             } while (checkTable(portToUse) && portToUse != oldPort);            
-            lvl3BlueNode.ConsolePrint(pre + "USING A NEW PORT " + portToUse);
+            App.ConsolePrint(pre + "USING A NEW PORT " + portToUse);
             tableAdd(portToUse);
             return portToUse;
     }
@@ -54,7 +50,7 @@ public class PortHandle {
                 ports[i]= ports[count-1];
                 ports[count-1]=0;
                 count--;
-                lvl3BlueNode.ConsolePrint(pre + "PORT " + port +" RELEASED");
+                App.ConsolePrint(pre + "PORT " + port +" RELEASED");
             }                                
         }            
     }

@@ -1,10 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.RunData.Tables;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
+import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.RunData.Instances.BlueNodeInstance;
 
@@ -27,7 +23,7 @@ public class BlueNodesTable {
         for (int i = 0; i < size; i++) {
             table[i] = null;
         }
-        lvl3BlueNode.ConsolePrint(pre + "INITIALIZED " + size);
+        App.ConsolePrint(pre + "INITIALIZED " + size);
     }
 
     public BlueNodeInstance getBlueNodeInstanceByHn(String hostname) {
@@ -56,11 +52,11 @@ public class BlueNodesTable {
     public void lease(BlueNodeInstance node) {
         if (count < size) {
             table[count] = node;
-            lvl3BlueNode.ConsolePrint(pre + count + " LEASED " + node.getHostname() + " ~ " + node.getPhaddress() + ":" + node.getDownport() + ":" + node.getUpport());
+            App.ConsolePrint(pre + count + " LEASED " + node.getHostname() + " ~ " + node.getPhaddress() + ":" + node.getDownport() + ":" + node.getUpport());
             count++;
             updateTable();
         } else {
-            lvl3BlueNode.ConsolePrint(pre + "NO MORE SPACE INSIDE REMOTE BLUENODE TABLE");
+            App.ConsolePrint(pre + "NO MORE SPACE INSIDE REMOTE BLUENODE TABLE");
         }
     }
 
@@ -76,13 +72,13 @@ public class BlueNodesTable {
                     table[count - 1] = null;
                     count--;
 
-                    lvl3BlueNode.ConsolePrint(pre + "RELEASED ENTRY");
+                    App.ConsolePrint(pre + "RELEASED ENTRY");
                     updateTable();
                     return;
                 }
             }
         }
-        lvl3BlueNode.ConsolePrint(pre + "NO ENTRY FOR " + id + " IN TABLE");
+        App.ConsolePrint(pre + "NO ENTRY FOR " + id + " IN TABLE");
     }
 
     public boolean checkBlueNode(String hostname) {
@@ -95,9 +91,9 @@ public class BlueNodesTable {
     }
 
     public void delete(int[] delTable) {
-        lvl3BlueNode.ConsolePrint(pre + "DELETING " + delTable.length + " BLUE NODES");
+        App.ConsolePrint(pre + "DELETING " + delTable.length + " BLUE NODES");
         for (int i = delTable.length; i > 0; i--) {
-            lvl3BlueNode.ConsolePrint(pre + "DELETING BLUE NODE " + delTable[i - 1]);
+            App.ConsolePrint(pre + "DELETING BLUE NODE " + delTable[i - 1]);
             getBlueNodeInstance(delTable[i - 1]).killtasks();
             getBlueNodeInstance(delTable[i - 1]).getQueueMan().clear();
             release(delTable[i - 1]);
@@ -108,7 +104,7 @@ public class BlueNodesTable {
     public void removeSingle(String hostname) {
         int place = getId(hostname);
         if (place != -1) {
-            lvl3BlueNode.ConsolePrint(pre + "DELETING BLUE NODE " + hostname);
+            App.ConsolePrint(pre + "DELETING BLUE NODE " + hostname);
             getBlueNodeInstance(place).killtasks();
             getBlueNodeInstance(place).getQueueMan().clear();
             release(place);
@@ -118,7 +114,7 @@ public class BlueNodesTable {
 
     public void updateTable() {
         //MainWindow.hostable.
-        if (lvl3BlueNode.gui) {
+        if (App.gui) {
             int rows = MainWindow.remotebtable.getRowCount();
             for (int i = 0; i < rows; i++) {
                 MainWindow.remotebtable.removeRow(0);

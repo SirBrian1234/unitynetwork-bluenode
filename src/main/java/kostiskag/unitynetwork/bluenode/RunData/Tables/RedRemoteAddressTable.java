@@ -1,10 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.RunData.Tables;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
+import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.RunData.Instances.RedRemoteAddress;
 import kostiskag.unitynetwork.bluenode.Functions.getTime;
@@ -30,7 +26,7 @@ public class RedRemoteAddressTable {
         for (int i = 0; i < size; i++) {
             table[i] = new RedRemoteAddress("none", "none", "none", "none");
         }
-        lvl3BlueNode.ConsolePrint(pre + "INITIALIZED " + size);
+        App.ConsolePrint(pre + "INITIALIZED " + size);
     }
 
     public RedRemoteAddress getRedRemoteAddress(int i) {
@@ -43,18 +39,18 @@ public class RedRemoteAddressTable {
                 return table[i];
             }
         }
-        lvl3BlueNode.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
+        App.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
         return null;
     }
 
     public void lease(String vAddress, String Hostname, String BlueNodeHostname) {
         if (count < size) {
             table[count].init(vAddress, Hostname, BlueNodeHostname, getTime.getSmallTimestamp());
-            lvl3BlueNode.ConsolePrint(pre + count + " LEASED " + vAddress + " KNOWN AS " + Hostname + " ON BLUE NODE " + BlueNodeHostname);
+            App.ConsolePrint(pre + count + " LEASED " + vAddress + " KNOWN AS " + Hostname + " ON BLUE NODE " + BlueNodeHostname);
             count++;
             updateTable();
         } else {
-            lvl3BlueNode.ConsolePrint(pre + "NO MORE SPACE INSIDE REMOTETABLE");
+            App.ConsolePrint(pre + "NO MORE SPACE INSIDE REMOTETABLE");
         }
     }
 
@@ -67,7 +63,7 @@ public class RedRemoteAddressTable {
             table[count - 1].init("none", "none", "none", "none");
             count--;
 
-            lvl3BlueNode.ConsolePrint(pre + "RELEASED ENTRY "+id);            
+            App.ConsolePrint(pre + "RELEASED ENTRY "+id);            
         }       
     }
 
@@ -83,12 +79,12 @@ public class RedRemoteAddressTable {
                     table[count - 1].init("none", "none", "none", "none");
                     count--;
 
-                    lvl3BlueNode.ConsolePrint(pre + "RELEASED ENTRY");
+                    App.ConsolePrint(pre + "RELEASED ENTRY");
                     return;
                 }
             }
         }
-        lvl3BlueNode.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
+        App.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
     }
 
     public Boolean checkAssociated(String vAddress) {
@@ -101,10 +97,10 @@ public class RedRemoteAddressTable {
     }
 
     public void delete(int[] delTable) {
-        lvl3BlueNode.ConsolePrint(pre + "DELETING " + delTable.length + " REMOTE RED NODES");
+        App.ConsolePrint(pre + "DELETING " + delTable.length + " REMOTE RED NODES");
         for (int i = delTable.length; i > 0; i--) {
             String address = table[delTable[i - 1]].getVAddress();
-            lvl3BlueNode.ConsolePrint(pre + "DELETING " + address);
+            App.ConsolePrint(pre + "DELETING " + address);
             releaseByAddr(address);
         }
         updateTable();
@@ -112,7 +108,7 @@ public class RedRemoteAddressTable {
 
     public void updateTable() {
         //MainWindow.hostable.
-        if (lvl3BlueNode.gui) {
+        if (App.gui) {
             int rows = MainWindow.remotetable.getRowCount();
             for (int i = 0; i < rows; i++) {
                 MainWindow.remotetable.removeRow(0);
@@ -124,12 +120,12 @@ public class RedRemoteAddressTable {
     }
 
     public void removeAssociations(String BlueNodeHostname) {
-        lvl3BlueNode.ConsolePrint(pre + "REMOVING BLUENODE "+BlueNodeHostname+" ASSOCIATIONS");
+        App.ConsolePrint(pre + "REMOVING BLUENODE "+BlueNodeHostname+" ASSOCIATIONS");
         String address = null;
         for (int i = 0; i < count; i++) {
             if (table[i].getBlueNodeHostname().equals(BlueNodeHostname)) {
                 address = table[i].getVAddress();
-                lvl3BlueNode.ConsolePrint(pre + "REMOVING " + address + " ~ " + table[i].getBlueNodeHostname());
+                App.ConsolePrint(pre + "REMOVING " + address + " ~ " + table[i].getBlueNodeHostname());
                 release(i);
             }
         }

@@ -1,11 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.GUI;
 
 import kostiskag.unitynetwork.bluenode.BlueNodeClient.RemoteHandle;
-import kostiskag.unitynetwork.bluenode.BlueNode.*;
 
 /**
  *

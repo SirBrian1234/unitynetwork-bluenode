@@ -1,6 +1,5 @@
 package kostiskag.unitynetwork.bluenode.Functions;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,11 +9,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+import kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
@@ -29,7 +24,7 @@ public class TCPSocketFunctions {
         try {
             IPaddress = InetAddress.getByName(PhAddress);
         } catch (UnknownHostException ex) {
-            lvl3BlueNode.ConsolePrint(pre + "WRONG ADDRESS GIVEN");            
+            App.ConsolePrint(pre + "WRONG ADDRESS GIVEN");            
             return null;
         }
         return IPaddress;
@@ -41,16 +36,16 @@ public class TCPSocketFunctions {
             socket = new Socket(IPaddress, authPort);
             socket.setSoTimeout(3000);
         } catch (java.net.NoRouteToHostException ex) {
-            lvl3BlueNode.ConsolePrint(pre + "NO ROUTE");
+            App.ConsolePrint(pre + "NO ROUTE");
             return null;
         } catch (java.net.ConnectException ex) {
-            lvl3BlueNode.ConsolePrint(pre + "CONNECTION REFUSED");
+            App.ConsolePrint(pre + "CONNECTION REFUSED");
             return null;
         } catch (java.net.SocketTimeoutException ex) {
-            lvl3BlueNode.ConsolePrint(pre + "CONNECTION TIMED OUT");
+            App.ConsolePrint(pre + "CONNECTION TIMED OUT");
             return null;
         } catch (IOException ex) {
-            lvl3BlueNode.ConsolePrint(pre + "CONNECTION ERROR");
+            App.ConsolePrint(pre + "CONNECTION ERROR");
             ex.printStackTrace();
             return null;
         }

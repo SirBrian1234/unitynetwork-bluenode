@@ -1,15 +1,10 @@
-
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.BlueNodeService;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
 import java.io.*;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
@@ -28,15 +23,15 @@ public class BlueNodeService extends Thread {
 
     @Override
     public void run() {
-        lvl3BlueNode.ConsolePrint(pre + "STARTING AN AUTH AT " + Thread.currentThread().getName());
+        App.ConsolePrint(pre + "STARTING AN AUTH AT " + Thread.currentThread().getName());
         try {
             String[] args;
             inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             outputWriter = new PrintWriter(connectionSocket.getOutputStream(), true);
-            outputWriter.println("BLUENODE " + lvl3BlueNode.Hostname + " ");
+            outputWriter.println("BLUENODE " + App.Hostname + " ");
 
             String clientSentence = inFromClient.readLine();
-            lvl3BlueNode.ConsolePrint(pre + clientSentence);
+            App.ConsolePrint(pre + clientSentence);
             args = clientSentence.split("\\s+");
 
             if (args.length == 2 && args[0].equals("BLUENODE")) {
@@ -59,7 +54,7 @@ public class BlueNodeService extends Thread {
         try {
             outputWriter.println("OK ");
             String clientSentence = inFromClient.readLine();
-            lvl3BlueNode.ConsolePrint(pre + clientSentence);
+            App.ConsolePrint(pre + clientSentence);
             String[] args = clientSentence.split("\\s+");
 
             if (args.length == 1 && args[0].equals("ASSOCIATE")) {
@@ -93,7 +88,7 @@ public class BlueNodeService extends Thread {
         try {
             outputWriter.println("OK");
             String clientSentence = inFromClient.readLine();
-            lvl3BlueNode.ConsolePrint(pre + clientSentence);
+            App.ConsolePrint(pre + clientSentence);
             String[] args = clientSentence.split("\\s+");
 
             if (args.length == 3 && args[0].equals("LEASE")) {
@@ -109,7 +104,7 @@ public class BlueNodeService extends Thread {
         try {
             outputWriter.println("OK");
             String clientSentence = inFromClient.readLine();
-            lvl3BlueNode.ConsolePrint(pre + clientSentence);
+            App.ConsolePrint(pre + clientSentence);
             String[] args = clientSentence.split("\\s+");
 
             if (args.length == 1 && args[0].equals("CHECK")) {

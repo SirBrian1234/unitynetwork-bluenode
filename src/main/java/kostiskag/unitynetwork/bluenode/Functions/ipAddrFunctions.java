@@ -1,14 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package kostiskag.unitynetwork.bluenode.Functions;
 
-import kostiskag.unitynetwork.bluenode.TrackClient.TrackingRedNodeFunctions;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import kostiskag.unitynetwork.bluenode.TrackClient.TrackingRedNodeFunctions;
 
 /**
  *

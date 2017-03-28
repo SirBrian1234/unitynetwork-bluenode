@@ -1,13 +1,9 @@
 package kostiskag.unitynetwork.bluenode.GUI;
 
-import kostiskag.unitynetwork.bluenode.BlueNode.lvl3BlueNode;
-import kostiskag.unitynetwork.bluenode.BlueNodeClient.RemoteHandle;
 import javax.swing.table.DefaultTableModel;
+import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.BlueNodeClient.RemoteHandle;
 
-/*
- * To change this template, choose Tools | Templates and open the template in
- * the editor.
- */
 /**
  *
  * @author kostis
@@ -28,7 +24,7 @@ public class MainWindow extends javax.swing.JFrame {
         remotetable = new DefaultTableModel(new String[][]{}, new String[]{"Virtual Address", "Hostname", "Blue Node Hostname", "Checked"});
         remotebtable = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Address", "Uplink Port", "Downlink Port"});
         initComponents();        
-        if (!lvl3BlueNode.network) {
+        if (!App.network) {
             jPanel11.setEnabled(false);
             jButton16.setEnabled(false);
             jButton17.setEnabled(false);
@@ -46,8 +42,8 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private int CloseApp() {
-        if (lvl3BlueNode.joined)
-            lvl3BlueNode.leave();        
+        if (App.joined)
+            App.leave();        
         return 3;
     }
 
@@ -798,9 +794,9 @@ public class MainWindow extends javax.swing.JFrame {
     private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton1ActionPerformed
         // TODO add your handling code here:
         if (jToggleButton1.isSelected() == true) {
-            lvl3BlueNode.viewTraffic = true;
+            App.viewTraffic = true;
         } else {
-            lvl3BlueNode.viewTraffic = false;
+            App.viewTraffic = false;
         }
     }//GEN-LAST:event_jToggleButton1ActionPerformed
 
@@ -816,23 +812,23 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         // TODO add your handling code here:
-        lvl3BlueNode.remoteRedNodesTable.updateTable();
+        App.remoteRedNodesTable.updateTable();
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
-        lvl3BlueNode.localRedNodesTable.updateTable();
+        App.localRedNodesTable.updateTable();
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
         int[] table = jTable1.getSelectedRows();
-        lvl3BlueNode.localRedNodesTable.delete(table);
+        App.localRedNodesTable.delete(table);
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
         // TODO add your handling code here:
-        lvl3BlueNode.BlueNodesTable.updateTable();
+        App.BlueNodesTable.updateTable();
     }//GEN-LAST:event_jButton7ActionPerformed
 
     private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
@@ -852,7 +848,7 @@ public class MainWindow extends javax.swing.JFrame {
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         // TODO add your handling code here:
         int[] table = jTable2.getSelectedRows();
-        lvl3BlueNode.remoteRedNodesTable.delete(table);
+        App.remoteRedNodesTable.delete(table);
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
@@ -876,7 +872,7 @@ public class MainWindow extends javax.swing.JFrame {
     private void jButton13ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton13ActionPerformed
         // TODO add your handling code here:
         if (jTable3.getSelectedRow() != -1) {
-            new BlueStatus(lvl3BlueNode.BlueNodesTable.getBlueNodeInstance(jTable3.getSelectedRow()).getHostname()).setVisible(true);
+            new BlueStatus(App.BlueNodesTable.getBlueNodeInstance(jTable3.getSelectedRow()).getHostname()).setVisible(true);
         }
     }//GEN-LAST:event_jButton13ActionPerformed
 
@@ -898,63 +894,63 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void jButton16ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton16ActionPerformed
         // TODO add your handling code here:                
-        if (!lvl3BlueNode.joined)
-            lvl3BlueNode.lease();
+        if (!App.joined)
+            App.lease();
     }//GEN-LAST:event_jButton16ActionPerformed
 
     private void jButton17ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton17ActionPerformed
         // TODO add your handling code here:
-        if (lvl3BlueNode.joined)
-            lvl3BlueNode.leave();
+        if (App.joined)
+            App.leave();
     }//GEN-LAST:event_jButton17ActionPerformed
 
     private void jCheckBox5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox5ActionPerformed
         // TODO add your handling code here:
-        lvl3BlueNode.viewType[0] = jCheckBox5.isSelected();
+        App.viewType[0] = jCheckBox5.isSelected();
     }//GEN-LAST:event_jCheckBox5ActionPerformed
 
     private void jCheckBox11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox11ActionPerformed
         // TODO add your handling code here:
-        lvl3BlueNode.viewType[1] = jCheckBox11.isSelected();
+        App.viewType[1] = jCheckBox11.isSelected();
     }//GEN-LAST:event_jCheckBox11ActionPerformed
 
     private void jCheckBox10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox10ActionPerformed
         // TODO add your handling code here:
-        lvl3BlueNode.viewType[2] = jCheckBox10.isSelected();
+        App.viewType[2] = jCheckBox10.isSelected();
     }//GEN-LAST:event_jCheckBox10ActionPerformed
 
     private void jCheckBox9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox9ActionPerformed
         // TODO add your handling code here:
-        lvl3BlueNode.viewType[3] = jCheckBox9.isSelected();
+        App.viewType[3] = jCheckBox9.isSelected();
     }//GEN-LAST:event_jCheckBox9ActionPerformed
 
     private void jRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton3ActionPerformed
         // TODO add your handling code here:
         if (jRadioButton3.isSelected()) {
-            lvl3BlueNode.viewhostType[0] = true;
-            lvl3BlueNode.viewhostType[1] = true;
+            App.viewhostType[0] = true;
+            App.viewhostType[1] = true;
         }
     }//GEN-LAST:event_jRadioButton3ActionPerformed
 
     private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton1ActionPerformed
         // TODO add your handling code here:
         if (jRadioButton1.isSelected()) {
-            lvl3BlueNode.viewhostType[0] = true;
-            lvl3BlueNode.viewhostType[1] = false;
+            App.viewhostType[0] = true;
+            App.viewhostType[1] = false;
         }
     }//GEN-LAST:event_jRadioButton1ActionPerformed
 
     private void jRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton2ActionPerformed
         // TODO add your handling code here:
         if (jRadioButton2.isSelected()) {
-            lvl3BlueNode.viewhostType[0] = false;
-            lvl3BlueNode.viewhostType[1] = true;
+            App.viewhostType[0] = false;
+            App.viewhostType[1] = true;
         }
     }//GEN-LAST:event_jRadioButton2ActionPerformed
 
     private void jCheckBox12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox12ActionPerformed
         // TODO add your handling code here:
-        lvl3BlueNode.autoScrollDown = jCheckBox12.isSelected();
+        App.autoScrollDown = jCheckBox12.isSelected();
     }//GEN-LAST:event_jCheckBox12ActionPerformed
 
     /**
@@ -1069,9 +1065,9 @@ public class MainWindow extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
     public void refreshinfo() {    
-        jTextField1.setText(lvl3BlueNode.Hostname);
-        jTextField2.setText("" + lvl3BlueNode.authport);
-        jTextField4.setText("" + lvl3BlueNode.hostnameEntries);
-        jTextField5.setText("" + lvl3BlueNode.startport + "-" + lvl3BlueNode.endport);
+        jTextField1.setText(App.Hostname);
+        jTextField2.setText("" + App.authport);
+        jTextField4.setText("" + App.hostnameEntries);
+        jTextField5.setText("" + App.startport + "-" + App.endport);
     }
    }
