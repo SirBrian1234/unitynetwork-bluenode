@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.Properties;
 import kostiskag.unitynetwork.bluenode.App;
@@ -16,15 +18,10 @@ import kostiskag.unitynetwork.bluenode.App;
  */
 public class ReadPreferencesFile {
     
-    public static void ParseFile(InputStream file) {
+    public static void ParseFile(InputStream file) throws IOException {
         
         Properties cfg = new java.util.Properties();
-        try {        
-            cfg.load(file);
-        } catch (IOException ex) {
-            System.err.println("read preferences load file error the file by this far should have been good! this may be an error");
-            App.die();
-        }
+        cfg.load(file);
         
         String UseNetwork = cfg.getProperty("network");
         String UnityTracker = cfg.getProperty("UnityTracker");
@@ -102,5 +99,64 @@ public class ReadPreferencesFile {
             System.err.println("read userlist error the file by this far should have been valid. this may be a bug");
             App.die();
         }
+    }
+    
+    public static void GenerateFile(File file) throws FileNotFoundException, UnsupportedEncodingException {    
+    	    PrintWriter writer = new PrintWriter(file, "UTF-8");
+    	    writer.print(""
+    	    		+ "###############################\n"
+    	    		+ "#   Blue Node Config File     #\n"
+    	    		+ "###############################\n"
+    	    		+ "\n"
+    	    		+ "# please do not comment any variable nor remove any. this will result in error\n"
+    	    		+ "# instead only change the value to an appropriate input as described\n"
+    	    		+ "\n"
+    	    		+ "# use unity network true ~ false (false means a standalone working BN, true means\n"
+    	    		+ "# that the BN works on a unity network with a tracker and other BNs)\n"
+    	    		+ "network = false\n"
+    	    		+ "\n"
+    	    		+ "# if you used network, lets define the central tracker\n"
+    	    		+ "# with an ip address or with a hostname or domain\n"
+    	    		+ "# and the central auth port of the tracker 8000 is default\n"
+    	    		+ "UnityTracker = localhost\n"
+    	    		+ "UnityTrackerAuthPort = 8000\n"
+    	    		+ "\n"
+    	    		+ "# choose to autologin to the network\n"
+    	    		+ "# by default is disabled because you can click it from the GUI\n"
+    	    		+ "AutoLogin = true\n"
+    	    		+ "\n"
+    	    		+ "# then set the hostname of the BN\n"
+    	    		+ "# hostname must be registered with central authority if you use one\n"
+    	    		+ "# and the local auth port 7000 default\n"
+    	    		+ "Hostname = BlueNode\n"
+    	    		+ "AuthPort = 7000\n"
+    	    		+ "\n"
+    	    		+ "# use list true ~ false (false means any client can log in as he states himself\n"
+    	    		+ "# true means only a user in users.list can login) the file users.list\n"
+    	    		+ "# holds the list\n"
+    	    		+ "uselist = false\n"
+    	    		+ "\n"
+    	    		+ "# now give a udprange\n"
+    	    		+ "# for the RN tunnels where the packets will be forwarded\n"
+    	    		+ "udpstart = 20000\n"
+    	    		+ "udpend = 22000\n"
+    	    		+ "\n"
+    	    		+ "# set the limit of RNs for this BN\n"
+    	    		+ "RedNodeLimit = 20\n"
+    	    		+ "\n"
+    	    		+ "# set GUI or command line\n"
+    	    		+ "# with true or false\n"
+    	    		+ "UseGUI = true\n"
+    	    		+ "\n"
+    	    		+ "# choose to verbose traffic in command line\n"
+    	    		+ "# by default is disabled because you can monitor it\n"
+    	    		+ "# in GUI but it useful if you are under remote terminal\n"
+    	    		+ "ConsoleTraffic = false\n"
+    	    		+ "\n"
+    	    		+ "# logging in bluenode.log\n"
+    	    		+ "# true ~ false\n"
+    	    		+ "log = true\n"
+    	    		+ "");    	    
+    	    writer.close();
     }
 }
