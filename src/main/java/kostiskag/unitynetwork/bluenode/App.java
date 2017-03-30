@@ -2,7 +2,6 @@ package kostiskag.unitynetwork.bluenode;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +19,7 @@ import kostiskag.unitynetwork.bluenode.RunData.Tables.BlueNodesTable;
 import kostiskag.unitynetwork.bluenode.Functions.PortHandle;
 import kostiskag.unitynetwork.bluenode.Functions.ReadPreferencesFile;
 import kostiskag.unitynetwork.bluenode.RunData.IPpoll;
+import kostiskag.unitynetwork.bluenode.TrackClient.*;
 import kostiskag.unitynetwork.bluenode.RunData.Tables.AccountsTable;
 import kostiskag.unitynetwork.bluenode.RunData.Tables.RedNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.Tables.RedRemoteAddressTable;
@@ -31,7 +31,16 @@ import kostiskag.unitynetwork.bluenode.RunData.Tables.RedRemoteAddressTable;
  */
 public class App extends Thread {
 
+	// file names
+	public static String configFileName = "bluenode.conf";
+	public static String hostlistFileName = "host.list";
+	public static String logFileName = "bluenode.log";
+	// files
+	public static File logFile;
 	// data
+	//since we use a 10.0.0.0 network that will be 2 at power of 24 minus zero and broadcast
+	public static int virtualNetworkAddressCapacity = (int) (Math.pow(2,24) - 2);
+	public static int systemReservedAddressNumber = 2; 
 	public static boolean[] viewType = new boolean[] { true, true, true, true };
 	public static boolean[] viewhostType = new boolean[] { true, true };
 	public static boolean autoScrollDown = true;
@@ -72,12 +81,10 @@ public class App extends Thread {
 	public static FlyRegister flyreg;
 	public static QueueManager manager;
 	public static QueueManager flyman;
-	public static boolean soutTraffic = false;
-	public static boolean autologin = false;
+	public static boolean soutTraffic = false;	
 	public static IPpoll kouvas;
 	public static PrintWriter prt;
-	// files
-	public static File logFile;
+	
 
 	// first starts main then this one
 	public App() {
@@ -85,7 +92,7 @@ public class App extends Thread {
 
 		// 0. init bluenode.log
 		if (log) {
-			logFile = new File("bluenode.log");
+			logFile = new File(logFileName);
 			FileWriter fw;
 			try {
 				fw = new FileWriter(logFile, false);
@@ -131,16 +138,12 @@ public class App extends Thread {
 
 		// 7. lease with the network or use predefined users
 		if (App.network) {
-			if (App.autologin) {
-				lease();
-			}
+			lease();			
+		} else if (App.UseList) {
+			loadUserList();
 		} else {
-			if (App.UseList) {
-				LoadUserList();
-			} else {
-				kouvas = new IPpoll();
-			}
-		}
+			kouvas = new IPpoll();
+		}		
 	}
 
 	public static void ConsolePrint(String Message) {
@@ -185,26 +188,20 @@ public class App extends Thread {
 		}
 	}
 
-	public static void LoadUserList() {
-		if (App.UseList && !App.network) {
-			try {
-				accounts = new AccountsTable();
-				kostiskag.unitynetwork.bluenode.Functions.ReadPreferencesFile.ParseList(new File("users.list"));
-				accounts.verbose();
-			} catch (IOException ex) {
-				Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
-				App.die();
-			}
-		} else {
-			System.err.println("Error in running " + Thread.currentThread().getName()
-					+ " called load user list when it was not ready. this may be a bug");
+	public static void loadUserList() {
+		try {
+			accounts = new AccountsTable();
+			ReadPreferencesFile.ParseHostClientList(new File(hostlistFileName));
+			accounts.verbose();
+		} catch (IOException ex) {
+			Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+			App.die();
 		}
-
 	}
 
 	public static void lease() {
 		if (App.network && App.Hostname != null && App.authport > 0) {
-			int leased = kostiskag.unitynetwork.bluenode.TrackClient.TrackingBlueNodeFunctions.lease(App.Hostname,
+			int leased = TrackingBlueNodeFunctions.lease(App.Hostname,
 					App.authport);
 			if (leased > 0) {
 				App.ConsolePrint("^SUCCESFULLY REGISTERED WITH THE NETWORK");
@@ -256,37 +253,52 @@ public class App extends Thread {
 	}
 
 	// we do not use args anymore... we use bluenode.conf
-	// you cant use consoleprint on main!!! only sout
-	// grave mistakes are being punished with exit(1) not die()
+	// you can't use sout as consoleprint is not ready yet 
+	// grave mistakes are being punished with System.exit(1) as die() in not ready yet
 	public static void main(String argv[]) {
 		System.out.println("@Started main at " + Thread.currentThread().getName());
-
-		String filename = "bluenode.conf";
+		
 		InputStream filein = null;
-		System.out.println("Opening configuration file " + filename + "...");
-		File file = new File(filename);
+		System.out.println("Checking configuration file " + configFileName + "...");
+		File file = new File(configFileName);
 		if (file.exists()) {
 			try {
 				filein = new FileInputStream(file);
-				ReadPreferencesFile.ParseFile(filein);
+				ReadPreferencesFile.ParseConfigFile(filein);
 				filein.close();
 			} catch (Exception e) {
-				System.err.println("File "+filename+" could not be loaded");
+				System.err.println("File "+configFileName+" could not be loaded");
 				e.printStackTrace();
 				System.exit(1);
 			}
 		} else {
-			System.out.println(filename+" file not found in the dir. Generating new file with the default settings");			
+			System.out.println(configFileName+" file not found in the dir. Generating new file with the default settings");			
      		try {
-     			ReadPreferencesFile.GenerateFile(file);
+     			ReadPreferencesFile.GenerateConfigFile(file);
 				filein = new FileInputStream(file);
-				ReadPreferencesFile.ParseFile(filein);
+				ReadPreferencesFile.ParseConfigFile(filein);
 				filein.close();
 			} catch (Exception e) {
-				System.err.println("File "+filename+" could not be loaded");
+				System.err.println("File "+configFileName+" could not be loaded");
 				e.printStackTrace();
 				System.exit(1);
 			}
+		}
+
+	    filein = null;
+		System.out.println("Checking file " + hostlistFileName + "...");
+		file = new File(hostlistFileName);
+		if (!file.exists()) {
+			System.out.println(hostlistFileName+" file not found in the dir. Generating new file with the default settings");			
+     		try {
+     			ReadPreferencesFile.GenerateHostClientFile(file);				
+			} catch (Exception e) {
+				System.err.println("File "+hostlistFileName+" could not be generated");
+				e.printStackTrace();
+				System.exit(1);
+			}
+		} else {
+			System.out.println(hostlistFileName+" exists in the dir");
 		}
 
 		if (gui) {

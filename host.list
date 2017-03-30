@@ -1,0 +1,30 @@
+###############################
+#   Host-Client List File     #
+###############################
+
+#
+# This file will take effect only when in bluenode.conf the following were
+# defined:
+#
+# when a BlueNode runs a Local Network
+# Network = false
+#
+# when a BlueNode has requested to use a user.list
+# UseClientList = true
+#
+
+#
+# In this file you may define a list of allowed host-clients
+# to be authenticated by the Blue Node
+#
+# Use like:
+# Username Password Hostname Virtual_Address_Number
+#
+# for the Virtual_Address_Number field use an integer starting from number 1, # the BlueNode will auto convert the number to its respective IP address
+# you may repeat the same Username and Password with a different Hostname
+# and Virtual_Address in case the same user owns more than one devices
+#
+# ex.
+# bob 12345 bob-laptop 2
+# bob 12345 bob-mobile 3
+#

@@ -18,28 +18,27 @@ import kostiskag.unitynetwork.bluenode.App;
  */
 public class ReadPreferencesFile {
     
-    public static void ParseFile(InputStream file) throws IOException {
+    public static void ParseConfigFile(InputStream file) throws IOException {
         
         Properties cfg = new java.util.Properties();
         cfg.load(file);
         
-        String UseNetwork = cfg.getProperty("network");
-        String UnityTracker = cfg.getProperty("UnityTracker");
-        String UnityTrackerAuthPort = cfg.getProperty("UnityTrackerAuthPort");        
-        String UseList = cfg.getProperty("uselist");
-        String Hostname = cfg.getProperty("Hostname");
-        String AuthPort = cfg.getProperty("AuthPort");
-        String udpstart = cfg.getProperty("udpstart");
-        String udpend = cfg.getProperty("udpend");
-        String RedNodeLimit = cfg.getProperty("RedNodeLimit");
-        String UseGUI = cfg.getProperty("UseGUI");
-        String ConsoleTraffic = cfg.getProperty("ConsoleTraffic");
-        String AutoLogin = cfg.getProperty("AutoLogin");
-        String Log = cfg.getProperty("log");
+        String UseNetwork = cfg.getProperty("Network").replaceAll("\\s+","");
+        String UnityTracker = cfg.getProperty("UnityTrackerAddress").replaceAll("\\s+","");
+        String UnityTrackerAuthPort = cfg.getProperty("UnityTrackerAuthPort").replaceAll("\\s+","");                
+        String Name = cfg.getProperty("Name").replaceAll("\\s+","");
+        String AuthPort = cfg.getProperty("AuthPort").replaceAll("\\s+","");
+        String UseList = cfg.getProperty("UseHostList").replaceAll("\\s+","");
+        String udpstart = cfg.getProperty("udpstart").replaceAll("\\s+","");
+        String udpend = cfg.getProperty("udpend").replaceAll("\\s+","");
+        String RedNodeLimit = cfg.getProperty("RedNodeLimit").replaceAll("\\s+","");
+        String UseGUI = cfg.getProperty("UseGUI").replaceAll("\\s+","");
+        String ConsoleTraffic = cfg.getProperty("ConsoleTraffic").replaceAll("\\s+","");        
+        String Log = cfg.getProperty("Log").replaceAll("\\s+","");
         
         App.network = Boolean.parseBoolean(UseNetwork);
         App.Taddr = UnityTracker; 
-        App.Hostname = Hostname;
+        App.Hostname = Name;
         App.Tport = Integer.parseInt(UnityTrackerAuthPort);        
         App.UseList = Boolean.parseBoolean(UseList);
         App.authport = Integer.parseInt(AuthPort);
@@ -47,116 +46,175 @@ public class ReadPreferencesFile {
         App.endport = Integer.parseInt(udpend);
         App.hostnameEntries = Integer.parseInt(RedNodeLimit);
         App.gui = Boolean.parseBoolean(UseGUI);
-        App.soutTraffic = Boolean.parseBoolean(ConsoleTraffic);
-        App.autologin =  Boolean.parseBoolean(AutoLogin);
+        App.soutTraffic = Boolean.parseBoolean(ConsoleTraffic);        
         App.log = Boolean.parseBoolean(Log);
         
         System.out.println("");
+        System.out.println("Network is "+App.network);
         System.out.println("UnityTracker is "+App.Taddr);        
         System.out.println("UnityTrackerAuthPort is "+App.Tport);        
         System.out.println("Hostname is "+App.Hostname);
         System.out.println("AuthPort is "+App.authport);
+        System.out.println("UseHostList is "+App.UseList);
         System.out.println("udpstart is "+App.startport);
         System.out.println("udpend is "+App.endport);
         System.out.println("RedNodeLimit is "+App.hostnameEntries);
         System.out.println("UseGUI is "+App.gui);
-        System.out.println("ConsoleTraffic is "+App.soutTraffic);
-        System.out.println("AutoLogin is "+App.autologin);        
+        System.out.println("ConsoleTraffic is "+App.soutTraffic);           
         System.out.println("Log is "+App.log);   
         System.out.println("");                
     }   
 
-    public static void ParseList(File userlist) throws IOException {
-        if (userlist == null || App.accounts == null){
-            System.err.println("Rarselist error called with non init accounts or file error");
-            App.die();
+    public static void ParseHostClientList(File hostListFile) throws IOException {
+        
+        BufferedReader br = new BufferedReader(new FileReader(hostListFile));                            
+        LinkedList<String> list = new LinkedList<String>();        
+        while(br.ready()){
+        	String line = br.readLine();
+        	if (!line.isEmpty() && !line.startsWith("#") && !line.startsWith("\n") && !line.startsWith(" ")) {        		
+        		list.add(line);
+        	}
         }
-            
-        try {
-            
-            BufferedReader br = new BufferedReader(new FileReader(userlist));            
-                    
-            LinkedList<String> list = new LinkedList<String>();
-            
-            while(br.ready()){            
-                list.add(br.readLine());
-            }            
-            
-            int size = list.size();
-            String line;
-            String[] validline;
-            for (int i=0; i<size; i++){
-                line = list.poll();
-                if (!line.startsWith("#")){
-                    validline = line.split("\\s+");
-                    App.accounts.insert(validline[0], validline[1], validline[2], validline[3]);
-                    System.out.println(validline[0]+ validline[1]+ validline[2]+ validline[3]);
-                }
-            }            
-            System.out.println("userlist loaded");
-            
-        } catch (FileNotFoundException ex) {
-            System.err.println("read userlist error the file by this far should have been valid. this may be a bug");
-            App.die();
-        }
+        br.close();
+        
+        int size = list.size();        
+        String line;
+        String[] validline;
+        for (int i=0; i<size; i++){
+            line = list.poll();
+            validline = line.split("\\s+");
+            int address = Integer.parseInt(validline[3]);
+            if (address > 0 && address <= (16777214 - 2 - App.systemReservedAddressNumber)) {
+            	address += App.systemReservedAddressNumber;            	
+            	String s_addr = ""+address;
+            	App.accounts.insert(validline[0], validline[1], validline[2], s_addr);
+            	System.out.println(validline[0]+ validline[1]+ validline[2]+ s_addr);
+            }
+        }            
+        System.out.println("hostlist loaded with "+size+" host-clients");                
     }
     
-    public static void GenerateFile(File file) throws FileNotFoundException, UnsupportedEncodingException {    
+    public static void GenerateConfigFile(File file) throws FileNotFoundException, UnsupportedEncodingException {    
     	    PrintWriter writer = new PrintWriter(file, "UTF-8");
     	    writer.print(""
-    	    		+ "###############################\n"
-    	    		+ "#   Blue Node Config File     #\n"
-    	    		+ "###############################\n"
+    	    		+ "#####################################\n"
+    	    		+ "#   BlueNode Configuration File     #\n"
+    	    		+ "#####################################\n"
     	    		+ "\n"
-    	    		+ "# please do not comment any variable nor remove any. this will result in error\n"
-    	    		+ "# instead only change the value to an appropriate input as described\n"
+    	    		+ "#\n"
+    	    		+ "# Insructions for setting up the config file\n"
+    	    		+ "#\n"
+    	    		+ "# Do not comment any variable nor remove any from this file as this will result\n"
+    	    		+ "# in an application error. Change the value to an appropriate input as described\n"
+    	    		+ "# instead. If this file gets messed up, you may delete it and it will be\n"
+    	    		+ "# auto-generated from the app.\n"
+    	    		+ "#\n"
     	    		+ "\n"
-    	    		+ "# use unity network true ~ false (false means a standalone working BN, true means\n"
-    	    		+ "# that the BN works on a unity network with a tracker and other BNs)\n"
-    	    		+ "network = false\n"
+    	    		+ "#\n"
+    	    		+ "# Network Type\n"
+    	    		+ "#\n"
+    	    		+ "# Network = false - for Local Network. The BlueNode may not connect to a tracker and will\n"
+    	    		+ "# serve only local connected RedNodes\n"
+    	    		+ "# Network = true - for Full Network. The BlueNode will seek a tracker to be a part in\n"
+    	    		+ "# a full network with other BlueNodess and remote RedNodess\n"
+    	    		+ "#\n"
+    	    		+ "Network = false\n"
     	    		+ "\n"
-    	    		+ "# if you used network, lets define the central tracker\n"
-    	    		+ "# with an ip address or with a hostname or domain\n"
-    	    		+ "# and the central auth port of the tracker 8000 is default\n"
-    	    		+ "UnityTracker = localhost\n"
+    	    		+ "#\n"
+    	    		+ "# variables for FullNetwork\n"
+    	    		+ "#\n"
+    	    		+ "# if you have selected Local Network these variables will not take any effect\n"
+    	    		+ "#\n"
+    	    		+ "\n"
+    	    		+ "# Provide the central tracker's address\n"
+    	    		+ "# with an ip address, with a hostname or domain.\n"
+    	    		+ "# Provide the tracker's TCP auth port. 8000 is the default.\n"
+    	    		+ "UnityTrackerAddress = localhost\n"
     	    		+ "UnityTrackerAuthPort = 8000\n"
     	    		+ "\n"
-    	    		+ "# choose to autologin to the network\n"
-    	    		+ "# by default is disabled because you can click it from the GUI\n"
-    	    		+ "AutoLogin = true\n"
-    	    		+ "\n"
-    	    		+ "# then set the hostname of the BN\n"
-    	    		+ "# hostname must be registered with central authority if you use one\n"
-    	    		+ "# and the local auth port 7000 default\n"
-    	    		+ "Hostname = BlueNode\n"
+    	    		+ "# Set the Name of this BlueNode\n"
+    	    		+ "# In Full Network the BN's name must be registered in the tracker's database\n"
+    	    		+ "# Set the TCP auth port. 7000 is the default.\n"
+    	    		+ "Name = BlueNode\n"
     	    		+ "AuthPort = 7000\n"
     	    		+ "\n"
-    	    		+ "# use list true ~ false (false means any client can log in as he states himself\n"
-    	    		+ "# true means only a user in users.list can login) the file users.list\n"
-    	    		+ "# holds the list\n"
-    	    		+ "uselist = false\n"
+    	    		+ "#\n"
+    	    		+ "# variables for LocalNetwork\n"
+    	    		+ "#\n"
+    	    		+ "# if you have selected Full Network these will not take effect\n"
+    	    		+ "#\n"
     	    		+ "\n"
-    	    		+ "# now give a udprange\n"
-    	    		+ "# for the RN tunnels where the packets will be forwarded\n"
+    	    		+ "# use list true - false (false means that any client can log in as he states himself\n"
+    	    		+ "# true means only a defined user in the file users.list can login\n"
+    	    		+ "# holds the list\n"
+    	    		+ "UseHostList = false\n"
+    	    		+ "\n"
+    	    		+ "#\n"
+    	    		+ "# Load and Capacity\n"
+    	    		+ "#\n"
+    	    		+ "# This is the BlueNode's UDP port range\n"
     	    		+ "udpstart = 20000\n"
     	    		+ "udpend = 22000\n"
     	    		+ "\n"
-    	    		+ "# set the limit of RNs for this BN\n"
+    	    		+ "# Set the upper limit of RNs for this BlueNode\n"
     	    		+ "RedNodeLimit = 20\n"
+    	    		+ "\n"
+    	    		+ "#\n"
+    	    		+ "# Application behaviour\n"
+    	    		+ "#\n"
     	    		+ "\n"
     	    		+ "# set GUI or command line\n"
     	    		+ "# with true or false\n"
     	    		+ "UseGUI = true\n"
     	    		+ "\n"
-    	    		+ "# choose to verbose traffic in command line\n"
-    	    		+ "# by default is disabled because you can monitor it\n"
-    	    		+ "# in GUI but it useful if you are under remote terminal\n"
+    	    		+ "# Select whether to verbose traffic in command line.\n"
+    	    		+ "# By default is disabled as it fills up the terminal\n"
+    	    		+ "# and you can allways monitor it in the GUI.\n"
+    	    		+ "# It useful if you are under a remote terminal.\n"
     	    		+ "ConsoleTraffic = false\n"
     	    		+ "\n"
-    	    		+ "# logging in bluenode.log\n"
-    	    		+ "# true ~ false\n"
-    	    		+ "log = true\n"
+    	    		+ "# Logging in bluenode.log\n"
+    	    		+ "# use true or false\n"
+    	    		+ "Log = true\n"
     	    		+ "");    	    
     	    writer.close();
+    }
+    
+    public static void GenerateHostClientFile(File file) throws FileNotFoundException, UnsupportedEncodingException {
+    	PrintWriter writer = new PrintWriter(file, "UTF-8");
+	    writer.print("" 
+	    		+ "###############################\n"
+	    		+ "#   Host-Client List File     #\n"
+	    		+ "###############################\n"
+	    		+ "\n"
+	    		+ "#\n"
+	    		+ "# This file will take effect only when in bluenode.conf the following were\n"
+	    		+ "# defined:\n"
+	    		+ "#\n"
+	    		+ "# when a BlueNode runs a Local Network\n"
+	    		+ "# Network = false\n"
+	    		+ "#\n"
+	    		+ "# when a BlueNode has requested to use a user.list\n" 
+	    		+ "# UseClientList = true\n"
+	    		+ "#\n" 
+	    		+ "\n"
+	    		+ "#\n"
+	    		+ "# In this file you may define a list of allowed host-clients\n" 
+	    		+ "# to be authenticated by the Blue Node\n"
+	    		+ "#\n"
+	    		+ "# Use like:\n"
+	    		+ "# Username Password Hostname Virtual_Address_Number\n"
+	    		+ "#\n"
+	    		+ "# for the Virtual_Address_Number field use an integer starting from number 1, "
+	    		+ "# the BlueNode will auto convert the number to its respective IP address\n"
+	    		+ "# you may repeat the same Username and Password with a different Hostname\n" 
+	    		+ "# and Virtual_Address in case the same user owns more than one devices\n"
+	    		+ "#\n"
+	    		+ "# ex.\n"
+	    		+ "# bob 12345 bob-laptop 2\n"
+	    		+ "# bob 12345 bob-mobile 3\n"
+	    		+ "#\n"	    		
+	    		+ "");    	    
+	    writer.close();		
     }
 }
