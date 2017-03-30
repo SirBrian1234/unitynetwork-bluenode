@@ -4,7 +4,7 @@
 	<groupId>kostiskag.unitynetwork.bluenode</groupId>
 	<artifactId>UnityNetwork_BlueNode</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0</version>
 	<name>UnityNetwork_BlueNode</name>
 	<url>http://maven.apache.org</url>
 	<properties>
