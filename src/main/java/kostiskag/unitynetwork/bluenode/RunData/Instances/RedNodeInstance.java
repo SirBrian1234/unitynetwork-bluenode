@@ -270,7 +270,7 @@ public class RedNodeInstance extends Thread {
         App.localRedNodesTable.updateTable();
     }
 
-    private void exit() {
+    public void exit() {
         //killing auth socket
         outputWriter.println("BYE");
         try {

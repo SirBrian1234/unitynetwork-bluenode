@@ -105,7 +105,17 @@ public class RedNodesTable {
             release(address);
         }
         updateTable();
-    }        
+    }
+    
+    // in case of network fall we have to release all the connected red nodes
+    public void releaseAll() {
+    	for (int i=0; i<count; i++) {
+    		table[i].exit();
+    		table[i] = null;    		
+    	}
+    	count = 0;
+    	updateTable();
+    }
 
     public void updateTable() {
         if (App.gui == true) {
@@ -117,8 +127,8 @@ public class RedNodesTable {
                 MainWindow.hostable.addRow(new Object[]{table[i].getVaddress(), table[i].getHostname(), table[i].getUsername(), table[i].getPhAddress(), table[i].getUp().getUpport(), table[i].getDown().getDownport()});
             }
         }
-    }
-
+    }    
+    
     public int getSize() {
         return count;
     }

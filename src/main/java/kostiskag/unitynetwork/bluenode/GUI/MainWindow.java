@@ -4,6 +4,12 @@ import javax.swing.table.DefaultTableModel;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.BlueNodeClient.RemoteHandle;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author kostis
@@ -19,7 +25,7 @@ public class MainWindow extends javax.swing.JFrame {
     public static int messageCount = 0;
 
     public MainWindow() {
-        setTitle("lvl3 Blue Node");
+        setTitle("Blue Node");
         hostable = new DefaultTableModel(new String[][]{}, new String[]{"Virtual Address", "Hostname", "Username", "Physical Address", "Uplink Port", "Downlink Port"});
         remotetable = new DefaultTableModel(new String[][]{}, new String[]{"Virtual Address", "Hostname", "Blue Node Hostname", "Checked"});
         remotebtable = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Address", "Uplink Port", "Downlink Port"});
@@ -132,7 +138,21 @@ public class MainWindow extends javax.swing.JFrame {
 
         jMenuItem5.setText("jMenuItem5");
 
-        setDefaultCloseOperation(CloseApp());
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we)
+            { 
+                String ObjButtons[] = {"Yes","No"};
+                int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you wish to terminate this Blue Node?\nThis may result in a partial network termination.\nIf you decide to close the BLue Node, it will send the appropriate kill signals to the connected Red Nodes.","",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
+                if(PromptResult==JOptionPane.YES_OPTION)
+                {
+                    App.localRedNodesTable.releaseAll();
+                	App.die();
+                }
+            }
+        });
+        
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         jPanel1.setPreferredSize(new java.awt.Dimension(800, 600));
