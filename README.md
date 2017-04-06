@@ -40,8 +40,7 @@ In order to build this project, Java JDK 1.7 or greater and Apache Maven have to
 
 ## Build
 ```
-git clone
-https://github.com/kostiskag/unitynetwork-bluenode.git
+git clone https://github.com/kostiskag/unitynetwork-bluenode.git
 cd unitynetwork-bluenode
 mvn package
 ```
