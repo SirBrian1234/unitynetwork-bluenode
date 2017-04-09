@@ -39,7 +39,8 @@ public class TrackingDynamicAddress extends Thread {
             App.bn.ConsolePrint(pre+"UPDATING");
             boolean update = TrackingBlueNodeFunctions.update();        
             if (!update) {
-                App.bn.ConsolePrint(pre+"GRAVE ERROR TRACKER DIED!!! STARTING BN KILL");                
+            	App.bn.ConsolePrint(pre+"GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL"); 
+                App.bn.localRedNodesTable.releaseAll();
                 App.bn.die();                
             }
             

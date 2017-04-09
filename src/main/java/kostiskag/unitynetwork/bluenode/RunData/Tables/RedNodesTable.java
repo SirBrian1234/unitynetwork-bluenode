@@ -107,7 +107,9 @@ public class RedNodesTable {
         updateTable();
     }
     
-    // in case of network fall we have to release all the connected red nodes
+    /*
+     *  This is used in case of a network fall where we have to release all the connected red nodes
+     */
     public void releaseAll() {
     	for (int i=0; i<count; i++) {
     		table[i].exit();

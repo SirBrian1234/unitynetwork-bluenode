@@ -23,41 +23,40 @@ import kostiskag.unitynetwork.bluenode.TrackClient.TrackingDynamicAddress;
 
 public class BlueNode extends Thread{
 	private static final String pre = "^BlueNode ";
-	// network
-	public boolean network = false;
-	public boolean joined = false;
-	public boolean useList = false;
-	public boolean log = false;
+	// init settings
+	public final boolean network;
+	public final String trackerAddress;
+	public final int trackerPort;	
+	public final String name;
+	public final boolean useList;
+	public final int authPort;
+	public final int startPort;
+	public final int endPort;
+	public final int maxRednodeEntries;
+	public final boolean gui;
+	public final boolean soutTraffic;	
+	public final boolean log;
+	public final AccountsTable accounts;
 	// gui
 	public boolean[] viewType = new boolean[] { true, true, true, true };
 	public boolean[] viewhostType = new boolean[] { true, true };
 	public boolean autoScrollDown = true;
-	// basic info
-	public String name;
-	public int authPort;
-	public int startPort;
-	public int endPort;
-	public int maxRednodeEntries;
 	// run data
+	public boolean joined = false;
 	public boolean dping;
 	public int keepAliveTime = 5;
 	public PortHandle UDPports;
+	public TrackingDynamicAddress addr;
 	// our most important tables
 	public RedNodesTable localRedNodesTable;
 	public RedRemoteAddressTable remoteRedNodesTable;
 	public BlueNodesTable blueNodesTable;
-	public AccountsTable accounts;
-	public TrackingDynamicAddress addr;
 	// tracker data
-	public String trackerAddress = "127.0.0.1";
-	public int trackerPort = 8000;	
 	public String echoAddress;
-	public int DynAddUpdateMins = 5;
+	public int DynAddUpdateMins = 2;
 	// gui data
-	public boolean gui = false;
 	public boolean viewTraffic = true;
 	private int messageCount = 0;	
-	public boolean soutTraffic = false;	
 	public IPpoll kouvas;
 	public PrintWriter prt;
 	// objects
@@ -123,14 +122,13 @@ public class BlueNode extends Thread{
 	public void run() {
 		super.run();
 		System.out.println(pre + "started BlueNode at thread " + Thread.currentThread().getName());
-
 		// 1. gui goes first to verbose init on print
 		if (gui) {
 			window = new MainWindow();
 			window.setVisible(true);
 			window.setBlueNodeInfo();
 		}
-
+		
 		// 2. initializing bluenodes data
 		UDPports = new PortHandle(startPort, endPort);
 		localRedNodesTable = new RedNodesTable(maxRednodeEntries);
@@ -173,7 +171,7 @@ public class BlueNode extends Thread{
 			}
 		} else if (!useList) {
 			kouvas = new IPpoll();
-		}				
+		}
 	}
 
 	public void ConsolePrint(String Message) {
@@ -193,7 +191,7 @@ public class BlueNode extends Thread{
 	// hosttype ~ 0 reds, 1 blues
 	public void TrafficPrint(String Message, int messageType, int hostType) {
 		if (gui) {
-			if (viewTraffic == true) {
+			if (viewTraffic) {
 				if (viewType[messageType] == true && viewhostType[hostType] == true) {
 					messageCount++;
 					window.jTextArea2.append(Message + "\n");
@@ -214,8 +212,8 @@ public class BlueNode extends Thread{
 	
 
 	public boolean joinNetwork() throws Exception {
-		if (App.network && !App.name.isEmpty() && App.authPort > 0 && App.authPort <= 65535) {
-			int leased = TrackingBlueNodeFunctions.lease(App.name, App.authPort);
+		if (network && !name.isEmpty() && authPort > 0 && authPort <= 65535) {
+			int leased = TrackingBlueNodeFunctions.lease(name, authPort);
 			if (leased > 0) {
 				ConsolePrint("^SUCCESFULLY REGISTERED WITH THE NETWORK");
 				return true;
@@ -249,7 +247,7 @@ public class BlueNode extends Thread{
 
 	public void die() {
 		try {
-			Thread.sleep(1500);
+			Thread.sleep(3000);
 		} catch (InterruptedException ex) {
 			ex.printStackTrace();
 		}

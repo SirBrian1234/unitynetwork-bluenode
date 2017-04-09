@@ -3,15 +3,14 @@ package kostiskag.unitynetwork.bluenode.BlueNodeClient;
 import kostiskag.unitynetwork.bluenode.App;
 
 /**
- *
- * @author kostis
- *
- * Here are the functions that handle all the remote associations like: adding a
+ * Here are the functions which handle all the remote associations like: adding a
  * blue node adding a remote red associating checking online
  *
  * These functions have 2 goals they connect to the remote blue node they set
  * all the remote tables with data they use ClientFunctions to connect
  * ClientFunctions use socketFunctions
+ * 
+ * @author kostis
  */
 public class RemoteHandle {
 
