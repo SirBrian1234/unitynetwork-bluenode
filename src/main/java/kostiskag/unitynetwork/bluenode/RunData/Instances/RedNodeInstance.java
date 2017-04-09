@@ -58,7 +58,7 @@ public class RedNodeInstance extends Thread {
         this.Username = Username;
         this.socket = socket;
 
-        App.ConsolePrint(pre + "STARTING A REDNODE AUTH AT " + Thread.currentThread().getName());
+        App.bn.ConsolePrint(pre + "STARTING A REDNODE AUTH AT " + Thread.currentThread().getName());
         String[] args;
 
         try {
@@ -68,60 +68,60 @@ public class RedNodeInstance extends Thread {
             PhAddress = socket.getInetAddress();
             PhAddressStr = PhAddress.getHostAddress();
 
-            if (App.network)
+            if (App.bn.network)
                 Vaddress = TrackingRedNodeFunctions.lease(Hostname, Username, Password);
-            else if (App.UseList)
-                Vaddress = App.accounts.search(Hostname, Username, Password);
+            else if (App.bn.useList)
+                Vaddress = App.bn.accounts.search(Hostname, Username, Password);
             else
-                Vaddress = App.kouvas.poll();
+                Vaddress = App.bn.kouvas.poll();
             
             if (Vaddress != null) {
                 //leasing - reverse error capture     
                 if (Vaddress.equals("WRONG_COMMAND")) {
-                    App.ConsolePrint(pre + "WRONG_COMMAND");
+                    App.bn.ConsolePrint(pre + "WRONG_COMMAND");
                     outputWriter.println("BLUENODE FAILED");
                     socket.close();
                     state = -1;
                 } else if (Vaddress.equals("NOT_ONLINE")) {
-                    App.ConsolePrint(pre + "NOT_ONLINE");
+                    App.bn.ConsolePrint(pre + "NOT_ONLINE");
                     outputWriter.println("BLUENODE FAILED");
                     socket.close();
                     state = -1;
                 } else if (Vaddress.equals("NOT_REGISTERED")) {
-                    App.ConsolePrint(pre + "NOT_REGISTERED");
+                    App.bn.ConsolePrint(pre + "NOT_REGISTERED");
                     outputWriter.println("BLUENODE FAILED");
                     socket.close();
                     state = -1;
                 } else if (Vaddress.equals("SYSTEM_ERROR")) {
-                    App.ConsolePrint(pre + "SYSTEM_ERROR");
+                    App.bn.ConsolePrint(pre + "SYSTEM_ERROR");
                     outputWriter.println("BLUENODE FAILED");
                     socket.close();
                     state = -1;
                 } else if (Vaddress.equals("AUTH_FAILED")) {
-                    App.ConsolePrint(pre + "USER FAILED 1");
+                    App.bn.ConsolePrint(pre + "USER FAILED 1");
                     outputWriter.println("USER FAILED 1");
                     socket.close();
                     state = -1;
                 } else if (Vaddress.equals("USER_HOSTNAME_MISSMATCH")) {
-                    App.ConsolePrint(pre + "HOSTNAME FAILED 3");
+                    App.bn.ConsolePrint(pre + "HOSTNAME FAILED 3");
                     outputWriter.println("HOSTNAME FAILED 3");
                     socket.close();
                     state = -1;
                 } else if (Vaddress.equals("ALLREADY_LEASED")) {
-                    App.ConsolePrint(pre + "HOSTNAME FAILED 2");
+                    App.bn.ConsolePrint(pre + "HOSTNAME FAILED 2");
                     outputWriter.println("HOSTNAME FAILED 2");
                     socket.close();
                     state = -1;
                 } else if (Vaddress.equals("NOT_FOUND")) {
-                    App.ConsolePrint(pre + "HOSTNAME FAILED 1");
+                    App.bn.ConsolePrint(pre + "HOSTNAME FAILED 1");
                     outputWriter.println("HOSTNAME FAILED 1");
                     socket.close();
                     state = -1;
                 } else {
                     Vaddress = ipAddrFunctions.numberTo10ipAddr(Vaddress);
-                    App.ConsolePrint(pre + "USER AUTHED / STARTING ASSOSIATION");
+                    App.bn.ConsolePrint(pre + "USER AUTHED / STARTING ASSOSIATION");
 
-                    if (App.gui && didTrigger == false) {
+                    if (App.bn.gui && didTrigger == false) {
                         MainWindow.jCheckBox2.setSelected(true);
                         didTrigger = true;
                     }
@@ -205,15 +205,15 @@ public class RedNodeInstance extends Thread {
                         outputWriter.println("PING ON THE WAY");
                     } else {
                         outputWriter.println("BLUE NODE ERROR");
-                        App.ConsolePrint(pre + "NO QUEUE FOUND FOR " + Vaddress + " HOST KILLED");
+                        App.bn.ConsolePrint(pre + "NO QUEUE FOUND FOR " + Vaddress + " HOST KILLED");
                         killTasks();
                         break;
                     }
                 } else if (clientSentence.startsWith("DREFRESH")) {
-                    App.ConsolePrint(pre + " " + Vaddress + " UP REFRESH");
+                    App.bn.ConsolePrint(pre + " " + Vaddress + " UP REFRESH");
                     urefresh();
                 } else if (clientSentence.startsWith("UREFRESH")) {
-                    App.ConsolePrint(pre + Vaddress + " DOWN REFRESH");
+                    App.bn.ConsolePrint(pre + Vaddress + " DOWN REFRESH");
                     drefresh();
                 } else if (clientSentence.startsWith("WHOAMI")) {
                     whoami();
@@ -228,7 +228,7 @@ public class RedNodeInstance extends Thread {
             try {
                 socket.close();
             } catch (IOException ex) {
-                App.ConsolePrint(pre + "USER FORCE EXITED");
+                App.bn.ConsolePrint(pre + "USER FORCE EXITED");
                 forceExit();
             }
         }
@@ -252,7 +252,7 @@ public class RedNodeInstance extends Thread {
         }
 
         outputWriter.println("DOWNLINK REFRESH " + up.getUpport());
-        App.localRedNodesTable.updateTable();
+        App.bn.localRedNodesTable.updateTable();
     }
 
     private void drefresh() {
@@ -267,7 +267,7 @@ public class RedNodeInstance extends Thread {
                     .getName()).log(Level.SEVERE, null, ex);
         }
         outputWriter.println("UPLINK REFRESH " + down.getDownport());
-        App.localRedNodesTable.updateTable();
+        App.bn.localRedNodesTable.updateTable();
     }
 
     public void exit() {
@@ -282,9 +282,9 @@ public class RedNodeInstance extends Thread {
         //killing user tasks
         killTasks();
         //releasing host from table
-        App.localRedNodesTable.release(Vaddress);
+        App.bn.localRedNodesTable.release(Vaddress);
         //informing user black node
-        if (App.network)
+        if (App.bn.network)
             TrackingRedNodeFunctions.release(Hostname);
     }
 
@@ -293,7 +293,7 @@ public class RedNodeInstance extends Thread {
         killTasks();
         state = -2;
         //releasing host from table
-        App.localRedNodesTable.release(Vaddress);
+        App.bn.localRedNodesTable.release(Vaddress);
         //informing user black node
         TrackingRedNodeFunctions.release(Hostname);
     }

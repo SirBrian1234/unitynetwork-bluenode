@@ -39,7 +39,7 @@ public class BlueUpServiceServer extends Thread {
      */
     public BlueUpServiceServer(String hostname) {
         this.hostname = hostname;
-        upPort = App.UDPports.requestPort();
+        upPort = App.bn.UDPports.requestPort();
         pre = pre + hostname + " ";
         isServer = true;
     }
@@ -52,8 +52,8 @@ public class BlueUpServiceServer extends Thread {
 
     @Override
     public void run() {
-        App.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName() + " ON PORT " + upPort);
-        App.ConsolePrint("up service server " + upPort);
+        App.bn.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName() + " ON PORT " + upPort);
+        App.bn.ConsolePrint("up service server " + upPort);
 
         try {
             serverSocket = new DatagramSocket(upPort);
@@ -71,10 +71,10 @@ public class BlueUpServiceServer extends Thread {
         try {
             serverSocket.receive(receivedUDPPacket);
         } catch (java.net.SocketTimeoutException ex) {
-            App.ConsolePrint(pre + "FISH SOCKET TIMEOUT");
+            App.bn.ConsolePrint(pre + "FISH SOCKET TIMEOUT");
             return;
         } catch (java.net.SocketException ex) {
-            App.ConsolePrint(pre + "FISH SOCKET CLOSED, EXITING");
+            App.bn.ConsolePrint(pre + "FISH SOCKET CLOSED, EXITING");
             return;
         } catch (IOException ex) {
             Logger.getLogger(RedlUpService.class.getName()).log(Level.SEVERE, null, ex);
@@ -87,7 +87,7 @@ public class BlueUpServiceServer extends Thread {
         while (!kill) {
 
             try {
-                data = App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().poll();
+                data = App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().poll();
             } catch (java.lang.NullPointerException ex1) {
                 continue;
             } catch (java.util.NoSuchElementException ex) {
@@ -106,31 +106,31 @@ public class BlueUpServiceServer extends Thread {
                     if (args.length > 1) {
                         if (args[0].equals("00000")) {
                             //keep alive
-                            App.TrafficPrint(pre + version + " " + "[KEEP ALIVE]", 0, 1);
+                            App.bn.TrafficPrint(pre + version + " " + "[KEEP ALIVE]", 0, 1);
                         } else if (args[0].equals("00002")) {
                             //le wild blue node uping!
-                            App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);
-                            App.TrafficPrint(pre + "LE WILD RN UPING LEAVES", 1, 1);
+                            App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);
+                            App.bn.TrafficPrint(pre + "LE WILD RN UPING LEAVES", 1, 1);
                         } else if (args[0].equals("00003")) {
                             //le wild blue node dping!
-                            App.dping = true;
-                            App.TrafficPrint(pre + "LE WILD RN DPING LEAVES", 1, 1);
+                            App.bn.dping = true;
+                            App.bn.TrafficPrint(pre + "LE WILD RN DPING LEAVES", 1, 1);
                         } 
                     }
                 }
-                if (App.gui && trigger == false) {
+                if (App.bn.gui && trigger == false) {
                     MainWindow.jCheckBox6.setSelected(true);
                     trigger = true;
                 }
             } catch (java.net.SocketException ex1) {
-                App.ConsolePrint(pre + " SOCKET DIED FOR " + hostname);
+                App.bn.ConsolePrint(pre + " SOCKET DIED FOR " + hostname);
             } catch (IOException ex) {
-                App.ConsolePrint(pre + "SOCKET ERROR FOR " + hostname);
+                App.bn.ConsolePrint(pre + "SOCKET ERROR FOR " + hostname);
             }
         }
-        App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
-        App.UDPports.releasePort(sourcePort);
-        App.ConsolePrint(pre + "ENDED FOR " + hostname);
+        App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
+        App.bn.UDPports.releasePort(sourcePort);
+        App.bn.ConsolePrint(pre + "ENDED FOR " + hostname);
     }
 
     public void kill() {

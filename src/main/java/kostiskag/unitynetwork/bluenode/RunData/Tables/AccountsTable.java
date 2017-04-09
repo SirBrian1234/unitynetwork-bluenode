@@ -17,7 +17,7 @@ public class AccountsTable {
         array = new AccountInstance[100];
         count = 0;
         len=100;
-        App.ConsolePrint(pre+"using local user table");
+        App.bn.ConsolePrint(pre+"using local user table");
     }
         
     public void insert(String username, String password, String hostname, String vadress){
@@ -37,7 +37,7 @@ public class AccountsTable {
     
      public void verbose(){
         for(int i=0; i<count; i++){
-            App.ConsolePrint(array[i].verbose());
+            App.bn.ConsolePrint(array[i].verbose());
         }
     }
 }

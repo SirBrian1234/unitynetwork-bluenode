@@ -16,11 +16,11 @@ class TrackingFunctions {
     }
 
     public static void getrns(PrintWriter outputWriter) {
-        int size = App.localRedNodesTable.getSize();
+        int size = App.bn.localRedNodesTable.getSize();
         TCPSocketFunctions.sendFinalData("SENDING_LOCAL_RED_NODES " + size, outputWriter);
         for (int i = 0; i < size; i++) {
-            String vaddress = App.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-            String hostname = App.localRedNodesTable.getRedNodeInstance(i).getHostname();
+            String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
+            String hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
             TCPSocketFunctions.sendFinalData(hostname+" "+vaddress, outputWriter);
         }
         TCPSocketFunctions.sendFinalData("", outputWriter);  //line feed      

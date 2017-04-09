@@ -49,17 +49,17 @@ public class FlyRegister extends Thread {
             String sourcevaddress = pair.sourcevaddress;
             String destvaddress = pair.destvaddress;
             
-            App.ConsolePrint(pre + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
+            App.bn.ConsolePrint(pre + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
 
             //maybe it associated one loop back
-            if (App.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
-                App.ConsolePrint(pre + "Allready associated entry");
+            if (App.bn.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
+                App.bn.ConsolePrint(pre + "Allready associated entry");
                 continue;
             } else {                
                 String BNHostname = TrackingRedNodeFunctions.checkOnlineByAddr(destvaddress);                
                 if (BNHostname != null) {
                     //we might have him associated but we may not have his rrd
-                    if (!App.BlueNodesTable.checkBlueNode(BNHostname)) {
+                    if (!App.bn.blueNodesTable.checkBlueNode(BNHostname)) {
                         String phaddress = TrackingBlueNodeFunctions.getPhysical(BNHostname);
                         String[] args = phaddress.split(":");
                         String address = args[0];
@@ -75,13 +75,13 @@ public class FlyRegister extends Thread {
                     } else {
                         RemoteHandle.BlueNodeExchange(BNHostname, sourcevaddress, destvaddress);
                     }
-                    if (App.BlueNodesTable.checkBlueNode(BNHostname)) {                        
-                        App.TrafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", 3, 1);
+                    if (App.bn.blueNodesTable.checkBlueNode(BNHostname)) {                        
+                        App.bn.TrafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", 3, 1);
                     } else {
-                        App.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, 3, 1);                                                
+                        App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, 3, 1);                                                
                     }
                 } else {
-                   App.ConsolePrint(pre + "NOT FOUND "+destvaddress+" ON NETWORK");                     
+                   App.bn.ConsolePrint(pre + "NOT FOUND "+destvaddress+" ON NETWORK");                     
                 }
             }
         }

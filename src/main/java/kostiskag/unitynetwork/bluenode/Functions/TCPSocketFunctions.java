@@ -24,7 +24,7 @@ public class TCPSocketFunctions {
         try {
             IPaddress = InetAddress.getByName(PhAddress);
         } catch (UnknownHostException ex) {
-            App.ConsolePrint(pre + "WRONG ADDRESS GIVEN");            
+            App.bn.ConsolePrint(pre + "WRONG ADDRESS GIVEN");            
             return null;
         }
         return IPaddress;
@@ -36,16 +36,16 @@ public class TCPSocketFunctions {
             socket = new Socket(IPaddress, authPort);
             socket.setSoTimeout(3000);
         } catch (java.net.NoRouteToHostException ex) {
-            App.ConsolePrint(pre + "NO ROUTE");
+            App.bn.ConsolePrint(pre + "NO ROUTE");
             return null;
         } catch (java.net.ConnectException ex) {
-            App.ConsolePrint(pre + "CONNECTION REFUSED");
+            App.bn.ConsolePrint(pre + "CONNECTION REFUSED");
             return null;
         } catch (java.net.SocketTimeoutException ex) {
-            App.ConsolePrint(pre + "CONNECTION TIMED OUT");
+            App.bn.ConsolePrint(pre + "CONNECTION TIMED OUT");
             return null;
         } catch (IOException ex) {
-            App.ConsolePrint(pre + "CONNECTION ERROR");
+            App.bn.ConsolePrint(pre + "CONNECTION ERROR");
             ex.printStackTrace();
             return null;
         }

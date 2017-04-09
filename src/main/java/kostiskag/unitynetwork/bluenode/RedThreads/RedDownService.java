@@ -30,18 +30,18 @@ public class RedDownService extends Thread {
 
     public RedDownService(String vaddress) {
         this.vaddress = vaddress;
-        destPort = App.UDPports.requestPort();
+        destPort = App.bn.UDPports.requestPort();
         pre = pre + vaddress + " ";
     }
 
     @Override
     public void run() {
-        App.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName() + " ON PORT " + destPort);
+        App.bn.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName() + " ON PORT " + destPort);
      
         try {
             serverSocket = new DatagramSocket(destPort);
         } catch (java.net.BindException ex) {
-            App.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
+            App.bn.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
         } catch (SocketException ex) {
             Logger.getLogger(RedDownService.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -57,7 +57,7 @@ public class RedDownService extends Thread {
                 if (len > 0 && len <= 1500) {
                     data = new byte[len];
                     System.arraycopy(receivePacket.getData(), 0, data, 0, len);
-                    if (App.gui && didTrigger == false) {
+                    if (App.bn.gui && didTrigger == false) {
                         MainWindow.jCheckBox3.setSelected(true);
                         didTrigger = true;
                     }
@@ -69,11 +69,11 @@ public class RedDownService extends Thread {
                         if (args.length > 1) {                            
                             if (args[0].equals("00000")){
                                 //keep alive
-                                App.TrafficPrint(pre + version+" "+"[KEEP ALIVE]" ,0,0);
+                                App.bn.TrafficPrint(pre + version+" "+"[KEEP ALIVE]" ,0,0);
                             }  else if (args[0].equals("00001")) {
                                 //le wild rednode ping!                                               
-                                App.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).setUPing(true);
-                                App.TrafficPrint(pre + "LE WILD RN UPING APPEARS",1,0);
+                                App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).setUPing(true);
+                                App.bn.TrafficPrint(pre + "LE WILD RN UPING APPEARS",1,0);
                             } 
                         } else {
                             System.out.println(pre + "wrong length");
@@ -85,25 +85,25 @@ public class RedDownService extends Thread {
                         if (args.length > 1) {                            
                             if (args[0].equals("00004")){
                                 //ack
-                                App.TrafficPrint(pre + "[ACK] -> "+IpPacket.getUDestAddress(data).getHostAddress() ,2,0);
-                                App.manager.offer(data); 
+                                App.bn.TrafficPrint(pre + "[ACK] -> "+IpPacket.getUDestAddress(data).getHostAddress() ,2,0);
+                                App.bn.manager.offer(data); 
                             }  
                         } else {
                             System.out.println(pre + "wrong length");
                         }
                     } else {             
-                        App.TrafficPrint(pre + "IPv4",3,0);
-                        App.manager.offer(data);                        
+                        App.bn.TrafficPrint(pre + "IPv4",3,0);
+                        App.bn.manager.offer(data);                        
                     }
                 }
             } catch (java.net.SocketException ex1) {
-                App.ConsolePrint(pre + "SOCKET DIED FOR " + vaddress);
+                App.bn.ConsolePrint(pre + "SOCKET DIED FOR " + vaddress);
             } catch (IOException ex) {
                 Logger.getLogger(RedDownService.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        App.ConsolePrint(pre + " ENDED FOR " + vaddress);        
-        App.UDPports.releasePort(portToUse);
+        App.bn.ConsolePrint(pre + " ENDED FOR " + vaddress);        
+        App.bn.UDPports.releasePort(portToUse);
         destPort = -1;
         portToUse = -1;
     }

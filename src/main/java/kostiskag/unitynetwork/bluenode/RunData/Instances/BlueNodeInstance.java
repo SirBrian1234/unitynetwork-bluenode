@@ -51,7 +51,7 @@ public class BlueNodeInstance extends Thread {
 
     //server constructor
     public BlueNodeInstance(String hostname, boolean FullAssociation, Socket connectionSocket) {
-        App.ConsolePrint(pre + "STARTING A BLUE AUTH AT " + Thread.currentThread().getName());
+        App.bn.ConsolePrint(pre + "STARTING A BLUE AUTH AT " + Thread.currentThread().getName());
         this.Hostname = hostname;
         isServer = true;
         String[] args;
@@ -61,8 +61,8 @@ public class BlueNodeInstance extends Thread {
             PrintWriter outputWriter = new PrintWriter(connectionSocket.getOutputStream(), true);
             String clientSentence = null;
 
-            if (App.BlueNodesTable.getBlueNodeInstanceByHn(hostname) != null) {
-                App.BlueNodesTable.removeSingle(hostname);
+            if (App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname) != null) {
+                App.bn.blueNodesTable.removeSingle(hostname);
                 try {
                     sleep(1000);
                 } catch (InterruptedException ex) {
@@ -72,33 +72,33 @@ public class BlueNodeInstance extends Thread {
 
 
             if (FullAssociation) {
-                int size = App.localRedNodesTable.getSize();
+                int size = App.bn.localRedNodesTable.getSize();
                 outputWriter.println("SENDING_LOCAL_RED_NODES " + size);
                 for (int i = 0; i < size; i++) {
-                    String vaddress = App.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-                    hostname = App.localRedNodesTable.getRedNodeInstance(i).getHostname();
+                    String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
+                    hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
                     outputWriter.println(vaddress+" "+hostname);
                 }
                 outputWriter.println(" ");
 
                 clientSentence = inFromClient.readLine();
-                App.ConsolePrint(pre + clientSentence);
+                App.bn.ConsolePrint(pre + clientSentence);
                 args = clientSentence.split("\\s+");
 
                 int count = Integer.parseInt(args[1]);
                 for (int i = 0; i < count; i++) {
                     clientSentence = inFromClient.readLine();
-                    App.ConsolePrint(pre + clientSentence);
+                    App.bn.ConsolePrint(pre + clientSentence);
                     args = clientSentence.split("\\s+");
 
-                    if (App.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
-                        App.remoteRedNodesTable.lease(args[0], args[1], hostname);
+                    if (App.bn.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
+                        App.bn.remoteRedNodesTable.lease(args[0], args[1], hostname);
                     } else {
-                        App.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
+                        App.bn.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
                     }
                 }
                 clientSentence = inFromClient.readLine();
-                App.ConsolePrint(pre + clientSentence);
+                App.bn.ConsolePrint(pre + clientSentence);
             }
 
             Phaddress = connectionSocket.getInetAddress();
@@ -125,8 +125,8 @@ public class BlueNodeInstance extends Thread {
 
             outputWriter.println("ASSOSIATING "+up.getUpport()+" "+ down.getDownport());
             clientSentence = inFromClient.readLine();
-            App.ConsolePrint(pre + clientSentence);
-            App.ConsolePrint(pre + "upport " + up.getUpport() + " downport " + down.getDownport());
+            App.bn.ConsolePrint(pre + clientSentence);
+            App.bn.ConsolePrint(pre + "upport " + up.getUpport() + " downport " + down.getDownport());
 
             state = 1;
         } catch (IOException ex) {
@@ -136,7 +136,7 @@ public class BlueNodeInstance extends Thread {
 
     //client constructor
     public BlueNodeInstance(String PhAddress, int authPort, String AuthHostname, boolean exclusive, boolean FullAssociation) {
-        App.ConsolePrint(pre + "Assosiating a New Blue Node with address " + PhAddress + ":" + authPort);
+        App.bn.ConsolePrint(pre + "Assosiating a New Blue Node with address " + PhAddress + ":" + authPort);
         this.PhaddressStr = PhAddress;
         try {
             this.Phaddress = InetAddress.getByName(PhaddressStr);
@@ -173,16 +173,16 @@ public class BlueNodeInstance extends Thread {
         
         if (exclusive) {
             if (RemoteHostname.equals(AuthHostname)) {
-                TCPSocketFunctions.sendData("BLUENODE " +App.Hostname, outputWriter, inputReader);
+                TCPSocketFunctions.sendData("BLUENODE " +App.bn.name, outputWriter, inputReader);
             } else {
                 TCPSocketFunctions.sendFinalData("NOTHING_TO_DO_HERE ", outputWriter);
                 TCPSocketFunctions.connectionClose(socket);
-                App.ConsolePrint(pre + "TARGET BLUE NODE NAME ERROR");
+                App.bn.ConsolePrint(pre + "TARGET BLUE NODE NAME ERROR");
                 state = -1;
                 return;
             }
         } else {
-            TCPSocketFunctions.sendData("BLUENODE " + App.Hostname, outputWriter, inputReader);
+            TCPSocketFunctions.sendData("BLUENODE " + App.bn.name, outputWriter, inputReader);
         }
         Hostname = RemoteHostname;
 
@@ -194,19 +194,19 @@ public class BlueNodeInstance extends Thread {
                 int count = Integer.parseInt(args[1]);
                 for (int i = 0; i < count; i++) {
                     args = TCPSocketFunctions.readData(inputReader);
-                    if (App.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
-                        App.remoteRedNodesTable.lease(args[0], args[1], RemoteHostname);
+                    if (App.bn.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
+                        App.bn.remoteRedNodesTable.lease(args[0], args[1], RemoteHostname);
                     } else {
-                        App.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
+                        App.bn.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
                     }
                 }
                 TCPSocketFunctions.readData(inputReader);
                                 
-                int size = App.localRedNodesTable.getSize();
+                int size = App.bn.localRedNodesTable.getSize();
                 outputWriter.println("SENDING_LOCAL_RED_NODES " + size);
                 for (int i = 0; i < size; i++) {
-                    String vaddress = App.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-                    String hostname = App.localRedNodesTable.getRedNodeInstance(i).getHostname();
+                    String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
+                    String hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
                     outputWriter.println(vaddress + " " + hostname);
                 }
                 outputWriter.println();
@@ -215,7 +215,7 @@ public class BlueNodeInstance extends Thread {
                 downport = Integer.parseInt(args[1]);
                 upport = Integer.parseInt(args[2]);
                 TCPSocketFunctions.sendFinalData("OK", outputWriter);
-                App.ConsolePrint(pre + "upport " + upport + " downport " + downport);
+                App.bn.ConsolePrint(pre + "upport " + upport + " downport " + downport);
             } else {
                 state = -1;
                 return;
@@ -226,7 +226,7 @@ public class BlueNodeInstance extends Thread {
                 downport = Integer.parseInt(args[1]);
                 upport = Integer.parseInt(args[2]);
                 TCPSocketFunctions.sendFinalData("OK ", outputWriter);
-                App.ConsolePrint(pre + "upport " + upport + " downport " + downport);
+                App.bn.ConsolePrint(pre + "upport " + upport + " downport " + downport);
             } else {
                 state = -1;
                 return;

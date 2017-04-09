@@ -25,17 +25,17 @@ public class RedKeepAlive extends Thread {
 
     public RedKeepAlive(String vaddress) {
         this.vaddress = vaddress;
-        time = kostiskag.unitynetwork.bluenode.App.keepAliveTime;              
+        time = kostiskag.unitynetwork.bluenode.App.bn.keepAliveTime;              
         data = kostiskag.unitynetwork.bluenode.Routing.IpPacket.MakeUPacket(payload, null, null, true);
     }
 
     @Override
     public void run() {
-        App.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName());
+        App.bn.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName());
       
         while (!kill) {            
             for (int i = 0; i < 3; i++) {
-                App.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getQueueMan().offer(data);                
+                App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getQueueMan().offer(data);                
             }
 
             try {
@@ -44,7 +44,7 @@ public class RedKeepAlive extends Thread {
                 Logger.getLogger(RedKeepAlive.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        App.ConsolePrint(pre + " ENDED FOR " + vaddress);
+        App.bn.ConsolePrint(pre + " ENDED FOR " + vaddress);
     }
 
     public void kill() {

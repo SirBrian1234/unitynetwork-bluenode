@@ -24,17 +24,17 @@ public class BlueNodeClientFunctions {
         BlueNodeInstance node = new BlueNodeInstance(PhAddress, authPort, AuthHostname, exclusive, full);        
         //leasing
         if (node.getStatus() == 1) {
-            App.BlueNodesTable.lease(node);
+            App.bn.blueNodesTable.lease(node);
         }
     }
 
     public static int getRemoteRedNodesU(String BlueNodeHostname) {
-        String bnaddress = App.BlueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
+        String bnaddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(bnaddress);
         if (IPaddress == null) {
             return -1;
         }
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.authport);
+        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.bn.authPort);
         if (socket == null) {
             return -1;
         }
@@ -51,15 +51,15 @@ public class BlueNodeClientFunctions {
         String RemoteHostname;
         RemoteHostname = args[1];
 
-        TCPSocketFunctions.sendData("BLUENODE " + App.Hostname + " ", outputWriter, inputReader);
+        TCPSocketFunctions.sendData("BLUENODE " + App.bn.name + " ", outputWriter, inputReader);
         args = TCPSocketFunctions.sendData("GET_RED_NODES ", outputWriter, inputReader);
         int count = Integer.parseInt(args[1]);
         for (int i = 0; i < count; i++) {
             args = TCPSocketFunctions.readData(inputReader);
-            if (App.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
-                App.remoteRedNodesTable.lease(args[0], args[1], BlueNodeHostname);
+            if (App.bn.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
+                App.bn.remoteRedNodesTable.lease(args[0], args[1], BlueNodeHostname);
             } else {
-                App.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
+                App.bn.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
             }
         }
         TCPSocketFunctions.connectionClose(socket);
@@ -67,12 +67,12 @@ public class BlueNodeClientFunctions {
     }
 
     public static boolean checkBlueNode(String BlueNodeHostname) {
-        String bnaddress = App.BlueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
+        String bnaddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(bnaddress);
         if (IPaddress == null) {
             return false;
         }
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.authport);
+        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.bn.authPort);
         if (socket == null) {
             return false;
         }
@@ -87,21 +87,21 @@ public class BlueNodeClientFunctions {
             return false;
         }
         RemoteHostname = args[1];
-        args = TCPSocketFunctions.sendData("BLUENODE " + App.Hostname, outputWriter, inputReader);
+        args = TCPSocketFunctions.sendData("BLUENODE " + App.bn.name, outputWriter, inputReader);
         TCPSocketFunctions.sendFinalData("EXIT ", outputWriter);
         TCPSocketFunctions.connectionClose(socket);
         return true;
     }
 
     public static void removeBlueNodeProjection(int i) {
-        String BlueNodeHostname = App.BlueNodesTable.getBlueNodeInstance(i).getHostname();
-        String BlueNodeAddress = App.BlueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
+        String BlueNodeHostname = App.bn.blueNodesTable.getBlueNodeInstance(i).getHostname();
+        String BlueNodeAddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(BlueNodeAddress);
         String[] args = null;
         if (IPaddress == null) {
             return;
         }
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.authport);
+        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.bn.authPort);
         if (socket == null) {
             return;
         }
@@ -113,7 +113,7 @@ public class BlueNodeClientFunctions {
             TCPSocketFunctions.connectionClose(socket);
             return;
         }
-        args = TCPSocketFunctions.sendData("BLUENODE " + App.Hostname, outputWriter, inputReader);
+        args = TCPSocketFunctions.sendData("BLUENODE " + App.bn.name, outputWriter, inputReader);
         if (args[0].equals("OK")) {
             TCPSocketFunctions.sendData("RELEASE", outputWriter, inputReader);
         }
@@ -121,13 +121,13 @@ public class BlueNodeClientFunctions {
     }
 
     public static void removeBlueNodeProjection(String BlueNodeHostname) {
-        String BlueNodeAddress = App.BlueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
+        String BlueNodeAddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(BlueNodeAddress);
         String[] args = null;
         if (IPaddress == null) {
             return;
         }
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.authport);
+        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.bn.authPort);
         if (socket == null) {
             return;
         }
@@ -139,7 +139,7 @@ public class BlueNodeClientFunctions {
             TCPSocketFunctions.connectionClose(socket);
             return;
         }
-        args = TCPSocketFunctions.sendData("BLUENODE " + App.Hostname + " ", outputWriter, inputReader);
+        args = TCPSocketFunctions.sendData("BLUENODE " + App.bn.name + " ", outputWriter, inputReader);
         if (args[0].equals("OK")) {
             TCPSocketFunctions.sendFinalData("RELEASE", outputWriter);
         }
@@ -150,13 +150,13 @@ public class BlueNodeClientFunctions {
     //0 for not found remote rednode
     //1 for found rednote
     public static int checkRemoteRedNode(String vaddress) {
-        String BlueNodeHostname = App.remoteRedNodesTable.getRedRemoteAddress(vaddress).getBlueNodeHostname();
-        String bnaddress = App.BlueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
+        String BlueNodeHostname = App.bn.remoteRedNodesTable.getRedRemoteAddress(vaddress).getBlueNodeHostname();
+        String bnaddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(bnaddress);
         if (IPaddress == null) {
             return -1;
         }
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.authport);
+        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.bn.authPort);
         if (socket == null) {
             return -1;
         }
@@ -173,22 +173,22 @@ public class BlueNodeClientFunctions {
         }
         RemoteHostname = args[1];
 
-        TCPSocketFunctions.sendData("BLUENODE " + App.Hostname + " ", outputWriter, inputReader);
+        TCPSocketFunctions.sendData("BLUENODE " + App.bn.name + " ", outputWriter, inputReader);
         args = TCPSocketFunctions.sendData("CHECK " + vaddress + " ", outputWriter, inputReader);
         TCPSocketFunctions.connectionClose(socket);
 
         if (args[1].equals("ONLINE")) {
             return 1;
         } else {
-            App.ConsolePrint(pre + "USER IS NOT CONNECTED TO BN " + BlueNodeHostname);
+            App.bn.ConsolePrint(pre + "USER IS NOT CONNECTED TO BN " + BlueNodeHostname);
             return 0;
         }
     }
 
     public static boolean checkRemoteRedNodeAbsolute(String vaddress, String BlueNodeHostname) {
-        String bnaddress = App.BlueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
+        String bnaddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(bnaddress);
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.authport);
+        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.bn.authPort);
         BufferedReader inputReader = TCPSocketFunctions.makeReadWriter(socket);
         PrintWriter outputWriter = TCPSocketFunctions.makeWriteWriter(socket);
         String[] args = null;
@@ -202,25 +202,25 @@ public class BlueNodeClientFunctions {
         }
         RemoteHostname = args[1];
 
-        TCPSocketFunctions.sendData("BLUENODE " + App.Hostname + " ", outputWriter, inputReader);
+        TCPSocketFunctions.sendData("BLUENODE " + App.bn.name + " ", outputWriter, inputReader);
         TCPSocketFunctions.sendData("CHECK " + vaddress + " ", outputWriter, inputReader);
         TCPSocketFunctions.connectionClose(socket);
 
         if (args[1].equals("ONLINE")) {
             return true;
         } else {
-            App.ConsolePrint(pre + "USER IS NOT KNOWN TO BN " + BlueNodeHostname);
+            App.bn.ConsolePrint(pre + "USER IS NOT KNOWN TO BN " + BlueNodeHostname);
             return false;
         }
     }
 
     public static int UPing(String BlueNodeHostname) {
-        String bnaddress = App.BlueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
+        String bnaddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(bnaddress);
         if (IPaddress == null) {
             return -1;
         }
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.authport);
+        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.bn.authPort);
         if (socket == null) {
             return -1;
         }
@@ -242,11 +242,11 @@ public class BlueNodeClientFunctions {
             return -3;
         }
 
-        TCPSocketFunctions.sendData("BLUENODE " + App.Hostname + " ", outputWriter, inputReader);
+        TCPSocketFunctions.sendData("BLUENODE " + App.bn.name + " ", outputWriter, inputReader);
         TCPSocketFunctions.sendFinalData("UPING ", outputWriter);
-        byte[] payload = ("00002 " + App.Hostname + " [UPING PACKET]").getBytes();
+        byte[] payload = ("00002 " + App.bn.name + " [UPING PACKET]").getBytes();
         byte[] data = IpPacket.MakeUPacket(payload, null, null, true);
-        App.BlueNodesTable.getBlueNodeInstanceByHn(RemoteHostname).getQueueMan().offer(data);
+        App.bn.blueNodesTable.getBlueNodeInstanceByHn(RemoteHostname).getQueueMan().offer(data);
         
         try {
             sleep(1700);
@@ -265,12 +265,12 @@ public class BlueNodeClientFunctions {
     }
 
     public static int DPing(String BlueNodeHostname) {
-        String bnaddress = App.BlueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
+        String bnaddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(bnaddress);
         if (IPaddress == null) {
             return -1;
         }
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.authport);
+        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.bn.authPort);
         if (socket == null) {
             return -1;
         }
@@ -289,9 +289,9 @@ public class BlueNodeClientFunctions {
             TCPSocketFunctions.connectionClose(socket);
             return -3;
         }
-        TCPSocketFunctions.sendData("BLUENODE " + App.Hostname + " ", outputWriter, inputReader);
+        TCPSocketFunctions.sendData("BLUENODE " + App.bn.name + " ", outputWriter, inputReader);
 
-        App.dping = false;
+        App.bn.dping = false;
         TCPSocketFunctions.sendData("DPING ", outputWriter, inputReader);
         TCPSocketFunctions.connectionClose(socket);
         
@@ -301,7 +301,7 @@ public class BlueNodeClientFunctions {
             Logger.getLogger(BlueNodeClientFunctions.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        if (App.dping) {
+        if (App.bn.dping) {
             return 1;
         } else {
             return 0;
@@ -309,8 +309,8 @@ public class BlueNodeClientFunctions {
     }
 
     public static boolean isSameHostname(String targetHostname) {
-        if (App.Hostname.equals(targetHostname)) {                            
-            App.ConsolePrint(pre + "BLUE NODES HAVE THE SAME NAME, QUITING");
+        if (App.bn.name.equals(targetHostname)) {                            
+            App.bn.ConsolePrint(pre + "BLUE NODES HAVE THE SAME NAME, QUITING");
             return true;
         } else {            
             return false;
@@ -318,12 +318,12 @@ public class BlueNodeClientFunctions {
     }
 
     public static String getRedHostname(String BlueNodeHostname, String RedNodeAddress) {
-        String bnaddress = App.BlueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
+        String bnaddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(bnaddress);
         if (IPaddress == null) {
             return "";
         }
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.authport);
+        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.bn.authPort);
         if (socket == null) {
             return "";
         }
@@ -338,7 +338,7 @@ public class BlueNodeClientFunctions {
             return "";
         }
         RemoteHostname = args[1];
-        args = TCPSocketFunctions.sendData("BLUENODE " + App.Hostname + " ", outputWriter, inputReader);
+        args = TCPSocketFunctions.sendData("BLUENODE " + App.bn.name + " ", outputWriter, inputReader);
         if (args[0].equals("OK")) {
             args = TCPSocketFunctions.sendData("GET_RED_HOSTNAME " + RedNodeAddress, outputWriter, inputReader);
             if (args[0].equals("ONLINE")) {
@@ -355,12 +355,12 @@ public class BlueNodeClientFunctions {
     }
 
     static int ExchangeRedNodesU(String BlueNodeHostname) {
-        String bnaddress = App.BlueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
+        String bnaddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(bnaddress);
         if (IPaddress == null) {
             return -1;
         }
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.authport);
+        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.bn.authPort);
         if (socket == null) {
             return -1;
         }
@@ -374,24 +374,24 @@ public class BlueNodeClientFunctions {
             return -1;
         }
 
-        TCPSocketFunctions.sendData("BLUENODE " + App.Hostname + " ", outputWriter, inputReader);
+        TCPSocketFunctions.sendData("BLUENODE " + App.bn.name + " ", outputWriter, inputReader);
         args = TCPSocketFunctions.sendData("EXCHANGE_RED_NODES ", outputWriter, inputReader);
         int count = Integer.parseInt(args[1]);
         for (int i = 0; i < count; i++) {
             args = TCPSocketFunctions.readData(inputReader);
-            if (App.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
-                App.remoteRedNodesTable.lease(args[0], args[1], BlueNodeHostname);
+            if (App.bn.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
+                App.bn.remoteRedNodesTable.lease(args[0], args[1], BlueNodeHostname);
             } else {
-                App.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
+                App.bn.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
             }
         }
         TCPSocketFunctions.readData(inputReader);
 
-        int size = App.localRedNodesTable.getSize();
+        int size = App.bn.localRedNodesTable.getSize();
         TCPSocketFunctions.sendFinalData("SENDING_LOCAL_RED_NODES " + size, outputWriter);
         for (int i = 0; i < size; i++) {
-            String vaddress = App.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-            String hostname = App.localRedNodesTable.getRedNodeInstance(i).getHostname();
+            String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
+            String hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
             TCPSocketFunctions.sendFinalData(vaddress + " " + hostname, outputWriter);
         }
         TCPSocketFunctions.sendFinalData("", outputWriter);
@@ -400,12 +400,12 @@ public class BlueNodeClientFunctions {
     }
 
     public static int feedReturnRoute(String BlueNodeHostname, String vaddress) {
-        String bnaddress = App.BlueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
+        String bnaddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(bnaddress);
         if (IPaddress == null) {
             return -1;
         }
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.authport);
+        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, App.bn.authPort);
         if (socket == null) {
             return -1;
         }
@@ -422,14 +422,14 @@ public class BlueNodeClientFunctions {
         }
         RemoteHostname = args[1];
 
-        TCPSocketFunctions.sendData("BLUENODE " + App.Hostname + " ", outputWriter, inputReader);
+        TCPSocketFunctions.sendData("BLUENODE " + App.bn.name + " ", outputWriter, inputReader);
         args = TCPSocketFunctions.sendData("FEED_RETURN_ROUTE " + vaddress + " ", outputWriter, inputReader);
         TCPSocketFunctions.connectionClose(socket);
 
         if (args[0].equals("OK")) {
             return 1;
         } else {
-            App.ConsolePrint(pre + "USER IS NOT CONNECTED TO BN " + BlueNodeHostname);
+            App.bn.ConsolePrint(pre + "USER IS NOT CONNECTED TO BN " + BlueNodeHostname);
             return 0;
         }
     }

@@ -1,4 +1,4 @@
-package kostiskag.unitynetwork.bluenode.Functions;
+package kostiskag.unitynetwork.bluenode;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,7 +10,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.Properties;
-import kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
@@ -37,28 +36,28 @@ public class ReadPreferencesFile {
         String Log = cfg.getProperty("Log").replaceAll("\\s+","");
         
         App.network = Boolean.parseBoolean(UseNetwork);
-        App.Taddr = UnityTracker; 
-        App.Hostname = Name;
-        App.Tport = Integer.parseInt(UnityTrackerAuthPort);        
-        App.UseList = Boolean.parseBoolean(UseList);
-        App.authport = Integer.parseInt(AuthPort);
-        App.startport = Integer.parseInt(udpstart);
-        App.endport = Integer.parseInt(udpend);
-        App.hostnameEntries = Integer.parseInt(RedNodeLimit);
+        App.trackerAddress = UnityTracker; 
+        App.trackerPort = Integer.parseInt(UnityTrackerAuthPort);        
+        App.name = Name;
+        App.useList = Boolean.parseBoolean(UseList);
+        App.authPort = Integer.parseInt(AuthPort);
+        App.startPort = Integer.parseInt(udpstart);
+        App.endPort = Integer.parseInt(udpend);
+        App.maxRednodeEntries = Integer.parseInt(RedNodeLimit);
         App.gui = Boolean.parseBoolean(UseGUI);
         App.soutTraffic = Boolean.parseBoolean(ConsoleTraffic);        
         App.log = Boolean.parseBoolean(Log);
         
         System.out.println("");
         System.out.println("Network is "+App.network);
-        System.out.println("UnityTracker is "+App.Taddr);        
-        System.out.println("UnityTrackerAuthPort is "+App.Tport);        
-        System.out.println("Hostname is "+App.Hostname);
-        System.out.println("AuthPort is "+App.authport);
-        System.out.println("UseHostList is "+App.UseList);
-        System.out.println("udpstart is "+App.startport);
-        System.out.println("udpend is "+App.endport);
-        System.out.println("RedNodeLimit is "+App.hostnameEntries);
+        System.out.println("UnityTracker is "+App.trackerAddress);        
+        System.out.println("UnityTrackerAuthPort is "+App.trackerPort);        
+        System.out.println("Hostname is "+App.name);
+        System.out.println("AuthPort is "+App.authPort);
+        System.out.println("UseHostList is "+App.useList);
+        System.out.println("udpstart is "+App.startPort);
+        System.out.println("udpend is "+App.endPort);
+        System.out.println("RedNodeLimit is "+App.maxRednodeEntries);
         System.out.println("UseGUI is "+App.gui);
         System.out.println("ConsoleTraffic is "+App.soutTraffic);           
         System.out.println("Log is "+App.log);   

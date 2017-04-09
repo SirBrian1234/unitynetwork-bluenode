@@ -16,18 +16,18 @@ public class BlueKeepAlive extends Thread {
     private int time;
     private String hostname;
     InetAddress address;
-    byte[] payload = ("00000 "+App.Hostname+" [KEEP ALIVE]  ").getBytes();
+    byte[] payload = ("00000 "+App.bn.name+" [KEEP ALIVE]  ").getBytes();
     byte[] data;    
 
     public BlueKeepAlive(String hostname) {
-        time = App.keepAliveTime;
+        time = App.bn.keepAliveTime;
         this.hostname = hostname;
         data = IpPacket.MakeUPacket(payload, null, null, true);                
     }
 
     @Override
     public void run() {
-        App.ConsolePrint(pre + "STARTED FOR " + hostname+ " AT " + Thread.currentThread().getName());        
+        App.bn.ConsolePrint(pre + "STARTED FOR " + hostname+ " AT " + Thread.currentThread().getName());        
         
         try {
             sleep(2000);
@@ -37,7 +37,7 @@ public class BlueKeepAlive extends Thread {
             
         while (!kill) {                                    
             for (int i=0; i<3; i++) {                    
-                App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().offer(data);                                    
+                App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().offer(data);                                    
             }            
             try {
                 sleep(time * 1000);
@@ -49,6 +49,6 @@ public class BlueKeepAlive extends Thread {
     
     public void kill(){
         kill=true;
-        App.ConsolePrint(pre+" ENDED FOR "+hostname);        
+        App.bn.ConsolePrint(pre+" ENDED FOR "+hostname);        
     }
 }

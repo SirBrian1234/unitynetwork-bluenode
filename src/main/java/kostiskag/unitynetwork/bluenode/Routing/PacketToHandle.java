@@ -24,7 +24,7 @@ public class PacketToHandle extends Thread {
 
     @Override
     public void run() {
-        App.ConsolePrint(pre + "started routing at thread " + Thread.currentThread().getName());
+        App.bn.ConsolePrint(pre + "started routing at thread " + Thread.currentThread().getName());
 
         while (true) {
             /*
@@ -34,7 +34,7 @@ public class PacketToHandle extends Thread {
              */
 
             try {
-                data = App.manager.poll();
+                data = App.bn.manager.poll();
             } catch (java.lang.NullPointerException ex1) {
                 continue;
             } catch (java.util.NoSuchElementException ex) {
@@ -47,28 +47,28 @@ public class PacketToHandle extends Thread {
                 if (version.equals("45")) {
                     this.destvaddress = IpPacket.getDestAddress(data).getHostAddress();
                     this.sourcevaddress = IpPacket.getSourceAddress(data).getHostAddress();
-                    App.TrafficPrint(pre + "IP " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
+                    App.bn.TrafficPrint(pre + "IP " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
                 } else {
                     this.destvaddress = IpPacket.getUDestAddress(data).getHostAddress();
                     this.sourcevaddress = IpPacket.getUSourceAddress(data).getHostAddress();
-                    App.TrafficPrint(pre + version + " " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
+                    App.bn.TrafficPrint(pre + version + " " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
                 }
 
-                if (App.localRedNodesTable.checkOnline(destvaddress) == true) {
+                if (App.bn.localRedNodesTable.checkOnline(destvaddress) == true) {
                     //load the packet data to target users lifo
-                    App.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offer(data);
-                    App.TrafficPrint(pre + "LOCAL DESTINATION", 3, 0);
-                } else if (App.joined) {
-                    if (App.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
-                        String hostname = App.remoteRedNodesTable.getRedRemoteAddress(destvaddress).getBlueNodeHostname();
-                        App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().offer(data);
-                        App.TrafficPrint(pre + "REMOTE DESTINATION -> " + hostname, 3, 1);
+                    App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offer(data);
+                    App.bn.TrafficPrint(pre + "LOCAL DESTINATION", 3, 0);
+                } else if (App.bn.joined) {
+                    if (App.bn.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
+                        String hostname = App.bn.remoteRedNodesTable.getRedRemoteAddress(destvaddress).getBlueNodeHostname();
+                        App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().offer(data);
+                        App.bn.TrafficPrint(pre + "REMOTE DESTINATION -> " + hostname, 3, 1);
                     } else {
-                        App.TrafficPrint(pre + "NOT KNOWN BN WITH " + destvaddress, 3, 1);
-                        App.flyreg.seekDest(sourcevaddress, destvaddress);
+                        App.bn.TrafficPrint(pre + "NOT KNOWN BN WITH " + destvaddress, 3, 1);
+                        App.bn.flyreg.seekDest(sourcevaddress, destvaddress);
                     }
                 } else {
-                    App.TrafficPrint(pre + "NOT IN THIS BN " + destvaddress, 3, 1);
+                    App.bn.TrafficPrint(pre + "NOT IN THIS BN " + destvaddress, 3, 1);
                 }
             } else {
                 System.err.println("wrong header packet detected in router " + Thread.currentThread());

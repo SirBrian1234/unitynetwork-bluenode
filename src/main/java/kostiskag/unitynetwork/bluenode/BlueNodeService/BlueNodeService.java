@@ -23,15 +23,15 @@ public class BlueNodeService extends Thread {
 
     @Override
     public void run() {
-        App.ConsolePrint(pre + "STARTING AN AUTH AT " + Thread.currentThread().getName());
+        App.bn.ConsolePrint(pre + "STARTING AN AUTH AT " + Thread.currentThread().getName());
         try {
             String[] args;
             inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             outputWriter = new PrintWriter(connectionSocket.getOutputStream(), true);
-            outputWriter.println("BLUENODE " + App.Hostname + " ");
+            outputWriter.println("BLUENODE " + App.bn.name + " ");
 
             String clientSentence = inFromClient.readLine();
-            App.ConsolePrint(pre + clientSentence);
+            App.bn.ConsolePrint(pre + clientSentence);
             args = clientSentence.split("\\s+");
 
             if (args.length == 2 && args[0].equals("BLUENODE")) {
@@ -54,7 +54,7 @@ public class BlueNodeService extends Thread {
         try {
             outputWriter.println("OK ");
             String clientSentence = inFromClient.readLine();
-            App.ConsolePrint(pre + clientSentence);
+            App.bn.ConsolePrint(pre + clientSentence);
             String[] args = clientSentence.split("\\s+");
 
             if (args.length == 1 && args[0].equals("ASSOCIATE")) {
@@ -88,7 +88,7 @@ public class BlueNodeService extends Thread {
         try {
             outputWriter.println("OK");
             String clientSentence = inFromClient.readLine();
-            App.ConsolePrint(pre + clientSentence);
+            App.bn.ConsolePrint(pre + clientSentence);
             String[] args = clientSentence.split("\\s+");
 
             if (args.length == 3 && args[0].equals("LEASE")) {
@@ -104,7 +104,7 @@ public class BlueNodeService extends Thread {
         try {
             outputWriter.println("OK");
             String clientSentence = inFromClient.readLine();
-            App.ConsolePrint(pre + clientSentence);
+            App.bn.ConsolePrint(pre + clientSentence);
             String[] args = clientSentence.split("\\s+");
 
             if (args.length == 1 && args[0].equals("CHECK")) {

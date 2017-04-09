@@ -45,7 +45,7 @@ public class BlueUpServiceClient extends Thread {
 
     @Override
     public void run() {
-        App.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName() + " ON PORT " + upPort);
+        App.bn.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName() + " ON PORT " + upPort);
 
         receiveData = new byte[2048];
         clientSocket = null;
@@ -53,7 +53,7 @@ public class BlueUpServiceClient extends Thread {
         try {
             clientSocket = new DatagramSocket();
         } catch (java.net.BindException ex) {
-            App.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
+            App.bn.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
         } catch (SocketException ex) {
             Logger.getLogger(RedDownService.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -65,14 +65,14 @@ public class BlueUpServiceClient extends Thread {
                 clientSocket.send(sendPacket);
             }
         } catch (java.net.SocketException ex1) {
-            App.TrafficPrint("FISH PACKET SEND ERROR",3,1);
+            App.bn.TrafficPrint("FISH PACKET SEND ERROR",3,1);
             return;
         } catch (IOException ex) {
-            App.TrafficPrint("FISH PACKET SEND ERROR",3,1);
+            App.bn.TrafficPrint("FISH PACKET SEND ERROR",3,1);
             Logger.getLogger(BlueUpServiceClient.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
-        App.TrafficPrint("FISH PACKET",3,1);
+        App.bn.TrafficPrint("FISH PACKET",3,1);
 
         while (!kill) {
             receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -82,7 +82,7 @@ public class BlueUpServiceClient extends Thread {
                 if (len > 0 && len <= 1500) {
                     byte[] packet = new byte[len];
                     System.arraycopy(receivePacket.getData(), 0, packet, 0, len);
-                    if (App.gui && didTrigger == false) {
+                    if (App.bn.gui && didTrigger == false) {
                         MainWindow.jCheckBox7.setSelected(true);
                         didTrigger = true;
                     }
@@ -93,32 +93,32 @@ public class BlueUpServiceClient extends Thread {
                         String args[] = receivedMessage.split("\\s+");
                         if (args.length > 1) {                            
                             if (args[0].equals("00000")) {
-                                App.TrafficPrint(pre + version + " " +"[KEEP ALIVE]",0,1);
+                                App.bn.TrafficPrint(pre + version + " " +"[KEEP ALIVE]",0,1);
                             } else if (args[0].equals("00002")) {
                                 //le wild blue node uping!
-                                App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);                                
-                                App.TrafficPrint(pre + "LE WILD BN UPING FROM " + hostname + " APPEARS",1,1);
+                                App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);                                
+                                App.bn.TrafficPrint(pre + "LE WILD BN UPING FROM " + hostname + " APPEARS",1,1);
                             } else if (args[0].equals("00003")) {
                                 //le wild blue node dping!
-                                App.dping = true;                                
-                                App.TrafficPrint(pre + "LE WILD DPING FROM " + hostname + " APPEARS",1,1);
+                                App.bn.dping = true;                                
+                                App.bn.TrafficPrint(pre + "LE WILD DPING FROM " + hostname + " APPEARS",1,1);
                             } 
                         }
                     } else {
-                        App.manager.offer(packet);                        
+                        App.bn.manager.offer(packet);                        
                     }
                 } else {
                     System.out.println(pre + "wrong length");
                 }
             } catch (java.net.SocketException ex1) {
-                App.ConsolePrint(pre + " SOCKET CLOSED FOR " + hostname);
+                App.bn.ConsolePrint(pre + " SOCKET CLOSED FOR " + hostname);
             } catch (IOException ex) {
-                App.ConsolePrint(pre + " SOCKET ERROR FOR " + hostname);
+                App.bn.ConsolePrint(pre + " SOCKET ERROR FOR " + hostname);
             }
         }
-        App.ConsolePrint(pre + " ENDED FOR " + hostname);
-        if (App.BlueNodesTable.getBlueNodeInstanceByHn(hostname)!=null) {
-            App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
+        App.bn.ConsolePrint(pre + " ENDED FOR " + hostname);
+        if (App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname)!=null) {
+            App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
         }
     }
 

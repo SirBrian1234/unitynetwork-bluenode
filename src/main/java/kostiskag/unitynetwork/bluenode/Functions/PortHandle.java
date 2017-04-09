@@ -28,7 +28,7 @@ public class PortHandle {
             portToUse = startport + (int)(Math.random() * ((endport - startport) + 1));
          }
          while (checkTable(portToUse));
-         App.ConsolePrint(pre + "USING A NEW PORT " + portToUse);
+         App.bn.ConsolePrint(pre + "USING A NEW PORT " + portToUse);
          tableAdd(portToUse);
          return portToUse;
     }
@@ -39,7 +39,7 @@ public class PortHandle {
             do {
                 portToUse = startport + (int)(Math.random() * ((endport - startport) + 1));
             } while (checkTable(portToUse) && portToUse != oldPort);            
-            App.ConsolePrint(pre + "USING A NEW PORT " + portToUse);
+            App.bn.ConsolePrint(pre + "USING A NEW PORT " + portToUse);
             tableAdd(portToUse);
             return portToUse;
     }
@@ -50,7 +50,7 @@ public class PortHandle {
                 ports[i]= ports[count-1];
                 ports[count-1]=0;
                 count--;
-                App.ConsolePrint(pre + "PORT " + port +" RELEASED");
+                App.bn.ConsolePrint(pre + "PORT " + port +" RELEASED");
             }                                
         }            
     }

@@ -26,7 +26,7 @@ public class RedRemoteAddressTable {
         for (int i = 0; i < size; i++) {
             table[i] = new RedRemoteAddress("none", "none", "none", "none");
         }
-        App.ConsolePrint(pre + "INITIALIZED " + size);
+        App.bn.ConsolePrint(pre + "INITIALIZED " + size);
     }
 
     public RedRemoteAddress getRedRemoteAddress(int i) {
@@ -39,18 +39,18 @@ public class RedRemoteAddressTable {
                 return table[i];
             }
         }
-        App.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
+        App.bn.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
         return null;
     }
 
     public void lease(String vAddress, String Hostname, String BlueNodeHostname) {
         if (count < size) {
             table[count].init(vAddress, Hostname, BlueNodeHostname, getTime.getSmallTimestamp());
-            App.ConsolePrint(pre + count + " LEASED " + vAddress + " KNOWN AS " + Hostname + " ON BLUE NODE " + BlueNodeHostname);
+            App.bn.ConsolePrint(pre + count + " LEASED " + vAddress + " KNOWN AS " + Hostname + " ON BLUE NODE " + BlueNodeHostname);
             count++;
             updateTable();
         } else {
-            App.ConsolePrint(pre + "NO MORE SPACE INSIDE REMOTETABLE");
+            App.bn.ConsolePrint(pre + "NO MORE SPACE INSIDE REMOTETABLE");
         }
     }
 
@@ -63,7 +63,7 @@ public class RedRemoteAddressTable {
             table[count - 1].init("none", "none", "none", "none");
             count--;
 
-            App.ConsolePrint(pre + "RELEASED ENTRY "+id);            
+            App.bn.ConsolePrint(pre + "RELEASED ENTRY "+id);            
         }       
     }
 
@@ -79,12 +79,12 @@ public class RedRemoteAddressTable {
                     table[count - 1].init("none", "none", "none", "none");
                     count--;
 
-                    App.ConsolePrint(pre + "RELEASED ENTRY");
+                    App.bn.ConsolePrint(pre + "RELEASED ENTRY");
                     return;
                 }
             }
         }
-        App.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
+        App.bn.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
     }
 
     public Boolean checkAssociated(String vAddress) {
@@ -97,10 +97,10 @@ public class RedRemoteAddressTable {
     }
 
     public void delete(int[] delTable) {
-        App.ConsolePrint(pre + "DELETING " + delTable.length + " REMOTE RED NODES");
+        App.bn.ConsolePrint(pre + "DELETING " + delTable.length + " REMOTE RED NODES");
         for (int i = delTable.length; i > 0; i--) {
             String address = table[delTable[i - 1]].getVAddress();
-            App.ConsolePrint(pre + "DELETING " + address);
+            App.bn.ConsolePrint(pre + "DELETING " + address);
             releaseByAddr(address);
         }
         updateTable();
@@ -108,7 +108,7 @@ public class RedRemoteAddressTable {
 
     public void updateTable() {
         //MainWindow.hostable.
-        if (App.gui) {
+        if (App.bn.gui) {
             int rows = MainWindow.remotetable.getRowCount();
             for (int i = 0; i < rows; i++) {
                 MainWindow.remotetable.removeRow(0);
@@ -120,12 +120,12 @@ public class RedRemoteAddressTable {
     }
 
     public void removeAssociations(String BlueNodeHostname) {
-        App.ConsolePrint(pre + "REMOVING BLUENODE "+BlueNodeHostname+" ASSOCIATIONS");
+        App.bn.ConsolePrint(pre + "REMOVING BLUENODE "+BlueNodeHostname+" ASSOCIATIONS");
         String address = null;
         for (int i = 0; i < count; i++) {
             if (table[i].getBlueNodeHostname().equals(BlueNodeHostname)) {
                 address = table[i].getVAddress();
-                App.ConsolePrint(pre + "REMOVING " + address + " ~ " + table[i].getBlueNodeHostname());
+                App.bn.ConsolePrint(pre + "REMOVING " + address + " ~ " + table[i].getBlueNodeHostname());
                 release(i);
             }
         }

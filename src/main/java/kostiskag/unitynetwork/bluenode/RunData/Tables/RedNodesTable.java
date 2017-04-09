@@ -22,7 +22,7 @@ public class RedNodesTable {
         for (int i = 0; i < size; i++) {
             table[i] = new RedNodeInstance();
         }
-        App.ConsolePrint(pre + "INITIALIZED " + size);
+        App.bn.ConsolePrint(pre + "INITIALIZED " + size);
     }
 
     public RedNodeInstance getRedNodeInstanceByHn(String hostname) {
@@ -31,7 +31,7 @@ public class RedNodesTable {
                 return table[i];
             }
         }
-        App.ConsolePrint(pre + "NO ENTRY FOR " + hostname + " IN TABLE");
+        App.bn.ConsolePrint(pre + "NO ENTRY FOR " + hostname + " IN TABLE");
         return null;
     }
     
@@ -41,7 +41,7 @@ public class RedNodesTable {
                 return table[i];
             }
         }
-        App.ConsolePrint(pre + "NO ENTRY FOR " + vaddress + " IN TABLE");
+        App.bn.ConsolePrint(pre + "NO ENTRY FOR " + vaddress + " IN TABLE");
         return null;
     }        
 
@@ -49,7 +49,7 @@ public class RedNodesTable {
         if (table.length > id) {
             return table[id];
         } else {
-            App.ConsolePrint(pre + "NO ENTRY " + id + " IN TABLE");
+            App.bn.ConsolePrint(pre + "NO ENTRY " + id + " IN TABLE");
             return null;
         }
     }
@@ -57,11 +57,11 @@ public class RedNodesTable {
     public int lease(RedNodeInstance auth) {
         if (count < size) {
             table[count] = auth;
-            App.ConsolePrint(pre + count + " LEASED " + auth.getVaddress() + " ~ " + auth.getPhAddress());
+            App.bn.ConsolePrint(pre + count + " LEASED " + auth.getVaddress() + " ~ " + auth.getPhAddress());
             count++;
             return count;
         } else {
-            App.ConsolePrint(pre + "NO MORE SPACE INSIDE ADDRESSTABLE");
+            App.bn.ConsolePrint(pre + "NO MORE SPACE INSIDE ADDRESSTABLE");
             return -1;
         }
     }   
@@ -78,13 +78,13 @@ public class RedNodesTable {
                     table[count - 1] = null;                    
                     count--;
 
-                    App.ConsolePrint(pre + "RELEASED ENTRY");
+                    App.bn.ConsolePrint(pre + "RELEASED ENTRY");
                     updateTable();
                     return;
                 }
             }
         }
-        App.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
+        App.bn.ConsolePrint(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
     }
 
     public Boolean checkOnline(String vAddress) {
@@ -97,10 +97,10 @@ public class RedNodesTable {
     }
 
     public void delete(int[] delTable) {
-        App.ConsolePrint(pre + "FORCE DELETING " + delTable.length + " LOCAL RED NODES");
+        App.bn.ConsolePrint(pre + "FORCE DELETING " + delTable.length + " LOCAL RED NODES");
         for (int i = delTable.length; i > 0; i--) {
             String address = getRedNodeInstance(delTable[i - 1]).getVaddress();
-            App.ConsolePrint(pre + "DELETING " + address);
+            App.bn.ConsolePrint(pre + "DELETING " + address);
             getRedNodeInstanceByAddr(address).forceDelete();
             release(address);
         }
@@ -118,7 +118,7 @@ public class RedNodesTable {
     }
 
     public void updateTable() {
-        if (App.gui == true) {
+        if (App.bn.gui == true) {
             int rows = MainWindow.hostable.getRowCount();
             for (int i = 0; i < rows; i++) {
                 MainWindow.hostable.removeRow(0);

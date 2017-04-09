@@ -25,14 +25,14 @@ public class BlueDownServiceServer extends Thread {
     private String hostname;        
 
     public BlueDownServiceServer(String hostname) {
-        downport = App.UDPports.requestPort();
+        downport = App.bn.UDPports.requestPort();
         this.hostname = hostname;        
         pre = pre + hostname + " ";        
     }    
 
     @Override
     public void run() {
-        App.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName() + " ON PORT " + downport);       
+        App.bn.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName() + " ON PORT " + downport);       
         
         receiveData = new byte[2048];
         serverSocket = null;
@@ -40,7 +40,7 @@ public class BlueDownServiceServer extends Thread {
         try {
             serverSocket = new DatagramSocket(downport);
         } catch (java.net.BindException ex) {
-            App.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
+            App.bn.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
         } catch (SocketException ex) {
             Logger.getLogger(RedDownService.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -53,7 +53,7 @@ public class BlueDownServiceServer extends Thread {
                 if (len > 0 && len <= 1500) {
                     byte[] packet = new byte[len];
                     System.arraycopy(receivePacket.getData(), 0, packet, 0, len);
-                    if (App.gui && didTrigger == false) {
+                    if (App.bn.gui && didTrigger == false) {
                         MainWindow.jCheckBox7.setSelected(true);
                         didTrigger = true;
                     }
@@ -65,35 +65,35 @@ public class BlueDownServiceServer extends Thread {
                         if (args.length > 1) {                                                        
                             if (args[0].equals("00000")) {
                                 //keep alive
-                                App.TrafficPrint(pre + version + " " +"[KEEP ALIVE]",0,1);
+                                App.bn.TrafficPrint(pre + version + " " +"[KEEP ALIVE]",0,1);
                             } else if (args[0].equals("00002")) {
                                 //le wild blue node uping!
-                                App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);                                
-                                App.TrafficPrint(pre + "LE WILD BN UPING FROM " + hostname + " APPEARS",1,1);                                
+                                App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);                                
+                                App.bn.TrafficPrint(pre + "LE WILD BN UPING FROM " + hostname + " APPEARS",1,1);                                
                             } else if (args[0].equals("00003")) {
                                 //le wild blue node dping!
-                                App.dping = true;                                
-                                App.TrafficPrint(pre + "LE WILD DPING FROM " + hostname + " APPEARS",1,1);
+                                App.bn.dping = true;                                
+                                App.bn.TrafficPrint(pre + "LE WILD DPING FROM " + hostname + " APPEARS",1,1);
                             } else if (args[0].equals("00004")) {
                                 //ack
-                                App.TrafficPrint(pre + version + " " + receivedMessage,2,1);
+                                App.bn.TrafficPrint(pre + version + " " + receivedMessage,2,1);
                                 //BlueNode.lvl3BlueNode.BlueNodesTable.getBlueNodeAddress(hostname).getTrafficMan().gotACK();                               
                             }
                         }                        
                     } else {
-                        App.manager.offer(packet);                        
+                        App.bn.manager.offer(packet);                        
                     }
                 } else {
                     System.out.println(pre + "wrong length");
                 }
             } catch (java.net.SocketException ex1) {
-                App.ConsolePrint(pre + " SOCKET CLOSED FOR " + hostname);
+                App.bn.ConsolePrint(pre + " SOCKET CLOSED FOR " + hostname);
             } catch (IOException ex) {
-                App.ConsolePrint(pre + " SOCKET ERROR FOR " + hostname);
+                App.bn.ConsolePrint(pre + " SOCKET ERROR FOR " + hostname);
             }
         }
-        App.ConsolePrint(pre + " ENDED FOR " + hostname);
-        App.UDPports.releasePort(downport);
+        App.bn.ConsolePrint(pre + " ENDED FOR " + hostname);
+        App.bn.UDPports.releasePort(downport);
     }
 
     public void kill() {

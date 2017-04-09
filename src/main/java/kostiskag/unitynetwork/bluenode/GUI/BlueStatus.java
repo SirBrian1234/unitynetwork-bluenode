@@ -23,9 +23,9 @@ public class BlueStatus extends javax.swing.JFrame {
         this.hostname = hostname;
         initComponents();
         jLabel1.setText(hostname);
-        jTextField1.setText(App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getUpStr());        
-        jTextField2.setText(App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getDownStr());                            
-        jTextField6.setText("" + App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().getlen());        
+        jTextField1.setText(App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getUpStr());        
+        jTextField2.setText(App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getDownStr());                            
+        jTextField6.setText("" + App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().getlen());        
     }
 
     /**
@@ -288,14 +288,14 @@ public class BlueStatus extends javax.swing.JFrame {
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         // TODO add your handling code here:
         ConsolePrint("^REFRESHING QUEUE");
-        jTextField6.setText("" + App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().getlen());
+        jTextField6.setText("" + App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().getlen());
     }//GEN-LAST:event_jButton5ActionPerformed
     
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
         ConsolePrint("^EMPTYING QUEUE");
-        App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
-        jTextField6.setText("" + App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().getlen());
+        App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
+        jTextField6.setText("" + App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().getlen());
     }//GEN-LAST:event_jButton4ActionPerformed
     
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed

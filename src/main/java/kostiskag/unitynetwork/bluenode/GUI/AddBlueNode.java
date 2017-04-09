@@ -140,24 +140,24 @@ public class AddBlueNode extends javax.swing.JFrame implements Runnable {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        if (App.joined) {
+        if (App.bn.joined) {
             String address = jTextField1.getText();
 
             try {
                 authport = Integer.parseInt(jTextField2.getText());
             } catch (NumberFormatException e) {
-                App.ConsolePrint("authport error 1");
+                App.bn.ConsolePrint("authport error 1");
                 return;
             }
 
             if (!(authport > 0 && authport <= 65535)) {
-                App.ConsolePrint("authport error 2");
+                App.bn.ConsolePrint("authport error 2");
                 return;
             }
-            App.ConsolePrint("ADDING A BLUE NODE "+address+" "+authport+" "+jTextField3.getText()+" "+jCheckBox2.isSelected()+jCheckBox1.isSelected());
+            App.bn.ConsolePrint("ADDING A BLUE NODE "+address+" "+authport+" "+jTextField3.getText()+" "+jCheckBox2.isSelected()+jCheckBox1.isSelected());
             RemoteHandle.addBlueNode(address, authport, jTextField3.getText(), jCheckBox2.isSelected(), jCheckBox1.isSelected());            
         } else {
-            App.ConsolePrint("NOT JOINED YET");
+            App.bn.ConsolePrint("NOT JOINED YET");
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 

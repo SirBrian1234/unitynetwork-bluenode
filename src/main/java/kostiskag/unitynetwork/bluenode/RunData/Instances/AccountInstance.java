@@ -26,10 +26,10 @@ public class AccountInstance {
             this.vadress = ipAddrFunctions._10ipAddrToNumber(vadress);
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(AccountInstance.class.getName()).log(Level.SEVERE, null, ex);
-            App.die();
+            App.bn.die();
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(AccountInstance.class.getName()).log(Level.SEVERE, null, ex);
-            App.die();
+            App.bn.die();
         }
     }        
     

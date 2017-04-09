@@ -23,7 +23,7 @@ public class BlueNodesTable {
         for (int i = 0; i < size; i++) {
             table[i] = null;
         }
-        App.ConsolePrint(pre + "INITIALIZED " + size);
+        App.bn.ConsolePrint(pre + "INITIALIZED " + size);
     }
 
     public BlueNodeInstance getBlueNodeInstanceByHn(String hostname) {
@@ -52,11 +52,11 @@ public class BlueNodesTable {
     public void lease(BlueNodeInstance node) {
         if (count < size) {
             table[count] = node;
-            App.ConsolePrint(pre + count + " LEASED " + node.getHostname() + " ~ " + node.getPhaddress() + ":" + node.getDownport() + ":" + node.getUpport());
+            App.bn.ConsolePrint(pre + count + " LEASED " + node.getHostname() + " ~ " + node.getPhaddress() + ":" + node.getDownport() + ":" + node.getUpport());
             count++;
             updateTable();
         } else {
-            App.ConsolePrint(pre + "NO MORE SPACE INSIDE REMOTE BLUENODE TABLE");
+            App.bn.ConsolePrint(pre + "NO MORE SPACE INSIDE REMOTE BLUENODE TABLE");
         }
     }
 
@@ -72,13 +72,13 @@ public class BlueNodesTable {
                     table[count - 1] = null;
                     count--;
 
-                    App.ConsolePrint(pre + "RELEASED ENTRY");
+                    App.bn.ConsolePrint(pre + "RELEASED ENTRY");
                     updateTable();
                     return;
                 }
             }
         }
-        App.ConsolePrint(pre + "NO ENTRY FOR " + id + " IN TABLE");
+        App.bn.ConsolePrint(pre + "NO ENTRY FOR " + id + " IN TABLE");
     }
 
     public boolean checkBlueNode(String hostname) {
@@ -91,9 +91,9 @@ public class BlueNodesTable {
     }
 
     public void delete(int[] delTable) {
-        App.ConsolePrint(pre + "DELETING " + delTable.length + " BLUE NODES");
+        App.bn.ConsolePrint(pre + "DELETING " + delTable.length + " BLUE NODES");
         for (int i = delTable.length; i > 0; i--) {
-            App.ConsolePrint(pre + "DELETING BLUE NODE " + delTable[i - 1]);
+            App.bn.ConsolePrint(pre + "DELETING BLUE NODE " + delTable[i - 1]);
             getBlueNodeInstance(delTable[i - 1]).killtasks();
             getBlueNodeInstance(delTable[i - 1]).getQueueMan().clear();
             release(delTable[i - 1]);
@@ -104,7 +104,7 @@ public class BlueNodesTable {
     public void removeSingle(String hostname) {
         int place = getId(hostname);
         if (place != -1) {
-            App.ConsolePrint(pre + "DELETING BLUE NODE " + hostname);
+            App.bn.ConsolePrint(pre + "DELETING BLUE NODE " + hostname);
             getBlueNodeInstance(place).killtasks();
             getBlueNodeInstance(place).getQueueMan().clear();
             release(place);
@@ -114,7 +114,7 @@ public class BlueNodesTable {
 
     public void updateTable() {
         //MainWindow.hostable.
-        if (App.gui) {
+        if (App.bn.gui) {
             int rows = MainWindow.remotebtable.getRowCount();
             for (int i = 0; i < rows; i++) {
                 MainWindow.remotebtable.removeRow(0);

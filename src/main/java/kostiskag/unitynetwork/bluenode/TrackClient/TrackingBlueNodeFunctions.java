@@ -16,8 +16,8 @@ public class TrackingBlueNodeFunctions {
     private static String pre = "^BN Functions ";
     
     public static int lease(String BlueNodeHostname, int authport) {
-        InetAddress addr = TCPSocketFunctions.getAddress(App.Taddr);
-        int port = App.Tport;
+        InetAddress addr = TCPSocketFunctions.getAddress(App.bn.trackerAddress);
+        int port = App.bn.trackerPort;
         Socket socket = TCPSocketFunctions.absoluteConnect(addr, port);
         if (socket == null) {
             return -2;
@@ -32,8 +32,8 @@ public class TrackingBlueNodeFunctions {
 
 
             if (args[0].equals("LEASED")) {
-                App.echoAddress = args[1];
-                App.ConsolePrint(pre + "ECHO ADDRESS IS " + App.echoAddress);
+                App.bn.echoAddress = args[1];
+                App.bn.ConsolePrint(pre + "ECHO ADDRESS IS " + App.bn.echoAddress);
                 return 1;
             } else {
                 return 0;
@@ -44,8 +44,8 @@ public class TrackingBlueNodeFunctions {
     }
 
     public static boolean release() {
-        InetAddress addr = TCPSocketFunctions.getAddress(App.Taddr);
-        int port = App.Tport;
+        InetAddress addr = TCPSocketFunctions.getAddress(App.bn.trackerAddress);
+        int port = App.bn.trackerPort;
         Socket socket = TCPSocketFunctions.absoluteConnect(addr, port);
         if (socket == null) {
             return false;
@@ -53,7 +53,7 @@ public class TrackingBlueNodeFunctions {
         BufferedReader reader = TCPSocketFunctions.makeReadWriter(socket);
         PrintWriter writer = TCPSocketFunctions.makeWriteWriter(socket);
         String args[] = TCPSocketFunctions.readData(reader);
-        args = TCPSocketFunctions.sendData("BLUENODE " + App.Hostname, writer, reader);
+        args = TCPSocketFunctions.sendData("BLUENODE " + App.bn.name, writer, reader);
         if (args[0].equals("OK")) {
             args = TCPSocketFunctions.sendData("RELEASE BN", writer, reader);
             if (args[0].equals("RELEASED")) {
@@ -67,8 +67,8 @@ public class TrackingBlueNodeFunctions {
     }
 
     public static String getPhysical(String BNHostname) {
-        InetAddress addr = TCPSocketFunctions.getAddress(App.Taddr);
-        int port = App.Tport;
+        InetAddress addr = TCPSocketFunctions.getAddress(App.bn.trackerAddress);
+        int port = App.bn.trackerPort;
         Socket socket = TCPSocketFunctions.absoluteConnect(addr, port);
         if (socket == null) {
             return null;
@@ -76,7 +76,7 @@ public class TrackingBlueNodeFunctions {
         BufferedReader reader = TCPSocketFunctions.makeReadWriter(socket);
         PrintWriter writer = TCPSocketFunctions.makeWriteWriter(socket);
         String args[] = TCPSocketFunctions.readData(reader);
-        args = TCPSocketFunctions.sendData("BLUENODE " + App.Hostname, writer, reader);
+        args = TCPSocketFunctions.sendData("BLUENODE " + App.bn.name, writer, reader);
         if (args[0].equals("OK")) {
             args = TCPSocketFunctions.sendData("GETPH " + BNHostname, writer, reader);
             if (!args[0].equals("NOT_FOUND")) {
@@ -89,8 +89,8 @@ public class TrackingBlueNodeFunctions {
     }
 
     static boolean update() {
-        InetAddress addr = TCPSocketFunctions.getAddress(App.Taddr);
-        int port = App.Tport;
+        InetAddress addr = TCPSocketFunctions.getAddress(App.bn.trackerAddress);
+        int port = App.bn.trackerPort;
         Socket socket = TCPSocketFunctions.absoluteConnect(addr, port);
         if (socket == null) {
             return false;
@@ -98,7 +98,7 @@ public class TrackingBlueNodeFunctions {
         BufferedReader reader = TCPSocketFunctions.makeReadWriter(socket);
         PrintWriter writer = TCPSocketFunctions.makeWriteWriter(socket);
         String args[] = TCPSocketFunctions.readData(reader);
-        args = TCPSocketFunctions.sendData("BLUENODE " + App.Hostname, writer, reader);
+        args = TCPSocketFunctions.sendData("BLUENODE " + App.bn.name, writer, reader);
         if (args[0].equals("OK")) {
             args = TCPSocketFunctions.sendData("UPDATE", writer, reader);
             if (args[0].equals("OK")) {

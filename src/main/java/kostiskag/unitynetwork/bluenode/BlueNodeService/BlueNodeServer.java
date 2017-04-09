@@ -21,10 +21,10 @@ public class BlueNodeServer extends Thread{
     
     @Override
     public void run() {
-        App.ConsolePrint(pre+"started at thread "+Thread.currentThread().getName()+" on port "+App.authport);
+        App.bn.ConsolePrint(pre+"started at thread "+Thread.currentThread().getName()+" on port "+App.bn.authPort);
         try {
-            ServerSocket welcomeSocket = new ServerSocket(App.authport);            
-            if (App.gui && didTrigger==false){
+            ServerSocket welcomeSocket = new ServerSocket(App.bn.authPort);            
+            if (App.bn.gui && didTrigger==false){
                 MainWindow.jCheckBox8.setSelected(true);
                 didTrigger = true;
             }            
@@ -35,8 +35,8 @@ public class BlueNodeServer extends Thread{
                 service.start();
             }        
         } catch (java.net.BindException e){
-            App.ConsolePrint(pre +"PORT ALREADY IN USE APPLICATION WILL DIE IN 3secs");             
-            App.die();
+            App.bn.ConsolePrint(pre +"PORT ALREADY IN USE APPLICATION WILL DIE IN 3secs");             
+            App.bn.die();
         } catch (IOException e) {
             e.printStackTrace();
         }        

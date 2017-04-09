@@ -22,19 +22,19 @@ public class BlueNodeFunctions {
     static void Associate(String hostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
         BlueNodeInstance BNclient = new BlueNodeInstance(hostname, false, connectionSocket);
         if (BNclient.getStatus() > 0) {
-            App.BlueNodesTable.lease(BNclient);            
+            App.bn.blueNodesTable.lease(BNclient);            
         }
     }
 
     static void FullAssociate(String hostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
         BlueNodeInstance BNclient = new BlueNodeInstance(hostname, true, connectionSocket);
         if (BNclient.getStatus() > 0) {
-            App.BlueNodesTable.lease(BNclient);            
+            App.bn.blueNodesTable.lease(BNclient);            
         }
     }
 
     static void GetRnHostname(String hostname, String RNhostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
-        if (App.localRedNodesTable.checkOnline(RNhostname)) {
+        if (App.bn.localRedNodesTable.checkOnline(RNhostname)) {
             outputWriter.println("ONLINE "+RNhostname);
         } else {
             outputWriter.println("OFFLINE");
@@ -42,19 +42,19 @@ public class BlueNodeFunctions {
     }
 
     static void Release(String BlueNodeHostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
-        if (App.BlueNodesTable.checkBlueNode(BlueNodeHostname)) {
-            App.remoteRedNodesTable.removeAssociations(BlueNodeHostname);
-            App.remoteRedNodesTable.updateTable();
-            App.BlueNodesTable.removeSingle(BlueNodeHostname);
+        if (App.bn.blueNodesTable.checkBlueNode(BlueNodeHostname)) {
+            App.bn.remoteRedNodesTable.removeAssociations(BlueNodeHostname);
+            App.bn.remoteRedNodesTable.updateTable();
+            App.bn.blueNodesTable.removeSingle(BlueNodeHostname);
             outputWriter.println("BLUE NODE RELEASED");
-            App.ConsolePrint(pre + " BLUE NODE " + BlueNodeHostname + " RELEASED HIS ENTRY");
+            App.bn.ConsolePrint(pre + " BLUE NODE " + BlueNodeHostname + " RELEASED HIS ENTRY");
         } else {
             outputWriter.println("BLUE_NODE OFFLINE");
         }
     }
 
     static void Check(String hostname, String RNhostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
-        if (App.localRedNodesTable.checkOnline(RNhostname)) {
+        if (App.bn.localRedNodesTable.checkOnline(RNhostname)) {
             outputWriter.println("USER ONLINE");
         } else {
             outputWriter.println("USER OFFLINE");
@@ -62,8 +62,8 @@ public class BlueNodeFunctions {
     }
 
     static void Uping(String hostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
-        if (App.BlueNodesTable.checkBlueNode(hostname)) {
-            App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(false);
+        if (App.bn.blueNodesTable.checkBlueNode(hostname)) {
+            App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(false);
         } else {
             outputWriter.println("UPING FAILED");            
             return;
@@ -73,7 +73,7 @@ public class BlueNodeFunctions {
         } catch (InterruptedException ex) {
             Logger.getLogger(BlueNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
         }
-        if (App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getUPing()) {
+        if (App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getUPing()) {
             outputWriter.println("UPING OK");
         } else {
             outputWriter.println("UPING FAILED");
@@ -82,17 +82,17 @@ public class BlueNodeFunctions {
 
     static void Dping(String hostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
         outputWriter.println("DPING SENDING");
-        byte[] payload = ("00003 " + App.Hostname + " [DPING PACKET]").getBytes();
+        byte[] payload = ("00003 " + App.bn.name + " [DPING PACKET]").getBytes();
         byte[] data = IpPacket.MakeUPacket(payload, null, null, true);
-        App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().offer(data);
+        App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().offer(data);
     }
 
     static void GetRNs(String hostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
-        int size = App.localRedNodesTable.getSize();
+        int size = App.bn.localRedNodesTable.getSize();
         outputWriter.println("SENDING_LOCAL_RED_NODES " + size);
         for (int i = 0; i < size; i++) {
-            String vaddress = App.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-            hostname = App.localRedNodesTable.getRedNodeInstance(i).getHostname();
+            String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
+            hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
             outputWriter.println(vaddress + " " + hostname);
         }
         outputWriter.println();
@@ -102,29 +102,29 @@ public class BlueNodeFunctions {
         try {
             String clientSentence = null;
             String[] args;
-            int size = App.localRedNodesTable.getSize();
+            int size = App.bn.localRedNodesTable.getSize();
             outputWriter.println("SENDING_LOCAL_RED_NODES " + size);
             for (int i = 0; i < size; i++) {
-                String vaddress = App.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-                hostname = App.localRedNodesTable.getRedNodeInstance(i).getHostname();
+                String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
+                hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
                 outputWriter.println(vaddress + " " + hostname);
             }
             outputWriter.println();
 
             clientSentence = inFromClient.readLine();
-            App.ConsolePrint(pre + clientSentence);
+            App.bn.ConsolePrint(pre + clientSentence);
             args = clientSentence.split("\\s+");
 
             int count = Integer.parseInt(args[1]);
             for (int i = 0; i < count; i++) {
                 clientSentence = inFromClient.readLine();
-                App.ConsolePrint(pre + clientSentence);
+                App.bn.ConsolePrint(pre + clientSentence);
                 args = clientSentence.split("\\s+");
 
-                if (App.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
-                    App.remoteRedNodesTable.lease(args[0], args[1], hostname);
+                if (App.bn.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
+                    App.bn.remoteRedNodesTable.lease(args[0], args[1], hostname);
                 } else {
-                    App.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
+                    App.bn.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
                 }
             }
             clientSentence = inFromClient.readLine();
@@ -135,7 +135,7 @@ public class BlueNodeFunctions {
 
     static void FeedReturnRoute(String hostname, String address, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {        
         RemoteHandle.addRemoteRedNode(address, hostname);
-        if (App.remoteRedNodesTable.checkAssociated(address)) {
+        if (App.bn.remoteRedNodesTable.checkAssociated(address)) {
             outputWriter.println("OK");
         } else {
             outputWriter.println("FAILED");

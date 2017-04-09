@@ -51,7 +51,7 @@ public class BlueDownServiceClient extends Thread{
     
     @Override
     public void run() {
-        App.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName()+ " ON PORT "+downport);        
+        App.bn.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName()+ " ON PORT "+downport);        
         
         try {
             serverSocket = new DatagramSocket();
@@ -62,7 +62,7 @@ public class BlueDownServiceClient extends Thread{
         while (!kill) {            
             
             try {
-                data = App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().poll();
+                data = App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().poll();
             } catch (java.lang.NullPointerException ex1){
                 continue;
             } catch (java.util.NoSuchElementException ex) {
@@ -80,31 +80,31 @@ public class BlueDownServiceClient extends Thread{
                     if (args.length > 1) {
                         if (args[0].equals("00000")) {
                             //keep alive
-                            App.TrafficPrint(pre + version + " " + "[KEEP ALIVE]", 0, 1);
+                            App.bn.TrafficPrint(pre + version + " " + "[KEEP ALIVE]", 0, 1);
                         } else if (args[0].equals("00002")) {
                             //le wild blue node uping!
-                            App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);
-                            App.TrafficPrint(pre + "LE WILD RN UPING LEAVES", 1, 1);
+                            App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);
+                            App.bn.TrafficPrint(pre + "LE WILD RN UPING LEAVES", 1, 1);
                         } else if (args[0].equals("00003")) {
                             //le wild blue node dping!
-                            App.dping = true;
-                            App.TrafficPrint(pre + "LE WILD RN DPING LEAVES", 1, 1);
+                            App.bn.dping = true;
+                            App.bn.TrafficPrint(pre + "LE WILD RN DPING LEAVES", 1, 1);
                         }
                     }
                 }                  
-                if (App.gui && trigger == false) {
+                if (App.bn.gui && trigger == false) {
                     MainWindow.jCheckBox6.setSelected(true);
                     trigger = true;
                 }
             } catch (java.net.SocketException ex1) {
-                App.ConsolePrint(pre + " SOCKET DIED FOR " + hostname);
+                App.bn.ConsolePrint(pre + " SOCKET DIED FOR " + hostname);
             } catch (IOException ex) {                
-                App.ConsolePrint(pre + "SOCKET ERROR FOR " + hostname);
+                App.bn.ConsolePrint(pre + "SOCKET ERROR FOR " + hostname);
             }
         }
-        App.BlueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
-        App.UDPports.releasePort(sourcePort);  
-        App.ConsolePrint(pre + "ENDED FOR " + hostname);        
+        App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
+        App.bn.UDPports.releasePort(sourcePort);  
+        App.bn.ConsolePrint(pre + "ENDED FOR " + hostname);        
     }
 
     public void kill() {
