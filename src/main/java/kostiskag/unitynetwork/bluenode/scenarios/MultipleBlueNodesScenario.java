@@ -4,12 +4,13 @@ import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.BlueNode;
 import kostiskag.unitynetwork.bluenode.RunData.Tables.AccountsTable;
 
-public class MultipleBlueNodesApp {
+public class MultipleBlueNodesScenario {
 	
 	public static void main(String[] args) {
 		boolean network = true;
 		String trackerAddress = "127.0.0.1";
 		int trackerPort = 8000;
+		int trackerTime = 2;
 		boolean useList = false;
 		int startPort = 20000;
 		int endPort = 22000;
@@ -25,7 +26,8 @@ public class MultipleBlueNodesApp {
 		BlueNode bn = new BlueNode(
 				network, 
 				trackerAddress, 
-				trackerPort, 
+				trackerPort,
+				trackerTime,
 				name, 
 				useList, 
 				authPort, 
@@ -53,6 +55,7 @@ public class MultipleBlueNodesApp {
 					network, 
 					trackerAddress, 
 					trackerPort, 
+					trackerTime,
 					name, 
 					useList, 
 					authPort, 

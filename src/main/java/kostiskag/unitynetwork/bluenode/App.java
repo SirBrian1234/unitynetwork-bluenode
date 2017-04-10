@@ -29,7 +29,8 @@ public class App extends Thread {
 	// bluenode settings
 	public static boolean network;
 	public static String trackerAddress; 
-	public static int trackerPort;        
+	public static int trackerPort;    
+	public static int trackerMaxIdleTimeMin;
 	public static String name;
 	public static boolean useList;
 	public static int authPort;
@@ -157,6 +158,7 @@ public class App extends Thread {
 				network, 
 				trackerAddress, 
 				trackerPort, 
+				trackerMaxIdleTimeMin,
 				name, 
 				useList, 
 				authPort, 

@@ -87,26 +87,4 @@ public class TrackingBlueNodeFunctions {
         }
         return null;
     }
-
-    static boolean update() {
-        InetAddress addr = TCPSocketFunctions.getAddress(App.bn.trackerAddress);
-        int port = App.bn.trackerPort;
-        Socket socket = TCPSocketFunctions.absoluteConnect(addr, port);
-        if (socket == null) {
-            return false;
-        }
-        BufferedReader reader = TCPSocketFunctions.makeReadWriter(socket);
-        PrintWriter writer = TCPSocketFunctions.makeWriteWriter(socket);
-        String args[] = TCPSocketFunctions.readData(reader);
-        args = TCPSocketFunctions.sendData("BLUENODE " + App.bn.name, writer, reader);
-        if (args[0].equals("OK")) {
-            args = TCPSocketFunctions.sendData("UPDATE", writer, reader);
-            if (args[0].equals("OK")) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return false;
-    }
 }

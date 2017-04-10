@@ -24,7 +24,8 @@ public class ReadPreferencesFile {
         
         String UseNetwork = cfg.getProperty("Network").replaceAll("\\s+","");
         String UnityTracker = cfg.getProperty("UnityTrackerAddress").replaceAll("\\s+","");
-        String UnityTrackerAuthPort = cfg.getProperty("UnityTrackerAuthPort").replaceAll("\\s+","");                
+        String UnityTrackerAuthPort = cfg.getProperty("UnityTrackerAuthPort").replaceAll("\\s+",""); 
+        String TrackerMaxIdleTimeMin = cfg.getProperty("TrackerMaxIdleTimeMin").replaceAll("\\s+",""); 
         String Name = cfg.getProperty("Name").replaceAll("\\s+","");
         String AuthPort = cfg.getProperty("AuthPort").replaceAll("\\s+","");
         String UseList = cfg.getProperty("UseHostList").replaceAll("\\s+","");
@@ -37,7 +38,8 @@ public class ReadPreferencesFile {
         
         App.network = Boolean.parseBoolean(UseNetwork);
         App.trackerAddress = UnityTracker; 
-        App.trackerPort = Integer.parseInt(UnityTrackerAuthPort);        
+        App.trackerPort = Integer.parseInt(UnityTrackerAuthPort);  
+        App.trackerMaxIdleTimeMin = Integer.parseInt(TrackerMaxIdleTimeMin);  
         App.name = Name;
         App.useList = Boolean.parseBoolean(UseList);
         App.authPort = Integer.parseInt(AuthPort);
@@ -130,6 +132,10 @@ public class ReadPreferencesFile {
     	    		+ "# Provide the tracker's TCP auth port. 8000 is the default.\n"
     	    		+ "UnityTrackerAddress = localhost\n"
     	    		+ "UnityTrackerAuthPort = 8000\n"
+    	    		+ "\n"
+    	    		+ "# This is the network's reverse lookup time in minutes, it has to be double from\n"
+    	    		+ "# The tracker's ping time.\n"
+    	    		+ "TrackerMaxIdleTimeMin = 2\n"
     	    		+ "\n"
     	    		+ "# Set the Name of this BlueNode\n"
     	    		+ "# In Full Network the BN's name must be registered in the tracker's database\n"

@@ -1,19 +1,17 @@
 package kostiskag.unitynetwork.bluenode.TrackClient;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
  * @author kostis
  */
-public class TrackingDynamicAddress extends Thread {
+public class TrackingTracker extends Thread {
 
-    String pre = "^DYN ADDRESS ";
+    private final String pre = "^Tracker sonar ";
     boolean kill = false;
     
-    public TrackingDynamicAddress() {
+    public TrackingTracker() {
     }
     
     @Override
@@ -31,19 +29,19 @@ public class TrackingDynamicAddress extends Thread {
         while (!kill){
             App.bn.ConsolePrint(pre+"WAITING");
             try {
-                sleep(App.bn.DynAddUpdateMins*60*1000);
+                sleep(App.bn.trackerCheckSec*1000);
             } catch (InterruptedException ex) {
-                Logger.getLogger(TrackingDynamicAddress.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
             if (kill) break;
-            App.bn.ConsolePrint(pre+"UPDATING");
-            boolean update = TrackingBlueNodeFunctions.update();        
-            if (!update) {
+            int passedTime = App.bn.trackerRespond.getAndAdd(App.bn.trackerCheckSec*1000);
+            App.bn.ConsolePrint(pre+" BUILDING TIME "+passedTime);
+            
+            if (passedTime > App.bn.trackerMaxIdleTimeMin*1000*60) {
             	App.bn.ConsolePrint(pre+"GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL"); 
                 App.bn.localRedNodesTable.releaseAll();
                 App.bn.die();                
             }
-            
         }
         App.bn.ConsolePrint(pre+"DIED");
     }

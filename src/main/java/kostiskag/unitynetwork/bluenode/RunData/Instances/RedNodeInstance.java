@@ -35,6 +35,7 @@ public class RedNodeInstance extends Thread {
     private String Vaddress;
     private String Hostname;
     private String Username;
+    private String Password;
     private int state = 0;
     private boolean uping = false;
     //object socket objs
@@ -50,6 +51,15 @@ public class RedNodeInstance extends Thread {
 
     public RedNodeInstance() {
         state = 0;
+    }
+    
+    public RedNodeInstance(String Hostname, String Username, String Password, String Vaddress, String PhAddressStr) {
+        state = 0;
+        this.Username = Username;
+        this.Hostname = Hostname;
+        this.Password = Password;
+        this.Vaddress = Vaddress;
+        this.PhAddressStr = PhAddressStr;
     }
 
     public RedNodeInstance(Socket socket, String Hostname, String Username, String Password) {

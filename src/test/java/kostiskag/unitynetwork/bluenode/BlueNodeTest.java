@@ -17,6 +17,7 @@ public class BlueNodeTest {
 		boolean network = true;
 		String trackerAddress = "127.0.0.1";
 		int trackerPort = 8000;
+		int trackerTime = 2;
 		boolean useList = false;
 		int startPort = 20000;
 		int endPort = 22000;
@@ -32,6 +33,7 @@ public class BlueNodeTest {
 				network, 
 				trackerAddress, 
 				trackerPort, 
+				trackerTime,
 				name, 
 				useList, 
 				authPort, 

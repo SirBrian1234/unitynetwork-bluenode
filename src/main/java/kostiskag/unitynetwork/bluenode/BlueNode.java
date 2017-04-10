@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,7 +20,7 @@ import kostiskag.unitynetwork.bluenode.RunData.Tables.BlueNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.Tables.RedNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.Tables.RedRemoteAddressTable;
 import kostiskag.unitynetwork.bluenode.TrackClient.TrackingBlueNodeFunctions;
-import kostiskag.unitynetwork.bluenode.TrackClient.TrackingDynamicAddress;
+import kostiskag.unitynetwork.bluenode.TrackClient.TrackingTracker;
 
 public class BlueNode extends Thread{
 	private static final String pre = "^BlueNode ";
@@ -27,6 +28,7 @@ public class BlueNode extends Thread{
 	public final boolean network;
 	public final String trackerAddress;
 	public final int trackerPort;	
+	public final int trackerMaxIdleTimeMin;
 	public final String name;
 	public final boolean useList;
 	public final int authPort;
@@ -46,14 +48,14 @@ public class BlueNode extends Thread{
 	public boolean dping;
 	public int keepAliveTime = 5;
 	public PortHandle UDPports;
-	public TrackingDynamicAddress addr;
+	public TrackingTracker addr;
 	// our most important tables
 	public RedNodesTable localRedNodesTable;
 	public RedRemoteAddressTable remoteRedNodesTable;
 	public BlueNodesTable blueNodesTable;
 	// tracker data
 	public String echoAddress;
-	public int DynAddUpdateMins = 2;
+	public final int trackerCheckSec = 20;
 	// gui data
 	public boolean viewTraffic = true;
 	private int messageCount = 0;	
@@ -66,6 +68,8 @@ public class BlueNode extends Thread{
 	public FlyRegister flyreg;
 	public QueueManager manager;
 	public QueueManager flyman;
+	//
+	public AtomicInteger trackerRespond = new AtomicInteger(0);
 
 	/**
 	 * This is a bluenode constructor. In a typical scenario
@@ -91,7 +95,8 @@ public class BlueNode extends Thread{
 	public BlueNode(
 		boolean network,
 		String trackerAddress, 
-		int trackerPort,        
+		int trackerPort, 
+		int trackerMaxIdleTimeMin,
 		String name,
 		boolean useList,
 		int authPort,
@@ -106,6 +111,7 @@ public class BlueNode extends Thread{
 		this.network = network;
 		this.trackerAddress = trackerAddress;
 		this.trackerPort = trackerPort;
+		this.trackerMaxIdleTimeMin = trackerMaxIdleTimeMin;
 		this.name = name;
 		this.useList = useList;
 		this.authPort = authPort;
@@ -160,7 +166,7 @@ public class BlueNode extends Thread{
 			try {
 				if (joinNetwork()) {
 					joined = true;
-					addr = new TrackingDynamicAddress();
+					addr = new TrackingTracker();
 					addr.start();
 				} else {
 					die();

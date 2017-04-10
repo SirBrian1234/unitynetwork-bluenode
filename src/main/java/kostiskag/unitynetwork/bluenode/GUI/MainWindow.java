@@ -31,6 +31,7 @@ public class MainWindow extends javax.swing.JFrame {
     public static int messageCount = 0;
 
     public MainWindow() {
+    	setTitle("Blue Node");
     	initComponents(); 
         if (!App.bn.network) {
     		jTabbedPane1.remove(2);

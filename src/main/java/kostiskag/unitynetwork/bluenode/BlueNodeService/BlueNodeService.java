@@ -77,6 +77,8 @@ public class BlueNodeService extends Thread {
                 BlueNodeFunctions.ExchangeRNs(hostname,connectionSocket,inFromClient,outputWriter);
             } else if (args.length == 2 && args[0].equals("FEED_RETURN_ROUTE")) {
                 BlueNodeFunctions.FeedReturnRoute(hostname, args[1], connectionSocket,inFromClient,outputWriter);
+            } else {
+            	outputWriter.println("WRONG_COMMAND");                
             }
             connectionSocket.close();
         } catch (IOException ex) {
@@ -93,8 +95,11 @@ public class BlueNodeService extends Thread {
 
             if (args.length == 3 && args[0].equals("LEASE")) {
                 RedNodeFunctions.Lease(connectionSocket, hostname, args[1], args[2]);
-            }            
-            //no need for connection socket close - statefull
+                //no need for connection socket close - statefull
+            } else {
+            	outputWriter.println("WRONG_COMMAND"); 
+            	connectionSocket.close();
+            }                       
         } catch (IOException ex) {
             Logger.getLogger(BlueNodeService.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -111,6 +116,10 @@ public class BlueNodeService extends Thread {
                 TrackingFunctions.check(outputWriter);
             } else if (args.length == 1 && args[0].equals("GETREDNODES")) {
                 TrackingFunctions.getrns(outputWriter);
+            } else if (args.length == 1 && args[0].equals("KILLSIG")) {
+                TrackingFunctions.killsig(outputWriter);
+            } else {
+            	outputWriter.println("WRONG_COMMAND");                
             }
             connectionSocket.close();
         } catch (IOException ex) {

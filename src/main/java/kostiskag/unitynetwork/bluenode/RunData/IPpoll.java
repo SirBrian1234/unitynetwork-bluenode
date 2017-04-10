@@ -15,12 +15,8 @@ public class IPpoll {
         App.bn.ConsolePrint("GRAVE WARNING BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nTHAT MEANS THAT ANYONE WHO KNOWS BN AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
     }
     
-    public String poll(){
+    public synchronized String poll(){
         count++;
         return new String(""+count);
-    }
-    
-    public static void main(String[] args) {
-        IPpoll poll = new IPpoll();
     }
 }
