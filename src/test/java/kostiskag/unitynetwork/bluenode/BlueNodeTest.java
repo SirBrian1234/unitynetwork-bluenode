@@ -1,6 +1,8 @@
 package kostiskag.unitynetwork.bluenode;
 
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 import kostiskag.unitynetwork.bluenode.RunData.Tables.AccountsTable;
@@ -12,7 +14,7 @@ public class BlueNodeTest {
 		assertTrue(true);
 	}
 
-	@Test
+	@Ignore
 	public void initBlueNode() {		
 		boolean network = true;
 		String trackerAddress = "127.0.0.1";
