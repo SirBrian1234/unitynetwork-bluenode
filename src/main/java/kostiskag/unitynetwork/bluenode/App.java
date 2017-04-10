@@ -10,10 +10,9 @@ import java.util.logging.Logger;
 import javax.swing.UIManager;
 import kostiskag.unitynetwork.bluenode.RunData.Tables.AccountsTable;
 
-/*
+/**
  *
  * @author Konstantinos Kagiampakis
- * 
  */
 public class App extends Thread {
 

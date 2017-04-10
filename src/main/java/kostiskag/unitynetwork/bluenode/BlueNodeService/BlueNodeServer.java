@@ -13,17 +13,19 @@ import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 public class BlueNodeServer extends Thread{
 
 	// a bluenode server should have only one port to listen
-	public String pre = "^AUTH SERVER ";    
-    public static Boolean didTrigger = false;
-
-    public BlueNodeServer() {
+	public final String pre = "^AUTH SERVER ";    
+	public final int authPort;
+	public Boolean didTrigger = false;
+    
+    public BlueNodeServer(int authPort) {
+    	this.authPort = authPort;
     }        
     
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre+"started at thread "+Thread.currentThread().getName()+" on port "+App.bn.authPort);
+        App.bn.ConsolePrint(pre+"started at thread "+Thread.currentThread().getName()+" on port "+authPort);
         try {
-            ServerSocket welcomeSocket = new ServerSocket(App.bn.authPort);            
+            ServerSocket welcomeSocket = new ServerSocket(authPort);            
             if (App.bn.gui && didTrigger==false){
                 MainWindow.jCheckBox8.setSelected(true);
                 didTrigger = true;
@@ -39,6 +41,7 @@ public class BlueNodeServer extends Thread{
             App.bn.die();
         } catch (IOException e) {
             e.printStackTrace();
+            App.bn.die();
         }        
     }
 }

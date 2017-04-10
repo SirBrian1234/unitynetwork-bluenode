@@ -140,7 +140,7 @@ public class BlueNode extends Thread{
 		flyman = new QueueManager(1000);
 
 		// 3. init auth server ~ the service that authenticates clients
-		auth = new BlueNodeServer();
+		auth = new BlueNodeServer(authPort);
 		auth.start();
 
 		// 5. init router ~ basically blue node's router
