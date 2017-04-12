@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import kostiskag.unitynetwork.bluenode.RunData.Tables.AccountsTable;
+import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 
 public class BlueNodeTest {
 	

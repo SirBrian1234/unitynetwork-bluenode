@@ -8,19 +8,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import kostiskag.unitynetwork.bluenode.BlueNodeService.BlueNodeServer;
-import kostiskag.unitynetwork.bluenode.Functions.PortHandle;
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.FlyRegister;
 import kostiskag.unitynetwork.bluenode.Routing.PacketToHandle;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.RunData.IPpoll;
-import kostiskag.unitynetwork.bluenode.RunData.Tables.AccountsTable;
-import kostiskag.unitynetwork.bluenode.RunData.Tables.BlueNodesTable;
-import kostiskag.unitynetwork.bluenode.RunData.Tables.RedNodesTable;
-import kostiskag.unitynetwork.bluenode.RunData.Tables.RedRemoteAddressTable;
-import kostiskag.unitynetwork.bluenode.TrackClient.TrackingBlueNodeFunctions;
-import kostiskag.unitynetwork.bluenode.TrackClient.TrackingTracker;
+import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
+import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
+import kostiskag.unitynetwork.bluenode.RunData.tables.RedNodesTable;
+import kostiskag.unitynetwork.bluenode.RunData.tables.RedRemoteAddressTable;
+import kostiskag.unitynetwork.bluenode.blueNodeService.BlueNodeServer;
+import kostiskag.unitynetwork.bluenode.functions.PortHandle;
+import kostiskag.unitynetwork.bluenode.trackClient.TrackingBlueNodeFunctions;
+import kostiskag.unitynetwork.bluenode.trackClient.TrackingTracker;
 
 public class BlueNode extends Thread{
 	private static final String pre = "^BlueNode ";
@@ -240,7 +240,7 @@ public class BlueNode extends Thread{
 
 	public void leaveNetworkAndDie() throws Exception {
 		if (joined) {
-			if (kostiskag.unitynetwork.bluenode.TrackClient.TrackingBlueNodeFunctions.release()) {
+			if (kostiskag.unitynetwork.bluenode.trackClient.TrackingBlueNodeFunctions.release()) {
 				ConsolePrint("^SUCCESSFULLY RELEASED FROM THE NETWORK");
 			}
 			joined = false;

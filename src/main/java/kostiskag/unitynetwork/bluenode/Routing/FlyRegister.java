@@ -5,9 +5,9 @@ import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.TrackClient.TrackingBlueNodeFunctions;
-import kostiskag.unitynetwork.bluenode.TrackClient.TrackingRedNodeFunctions;
-import kostiskag.unitynetwork.bluenode.BlueNodeClient.RemoteHandle;
+import kostiskag.unitynetwork.bluenode.blueNodeClient.RemoteHandle;
+import kostiskag.unitynetwork.bluenode.trackClient.TrackingBlueNodeFunctions;
+import kostiskag.unitynetwork.bluenode.trackClient.TrackingRedNodeFunctions;
 
 /**
  *

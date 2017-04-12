@@ -2,7 +2,7 @@ package kostiskag.unitynetwork.bluenode.GUI;
 
 import javax.swing.table.DefaultTableModel;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.BlueNodeClient.RemoteHandle;
+import kostiskag.unitynetwork.bluenode.blueNodeClient.RemoteHandle;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;

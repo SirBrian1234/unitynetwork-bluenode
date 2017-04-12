@@ -8,7 +8,8 @@ import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
-import kostiskag.unitynetwork.bluenode.RunData.Tables.AccountsTable;
+
+import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 
 /**
  *

@@ -2,8 +2,8 @@ package kostiskag.unitynetwork.bluenode.scenarios;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.BlueNode;
-import kostiskag.unitynetwork.bluenode.RunData.Instances.RedNodeInstance;
-import kostiskag.unitynetwork.bluenode.RunData.Tables.AccountsTable;
+import kostiskag.unitynetwork.bluenode.RunData.instances.RedNodeInstance;
+import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 
 public class MultipleBlueNodesWithRedNodesScenario {
 	
