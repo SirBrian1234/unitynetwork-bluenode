@@ -18,12 +18,12 @@ import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import kostiskag.unitynetwork.bluenode.Functions.ipAddrFunctions;
 import kostiskag.unitynetwork.bluenode.TrackClient.TrackingRedNodeFunctions;
 
-/* 
- * @author kostis
- * 
+/** 
  * RedAuthService runs every time for a single user only It is responsible for
  * user registering user's uplink port fishing and it stays alive as long as the
  * user is connected
+ * 
+ * @author kostis
  */
 public class RedNodeInstance extends Thread {
 
@@ -78,85 +78,106 @@ public class RedNodeInstance extends Thread {
             PhAddress = socket.getInetAddress();
             PhAddressStr = PhAddress.getHostAddress();
 
-            if (App.bn.network)
+            if (App.bn.network && App.bn.joined) {
                 Vaddress = TrackingRedNodeFunctions.lease(Hostname, Username, Password);
-            else if (App.bn.useList)
-                Vaddress = App.bn.accounts.search(Hostname, Username, Password);
-            else
-                Vaddress = App.bn.kouvas.poll();
-            
-            if (Vaddress != null) {
+                
                 //leasing - reverse error capture     
                 if (Vaddress.equals("WRONG_COMMAND")) {
                     App.bn.ConsolePrint(pre + "WRONG_COMMAND");
                     outputWriter.println("BLUENODE FAILED");
                     socket.close();
                     state = -1;
+                    return;
                 } else if (Vaddress.equals("NOT_ONLINE")) {
                     App.bn.ConsolePrint(pre + "NOT_ONLINE");
                     outputWriter.println("BLUENODE FAILED");
                     socket.close();
                     state = -1;
+                    return;
                 } else if (Vaddress.equals("NOT_REGISTERED")) {
                     App.bn.ConsolePrint(pre + "NOT_REGISTERED");
                     outputWriter.println("BLUENODE FAILED");
                     socket.close();
                     state = -1;
+                    return;
                 } else if (Vaddress.equals("SYSTEM_ERROR")) {
                     App.bn.ConsolePrint(pre + "SYSTEM_ERROR");
                     outputWriter.println("BLUENODE FAILED");
                     socket.close();
                     state = -1;
+                    return;
                 } else if (Vaddress.equals("AUTH_FAILED")) {
                     App.bn.ConsolePrint(pre + "USER FAILED 1");
                     outputWriter.println("USER FAILED 1");
                     socket.close();
                     state = -1;
+                    return;
                 } else if (Vaddress.equals("USER_HOSTNAME_MISSMATCH")) {
                     App.bn.ConsolePrint(pre + "HOSTNAME FAILED 3");
                     outputWriter.println("HOSTNAME FAILED 3");
                     socket.close();
                     state = -1;
+                    return;
                 } else if (Vaddress.equals("ALLREADY_LEASED")) {
                     App.bn.ConsolePrint(pre + "HOSTNAME FAILED 2");
                     outputWriter.println("HOSTNAME FAILED 2");
                     socket.close();
                     state = -1;
+                    return;
                 } else if (Vaddress.equals("NOT_FOUND")) {
                     App.bn.ConsolePrint(pre + "HOSTNAME FAILED 1");
                     outputWriter.println("HOSTNAME FAILED 1");
                     socket.close();
                     state = -1;
-                } else {
-                    Vaddress = ipAddrFunctions.numberTo10ipAddr(Vaddress);
-                    App.bn.ConsolePrint(pre + "USER AUTHED / STARTING ASSOSIATION");
-
-                    if (App.bn.gui && didTrigger == false) {
-                        MainWindow.jCheckBox2.setSelected(true);
-                        didTrigger = true;
-                    }
-
-                    //queue manager
-                    man = new QueueManager(10);
-
-                    //downlink (allways by the aspect of bluenode)
-                    down = new RedDownService(Vaddress);
-
-                    //uplink (allways by the aspect of bluenode)
-                    up = new RedlUpService(Vaddress);
-
-                    //keep alive
-                    ka = new RedKeepAlive(Vaddress);
-
-                    state = 1;
+                    return;
+                } else if (Vaddress.equals("LEASE_FAILED")) {
+                    App.bn.ConsolePrint(pre + "HOSTNAME FAILED 1");
+                    outputWriter.println("HOSTNAME FAILED 1");
+                    socket.close();
+                    state = -1;
+                    return;
                 }
+                                
+            } else if (App.bn.useList) {
+                Vaddress = App.bn.accounts.search(Hostname, Username, Password);
+                Vaddress = ipAddrFunctions.numberTo10ipAddr(Vaddress);
+            } else if (!App.bn.useList && App.bn.network) {
+                Vaddress = App.bn.kouvas.poll();
+                Vaddress = ipAddrFunctions.numberTo10ipAddr(Vaddress);
+            } else {
+            	Vaddress = null;
+            	socket.close();
+            	state = -1;
+            	return;
             }
+                   
+            App.bn.ConsolePrint(pre + "USER AUTHED / STARTING ASSOSIATION");
+
+            if (App.bn.gui && didTrigger == false) {
+                MainWindow.jCheckBox2.setSelected(true);
+                didTrigger = true;
+            }
+
+            //queue manager
+            man = new QueueManager(10);
+
+            //downlink (allways by the aspect of bluenode)
+            down = new RedDownService(Vaddress);
+
+            //uplink (allways by the aspect of bluenode)
+            up = new RedlUpService(Vaddress);
+
+            //keep alive
+            ka = new RedKeepAlive(Vaddress);
+
+            state = 1;
+            
         } catch (IOException ex) {
             Logger.getLogger(RedNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    /*
+    /**
      * here we have the terminal loop a user may
      * send commands to the BN monitoring his status
      */
