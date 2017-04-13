@@ -5,7 +5,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.functions.MD5Functions;
+import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
 import kostiskag.unitynetwork.bluenode.functions.ipAddrFunctions;
 
 /**
@@ -21,7 +21,7 @@ public class AccountInstance {
     public AccountInstance(String Username, String password, String hostname, String vadress) {
         try {
             this.Username = Username;
-            this.password = MD5Functions.MD5(Username + "lol!_you_just_cant_copy_hashes_and_use_them_from_the_webpage" + MD5Functions.MD5(password));
+            this.password = HashFunctions.SHA256(HashFunctions.SHA256(App.SALT) +  HashFunctions.SHA256(Username) + HashFunctions.SHA256(App.SALT) +  HashFunctions.SHA256(password));			
             this.hostname = hostname;        
             this.vadress = ipAddrFunctions._10ipAddrToNumber(vadress);
         } catch (NoSuchAlgorithmException ex) {

@@ -27,6 +27,8 @@ public class App extends Thread {
 	public static final String logFileName = "bluenode.log";
 	// files
 	public static final File logFile =  new File(logFileName);
+	// user
+	public static final String SALT = "=UrBN&RLJ=dBshBX3HFn!S^Au?yjqV8MBx7fMyg5p6U8T^%2kp^X-sk9EQeENgVEj%DP$jNnz&JeF?rU-*meW5yFkmAvYW_=mA+E$F$xwKmw=uSxTdznSTbunBKT*-&!";
 	// bluenode settings
 	public static boolean network;
 	public static String trackerAddress; 

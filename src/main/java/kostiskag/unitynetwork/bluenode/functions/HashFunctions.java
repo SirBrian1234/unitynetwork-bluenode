@@ -4,7 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
  
-public class MD5Functions { 
+public class HashFunctions { 
  
     private static String convertToHex(byte[] data) { 
         StringBuffer buf = new StringBuffer();
@@ -30,5 +30,15 @@ public class MD5Functions {
         md.update(text.getBytes("iso-8859-1"), 0, text.length());
         md5hash = md.digest();
         return convertToHex(md5hash);
-    } 
+    }
+    
+    public static String SHA256(String text) 
+    	    throws NoSuchAlgorithmException, UnsupportedEncodingException  { 
+    	        MessageDigest md;
+    	        md = MessageDigest.getInstance("SHA-256");
+    	        byte[] md5hash = new byte[32];
+    	        md.update(text.getBytes("iso-8859-1"), 0, text.length());
+    	        md5hash = md.digest();
+    	        return convertToHex(md5hash);
+    }
 } 
