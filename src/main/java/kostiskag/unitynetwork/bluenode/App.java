@@ -18,6 +18,11 @@ import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 public class App extends Thread {
 
 	private static final String pre = "^App ";
+	//sizes
+	public static final int max_int_str_len = 32;
+	public static final int max_str_len_small_size = 128;
+	public static final int max_str_len_large_size = 256;
+	public static final int max_str_addr_len = "255.255.255.255".length();
 	// network
 	public static final int virtualNetworkAddressCapacity = (int) (Math.pow(2,24) - 2);
 	public static final int systemReservedAddressNumber = 2; 	
@@ -61,14 +66,16 @@ public class App extends Thread {
 	}
 	
 	private static void loadUserList() {
+		accounts = new AccountsTable();
 		try {
-			accounts = new AccountsTable();
 			ReadPreferencesFile.ParseHostClientList(new File(hostlistFileName));
-			accounts.verbose();
-		} catch (IOException ex) {
-			Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
-			System.exit(0);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println(hostlistFileName+" was wrongly formated. Please update the file.");
+			System.exit(1);
 		}
+		System.out.println(accounts.toString());
+	
 	}
 	
 	/**

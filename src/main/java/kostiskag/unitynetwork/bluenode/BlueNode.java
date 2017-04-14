@@ -59,7 +59,7 @@ public class BlueNode extends Thread{
 	// gui data
 	public boolean viewTraffic = true;
 	private int messageCount = 0;	
-	public IPpoll kouvas;
+	public IPpoll bucket;
 	public PrintWriter prt;
 	// objects
 	public BlueNodeServer auth;
@@ -176,7 +176,8 @@ public class BlueNode extends Thread{
 				die();
 			}
 		} else if (!useList) {
-			kouvas = new IPpoll();
+			bucket = new IPpoll();
+			ConsolePrint("WARNING! BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nWHICH MEANS THAT ANYONE WHO KNOWS THE BN'S ADDRESS AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
 		}
 	}
 

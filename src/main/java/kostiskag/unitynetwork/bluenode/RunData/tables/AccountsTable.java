@@ -1,43 +1,89 @@
 package kostiskag.unitynetwork.bluenode.RunData.tables;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Iterator;
+import java.util.LinkedList;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.AccountInstance;
+import kostiskag.unitynetwork.bluenode.functions.ipAddrFunctions;
 
 /**
+ * When a local host.list is imported the data may be transfered
+ * to an object of this class.
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class AccountsTable {
-    String pre = "^AccountsTable ";
-    AccountInstance[] array;
-    int count;
-    int len;
+    private final String pre = "^AccountsTable ";
+    private final LinkedList<AccountInstance> list;
 
     public AccountsTable() {        
-        array = new AccountInstance[100];
-        count = 0;
-        len=100;
-        App.bn.ConsolePrint(pre+"using local user table");
-    }
-        
-    public void insert(String username, String password, String hostname, String vadress){
-        array[count] = new AccountInstance(username, password, hostname, vadress);
-        count++;
+        list = new LinkedList<AccountInstance>();
     }
     
-    public String search(String Ghostname, String Gusername, String Gpassword) {
-        for (int i=0; i<count; i++){
-            String vadress = array[i].check(Gusername, Gpassword, Ghostname);
-            if (vadress != null){
-                return vadress;
-            }
+    public int getSize() {
+    	return list.size();
+    }
+        
+    public synchronized void insert(String username, String password, String hostname, int vadressNum) throws Exception{
+        //data validate
+    	if (password != null && hostname != null) {
+    		if (!username.isEmpty() && !password.isEmpty() && !hostname.isEmpty()) {
+    			if (vadressNum > 0 && vadressNum <= (16777214 - 2 - App.systemReservedAddressNumber)) {
+	    			//check if unique
+	    			String effectveVaddress = ipAddrFunctions.numberTo10ipAddr(vadressNum);
+	    			Iterator<AccountInstance> it = list.listIterator();
+	    	        while(it.hasNext()) {
+	    	        	AccountInstance element = it.next();
+	    	        	if (element.getHostname().equals(hostname) || element.getVaddress().equals(effectveVaddress)) {
+	    	        		throw new Exception(pre+"duplicate hostname or vaddress entry.\nHostnames and addresses have to be unique");
+	    	        	}
+	    	        }
+	    	        //insert
+	    	        list.add(new AccountInstance(username, password, hostname, effectveVaddress));
+    			} else {
+    				throw new Exception(pre+"bad numeric address was given.");
+    			}
+    		} else {
+    			throw new Exception(pre+"bad data were given.");
+    		}
+    	} else {
+    		throw new Exception(pre+"null data were given.");
+    	}
+    }
+    
+    public synchronized boolean checkList(String hostname, String username, String password) {
+        Iterator<AccountInstance> it = list.listIterator();
+        while(it.hasNext()) {
+        	AccountInstance element = it.next();
+        	if (element.check(username, password, hostname)) {
+        		return true;
+        	}
+        }
+        return false;
+    }
+    
+    public synchronized String getVaddrIfExists(String hostname, String username, String password) {
+        Iterator<AccountInstance> it = list.listIterator();
+        while(it.hasNext()) {
+        	AccountInstance element = it.next();
+        	String vaddr = element.checkAndGetVaddr(username, password, hostname);
+        	if (vaddr != null) {
+        		return vaddr;
+        	}
         }
         return null;
     }
     
-     public void verbose(){
-        for(int i=0; i<count; i++){
-            App.bn.ConsolePrint(array[i].verbose());
+     public synchronized String toString() {
+    	 Iterator<AccountInstance> it = list.listIterator();
+    	 StringBuilder b = new StringBuilder();
+         while(it.hasNext()) {
+        	AccountInstance element = it.next();
+            b.append(element.toString()+"\n");
         }
+        return b.toString(); 
     }
 }

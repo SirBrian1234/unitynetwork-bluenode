@@ -66,7 +66,7 @@ public class ReadPreferencesFile {
         System.out.println("");                
     }   
 
-    public static void ParseHostClientList(File hostListFile) throws IOException {
+    public static void ParseHostClientList(File hostListFile) throws Exception {
         
         BufferedReader br = new BufferedReader(new FileReader(hostListFile));                            
         LinkedList<String> list = new LinkedList<String>();        
@@ -85,12 +85,7 @@ public class ReadPreferencesFile {
             line = list.poll();
             validline = line.split("\\s+");
             int address = Integer.parseInt(validline[3]);
-            if (address > 0 && address <= (16777214 - 2 - App.systemReservedAddressNumber)) {
-            	address += App.systemReservedAddressNumber;            	
-            	String s_addr = ""+address;
-            	App.accounts.insert(validline[0], validline[1], validline[2], s_addr);
-            	System.out.println(validline[0]+ validline[1]+ validline[2]+ s_addr);
-            }
+            App.accounts.insert(validline[0], validline[1], validline[2], address);				            	            
         }            
         System.out.println("hostlist loaded with "+size+" host-clients");                
     }

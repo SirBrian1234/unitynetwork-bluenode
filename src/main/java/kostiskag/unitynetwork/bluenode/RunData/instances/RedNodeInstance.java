@@ -139,11 +139,10 @@ public class RedNodeInstance extends Thread {
                 }
                                 
             } else if (App.bn.useList) {
-                Vaddress = App.bn.accounts.search(Hostname, Username, Password);
-                Vaddress = ipAddrFunctions.numberTo10ipAddr(Vaddress);
+            	Vaddress = App.bn.accounts.getVaddrIfExists(Hostname, Username, Password);                          	
             } else if (!App.bn.useList && App.bn.network) {
-                Vaddress = App.bn.kouvas.poll();
-                Vaddress = ipAddrFunctions.numberTo10ipAddr(Vaddress);
+                int addr_num = App.bn.bucket.poll();
+                Vaddress = ipAddrFunctions.numberTo10ipAddr(addr_num);
             } else {
             	Vaddress = null;
             	socket.close();
