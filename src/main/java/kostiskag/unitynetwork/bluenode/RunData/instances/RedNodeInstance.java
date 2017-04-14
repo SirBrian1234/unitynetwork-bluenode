@@ -140,7 +140,7 @@ public class RedNodeInstance extends Thread {
                                 
             } else if (App.bn.useList) {
             	Vaddress = App.bn.accounts.getVaddrIfExists(Hostname, Username, Password);                          	
-            } else if (!App.bn.useList && App.bn.network) {
+            } else if (!App.bn.useList && !App.bn.network) {
                 int addr_num = App.bn.bucket.poll();
                 Vaddress = ipAddrFunctions.numberTo10ipAddr(addr_num);
             } else {
