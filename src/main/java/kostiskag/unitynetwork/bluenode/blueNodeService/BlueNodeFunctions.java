@@ -4,11 +4,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static java.lang.Thread.sleep;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.blueNodeClient.RemoteHandle;
+import kostiskag.unitynetwork.bluenode.functions.TCPSocketFunctions;
 import kostiskag.unitynetwork.bluenode.Routing.*;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
@@ -88,13 +91,14 @@ public class BlueNodeFunctions {
     }
 
     static void GetRNs(String hostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
-        int size = App.bn.localRedNodesTable.getSize();
+    	LinkedList<String> fetched = App.bn.localRedNodesTable.buildAddrHostStringList();
+        int size = fetched.size();
         outputWriter.println("SENDING_LOCAL_RED_NODES " + size);
-        for (int i = 0; i < size; i++) {
-            String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-            hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
-            outputWriter.println(vaddress + " " + hostname);
-        }
+        Iterator<String> it = fetched.listIterator();
+        while(it.hasNext()){
+        	String toSend = it.next();
+        	outputWriter.println(toSend);
+        }     
         outputWriter.println();
     }
 
@@ -102,13 +106,14 @@ public class BlueNodeFunctions {
         try {
             String clientSentence = null;
             String[] args;
-            int size = App.bn.localRedNodesTable.getSize();
-            outputWriter.println("SENDING_LOCAL_RED_NODES " + size);
-            for (int i = 0; i < size; i++) {
-                String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-                hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
-                outputWriter.println(vaddress + " " + hostname);
-            }
+            LinkedList<String> fetched = App.bn.localRedNodesTable.buildAddrHostStringList();
+            int size = fetched.size();
+            outputWriter.println("SENDING_LOCAL_RED_NODES " + size);            
+            Iterator<String> it = fetched.listIterator();
+            while(it.hasNext()){
+            	String toSend = it.next();
+            	outputWriter.println(toSend);
+            }     
             outputWriter.println();
 
             clientSentence = inFromClient.readLine();

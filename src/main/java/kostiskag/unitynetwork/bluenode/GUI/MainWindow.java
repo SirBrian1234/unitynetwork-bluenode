@@ -736,7 +736,7 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
-        App.bn.localRedNodesTable.updateTable();
+        updateLocalRns();
     }
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -893,4 +893,15 @@ public class MainWindow extends javax.swing.JFrame {
     public static javax.swing.JTextField jTextField5;
     private javax.swing.JToggleButton jToggleButton1;
     private JTextField txtOpMode;
+
+	public void updateLocalRns() {
+		String[][] obj = App.bn.localRedNodesTable.buildGUIObj();
+		int rows = hostable.getRowCount();
+        for (int i = 0; i < rows; i++) {
+            hostable.removeRow(0);
+        }
+        for (int i = 0; i < obj.length; i++) {
+            hostable.addRow(obj[i]);
+        }
+	}
    }

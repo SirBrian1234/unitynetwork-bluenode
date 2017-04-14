@@ -1,5 +1,7 @@
 package kostiskag.unitynetwork.bluenode.blueNodeClient;
 
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.BufferedReader;
@@ -150,7 +152,7 @@ public class BlueNodeClientFunctions {
     //0 for not found remote rednode
     //1 for found rednote
     public static int checkRemoteRedNode(String vaddress) {
-        String BlueNodeHostname = App.bn.remoteRedNodesTable.getRedRemoteAddress(vaddress).getBlueNodeHostname();
+        String BlueNodeHostname = App.bn.remoteRedNodesTable.getRedRemoteAddress(vaddress).getBlueNodeName();
         String bnaddress = App.bn.blueNodesTable.getBlueNodeInstanceByHn(BlueNodeHostname).getPhaddress();
         InetAddress IPaddress = TCPSocketFunctions.getAddress(bnaddress);
         if (IPaddress == null) {
@@ -387,13 +389,14 @@ public class BlueNodeClientFunctions {
         }
         TCPSocketFunctions.readData(inputReader);
 
-        int size = App.bn.localRedNodesTable.getSize();
+        LinkedList<String> fetched = App.bn.localRedNodesTable.buildAddrHostStringList();
+        int size = fetched.size();
         TCPSocketFunctions.sendFinalData("SENDING_LOCAL_RED_NODES " + size, outputWriter);
-        for (int i = 0; i < size; i++) {
-            String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-            String hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
-            TCPSocketFunctions.sendFinalData(vaddress + " " + hostname, outputWriter);
-        }
+        Iterator<String> it = fetched.listIterator();
+        while(it.hasNext()){
+        	String toSend = it.next();
+        	TCPSocketFunctions.sendFinalData(toSend, outputWriter);
+        }        
         TCPSocketFunctions.sendFinalData("", outputWriter);
         TCPSocketFunctions.connectionClose(socket);
         return 1;

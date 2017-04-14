@@ -8,35 +8,35 @@ import kostiskag.unitynetwork.bluenode.functions.getTime;
  */
 public class RedRemoteAddress {
 
-    private String VirtualAddress;
-    private String Hostname;
-    private String BlueNodeHostname;
+	private String hostname;
+	private String virtualAddress;    
+    private String blueNodeName;
     private String timestamp;
 
-    public RedRemoteAddress(String VirtualAddress, String Hostname, String BlueNodeHostname, String timestamp) {
-        this.VirtualAddress = VirtualAddress;
-        this.Hostname = Hostname;
-        this.BlueNodeHostname = BlueNodeHostname;        
+    public RedRemoteAddress(String virtualAddress, String hostname, String blueNodeHostname, String timestamp) {
+        this.virtualAddress = virtualAddress;
+        this.hostname = hostname;
+        this.blueNodeName = blueNodeHostname;        
         this.timestamp = timestamp;
     }
 
     public void init(String VirtualAddress, String Hostname, String BlueNodeHostname, String timestamp) {
-        this.VirtualAddress = VirtualAddress;
-        this.Hostname = Hostname;
-        this.BlueNodeHostname = BlueNodeHostname;        
+        this.virtualAddress = VirtualAddress;
+        this.hostname = Hostname;
+        this.blueNodeName = BlueNodeHostname;        
         this.timestamp = timestamp;
     }
 
     public String getVAddress() {
-        return VirtualAddress;
+        return virtualAddress;
     }
 
     public String getHostname() {
-        return Hostname;
+        return hostname;
     }
 
-    public String getBlueNodeHostname() {
-        return BlueNodeHostname;
+    public String getBlueNodeName() {
+        return blueNodeName;
     }
 
     public String getTime() {

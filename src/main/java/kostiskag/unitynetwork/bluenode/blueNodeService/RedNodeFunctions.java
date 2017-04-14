@@ -20,7 +20,12 @@ public class RedNodeFunctions {
         RedNodeInstance RNclient = new RedNodeInstance(connectionSocket, hostname, Username, Password);
         if (RNclient.getStatus() > 0) {                        
             try {
-                App.bn.localRedNodesTable.lease(RNclient);
+                try {
+					App.bn.localRedNodesTable.lease(RNclient);
+				} catch (Exception e) {
+					e.printStackTrace();
+					return;
+				}
                 RNclient.startServices();                
                 
                 try {
@@ -32,7 +37,6 @@ public class RedNodeFunctions {
                 outputWriter = new PrintWriter(connectionSocket.getOutputStream(), true);
                 outputWriter.println("REG OK " + RNclient.getDown().getDownport() + " " + RNclient.getUp().getUpport() + " " + RNclient.getVaddress());
                 App.bn.ConsolePrint("RED NODE OK " + RNclient.getVaddress() + "/" + RNclient.getHostname() + "/" + RNclient.getUsername() + " ~ " + RNclient.getPhAddress() + ":" + RNclient.getUp().getUpport() + ":" + RNclient.getDown().getDownport());
-                App.bn.localRedNodesTable.updateTable();
                 RNclient.initTerm();
                 
             } catch (IOException ex) {

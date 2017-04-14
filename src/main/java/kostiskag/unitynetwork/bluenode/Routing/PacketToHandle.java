@@ -60,7 +60,7 @@ public class PacketToHandle extends Thread {
                     App.bn.TrafficPrint(pre + "LOCAL DESTINATION", 3, 0);
                 } else if (App.bn.joined) {
                     if (App.bn.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
-                        String hostname = App.bn.remoteRedNodesTable.getRedRemoteAddress(destvaddress).getBlueNodeHostname();
+                        String hostname = App.bn.remoteRedNodesTable.getRedRemoteAddress(destvaddress).getBlueNodeName();
                         App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().offer(data);
                         App.bn.TrafficPrint(pre + "REMOTE DESTINATION -> " + hostname, 3, 1);
                     } else {

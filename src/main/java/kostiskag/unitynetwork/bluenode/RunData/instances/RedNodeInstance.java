@@ -140,7 +140,7 @@ public class RedNodeInstance extends Thread {
                                 
             } else if (App.bn.useList) {
             	Vaddress = App.bn.accounts.getVaddrIfExists(Hostname, Username, Password);                          	
-            } else if (!App.bn.useList && App.bn.network) {
+            } else if (!App.bn.useList && !App.bn.network) {
                 int addr_num = App.bn.bucket.poll();
                 Vaddress = ipAddrFunctions.numberTo10ipAddr(addr_num);
             } else {
@@ -176,12 +176,17 @@ public class RedNodeInstance extends Thread {
         }
     }
 
+    @Override
+    public void run(){
+    	
+    }
+    
     /**
      * here we have the terminal loop a user may
      * send commands to the BN monitoring his status
      */
     public void startServices() {
-        down.start();
+    	down.start();
         up.start();
         ka.start();
     }
@@ -199,7 +204,7 @@ public class RedNodeInstance extends Thread {
                     break;
                 }
                 if (clientSentence == null) {
-                    forceExit();
+                    exit();
                     break;
                 }
                 if (clientSentence.startsWith("PING")) {
@@ -258,8 +263,8 @@ public class RedNodeInstance extends Thread {
             try {
                 socket.close();
             } catch (IOException ex) {
-                App.bn.ConsolePrint(pre + "USER FORCE EXITED");
-                forceExit();
+                App.bn.ConsolePrint(pre + "CONNECTION HANGUP");
+                exit();
             }
         }
     }
@@ -282,7 +287,6 @@ public class RedNodeInstance extends Thread {
         }
 
         outputWriter.println("DOWNLINK REFRESH " + up.getUpport());
-        App.bn.localRedNodesTable.updateTable();
     }
 
     private void drefresh() {
@@ -297,54 +301,33 @@ public class RedNodeInstance extends Thread {
                     .getName()).log(Level.SEVERE, null, ex);
         }
         outputWriter.println("UPLINK REFRESH " + down.getDownport());
-        App.bn.localRedNodesTable.updateTable();
     }
 
     public void exit() {
         //killing auth socket
-        outputWriter.println("BYE");
-        try {
-            socket.close();
-        } catch (IOException ex) {
-            Logger.getLogger(RedNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
+        if (!socket.isClosed()) {
+	    	try {
+	        	outputWriter.println("BYE");
+	            socket.close();
+	        } catch (IOException ex) {
+	        	try {
+	        		socket.close();
+	        	} catch (Exception e) {
+	        		
+	        	}
+	        }
         }
-
         //killing user tasks
         killTasks();
-        //releasing host from table
-        App.bn.localRedNodesTable.release(Vaddress);
-        //informing user black node
-        if (App.bn.network)
-            TrackingRedNodeFunctions.release(Hostname);
+        
+        //setting state
+        state = -2;                
     }
-
-    private void forceExit() {
-        //killing user tasks
-        killTasks();
-        state = -2;
-        //releasing host from table
-        App.bn.localRedNodesTable.release(Vaddress);
-        //informing user black node
-        TrackingRedNodeFunctions.release(Hostname);
-    }
-
-    private void killTasks() {
-        //killing user tasks
-        down.kill();
+    
+    private void killTasks(){
+    	down.kill();
         up.kill();
         ka.kill();
-    }
-
-    //this function is started by red node table when an entry is force deleted
-    public void forceDelete() {
-        killTasks();
-        try {
-            socket.close();
-        } catch (IOException ex) {
-            Logger.getLogger(RedNodeInstance.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
-        TrackingRedNodeFunctions.release(Hostname);
     }
 
     public int getStatus() {

@@ -6,6 +6,8 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
@@ -40,12 +42,12 @@ public class BlueNodeInstance extends Thread {
     private QueueManager man;
     
     //get status
-    /* 0 means idle
+    /* 
      * 1 means fully connected 
-     *-1 means error 
+     * 0 means idle
+     * -1 means error 
      * the caller of this object after construction must getStatus in order to save or discard the instance
      */
-
     public BlueNodeInstance() {
         state = 0;
     }
@@ -73,13 +75,15 @@ public class BlueNodeInstance extends Thread {
 
 
             if (FullAssociation) {
-                int size = App.bn.localRedNodesTable.getSize();
+            	LinkedList<String> fetched = App.bn.localRedNodesTable.buildAddrHostStringList();
+                int size = fetched.size();
                 outputWriter.println("SENDING_LOCAL_RED_NODES " + size);
-                for (int i = 0; i < size; i++) {
-                    String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-                    hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
-                    outputWriter.println(vaddress+" "+hostname);
-                }
+                TCPSocketFunctions.sendFinalData("SENDING_LOCAL_RED_NODES " + size, outputWriter);
+            	Iterator<String> it = fetched.listIterator();
+                while(it.hasNext()){
+                	String toSend = it.next();
+                	outputWriter.println(toSend);
+                }        
                 outputWriter.println(" ");
 
                 clientSentence = inFromClient.readLine();
@@ -202,16 +206,17 @@ public class BlueNodeInstance extends Thread {
                     }
                 }
                 TCPSocketFunctions.readData(inputReader);
-                                
-                int size = App.bn.localRedNodesTable.getSize();
+                 
+                LinkedList<String> fetched = App.bn.localRedNodesTable.buildAddrHostStringList();
+                int size = fetched.size();
                 outputWriter.println("SENDING_LOCAL_RED_NODES " + size);
-                for (int i = 0; i < size; i++) {
-                    String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-                    String hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
-                    outputWriter.println(vaddress + " " + hostname);
-                }
-                outputWriter.println();
-
+                Iterator<String> it = fetched.listIterator();
+                while(it.hasNext()){
+                	String toSend = it.next();
+                	outputWriter.println(toSend);
+                }        
+                outputWriter.println(" ");
+                
                 args = TCPSocketFunctions.readData(inputReader);
                 downport = Integer.parseInt(args[1]);
                 upport = Integer.parseInt(args[2]);

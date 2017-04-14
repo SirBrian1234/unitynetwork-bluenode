@@ -1,6 +1,9 @@
 package kostiskag.unitynetwork.bluenode.blueNodeService;
 
 import java.io.PrintWriter;
+import java.util.Iterator;
+import java.util.LinkedList;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.functions.TCPSocketFunctions;
 
@@ -17,14 +20,15 @@ class TrackingFunctions {
     }
 
     public static void getrns(PrintWriter outputWriter) {
-        int size = App.bn.localRedNodesTable.getSize();
-        TCPSocketFunctions.sendFinalData("SENDING_LOCAL_RED_NODES " + size, outputWriter);
-        for (int i = 0; i < size; i++) {
-            String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-            String hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
-            TCPSocketFunctions.sendFinalData(hostname+" "+vaddress, outputWriter);
-        }
-        TCPSocketFunctions.sendFinalData("", outputWriter);  //line feed      
+    	LinkedList<String> fetched = App.bn.localRedNodesTable.buildAddrHostStringList();
+        int size = fetched.size();
+    	TCPSocketFunctions.sendFinalData("SENDING_LOCAL_RED_NODES " + size, outputWriter);
+    	Iterator<String> it = fetched.listIterator();
+        while(it.hasNext()){
+        	String toSend = it.next();
+        	TCPSocketFunctions.sendFinalData(toSend, outputWriter);
+        }        
+        TCPSocketFunctions.sendFinalData("", outputWriter);  
     }
     
     public static void killsig(PrintWriter outputWriter) {

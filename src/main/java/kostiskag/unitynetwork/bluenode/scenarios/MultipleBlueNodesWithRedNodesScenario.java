@@ -51,7 +51,11 @@ public class MultipleBlueNodesWithRedNodesScenario {
 		}
 		
 		RedNodeInstance rn = new RedNodeInstance("ouiou1", "ouiou", "1234","10.0.0.1","1.2.3.4");
-		bn.localRedNodesTable.lease(rn);
+		try {
+			bn.localRedNodesTable.lease(rn);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		for (int i=2; i<10; i++) {
 			name = "Pakis"+i;

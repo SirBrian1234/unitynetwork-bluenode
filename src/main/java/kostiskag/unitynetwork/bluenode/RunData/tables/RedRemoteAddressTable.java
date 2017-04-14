@@ -6,11 +6,10 @@ import kostiskag.unitynetwork.bluenode.RunData.instances.RedRemoteAddress;
 import kostiskag.unitynetwork.bluenode.functions.getTime;
 
 /**
- *
- * @author kostis
- *
  * Here we keep all the remote red nodes the table associates a red node with
  * his host blue node
+ * 
+ * @author kostis
  */
 public class RedRemoteAddressTable {
 
@@ -114,7 +113,7 @@ public class RedRemoteAddressTable {
                 MainWindow.remotetable.removeRow(0);
             }
             for (int i = 0; i < count; i++) {
-                MainWindow.remotetable.addRow(new Object[]{table[i].getVAddress(), table[i].getHostname(), table[i].getBlueNodeHostname(), table[i].getTime()});
+                MainWindow.remotetable.addRow(new Object[]{table[i].getVAddress(), table[i].getHostname(), table[i].getBlueNodeName(), table[i].getTime()});
             }
         }
     }
@@ -123,9 +122,9 @@ public class RedRemoteAddressTable {
         App.bn.ConsolePrint(pre + "REMOVING BLUENODE "+BlueNodeHostname+" ASSOCIATIONS");
         String address = null;
         for (int i = 0; i < count; i++) {
-            if (table[i].getBlueNodeHostname().equals(BlueNodeHostname)) {
+            if (table[i].getBlueNodeName().equals(BlueNodeHostname)) {
                 address = table[i].getVAddress();
-                App.bn.ConsolePrint(pre + "REMOVING " + address + " ~ " + table[i].getBlueNodeHostname());
+                App.bn.ConsolePrint(pre + "REMOVING " + address + " ~ " + table[i].getBlueNodeName());
                 release(i);
             }
         }

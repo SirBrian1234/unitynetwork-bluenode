@@ -134,7 +134,7 @@ public class RemoteHandle {
             } else if (out == 0) {
                 App.bn.remoteRedNodesTable.releaseByAddr(vaddress);
             } else {
-                BNHostname = App.bn.remoteRedNodesTable.getRedRemoteAddress(table[i - 1]).getBlueNodeHostname();
+                BNHostname = App.bn.remoteRedNodesTable.getRedRemoteAddress(table[i - 1]).getBlueNodeName();
                 App.bn.ConsolePrint(pre + "KILLING OFFLINE BLUENODE " + BNHostname);
                 App.bn.blueNodesTable.removeSingle(BNHostname);
                 App.bn.remoteRedNodesTable.releaseByAddr(vaddress);
