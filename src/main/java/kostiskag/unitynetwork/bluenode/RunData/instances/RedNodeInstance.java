@@ -28,7 +28,7 @@ import kostiskag.unitynetwork.bluenode.trackClient.TrackingRedNodeFunctions;
 public class RedNodeInstance extends Thread {
 
 	//to check if a RN is connected in another BN before auth
-	private String pre = "^AUTH ";
+	private final String pre = "^AUTH ";
     //object data
     private String PhAddressStr;
     private InetAddress PhAddress;
@@ -168,7 +168,12 @@ public class RedNodeInstance extends Thread {
 
             //keep alive
             ka = new RedKeepAlive(Vaddress);
-
+            
+            //starting the above
+            down.start();
+            up.start();
+            ka.start();
+            
             state = 1;
             
         } catch (IOException ex) {
@@ -180,33 +185,25 @@ public class RedNodeInstance extends Thread {
     public void run(){
     	
     }
-    
+
     /**
      * here we have the terminal loop a user may
      * send commands to the BN monitoring his status
      */
-    public void startServices() {
-    	down.start();
-        up.start();
-        ka.start();
-    }
-
     public void initTerm() {
         if (state > 0) {
             while (true) {
                 String clientSentence = null;
                 try {
                     clientSentence = inFromClient.readLine();
-                } catch (java.net.SocketException ex1) {
-                    break;
-                } catch (IOException ex) {
-                    Logger.getLogger(RedNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (Exception ex) {
                     break;
                 }
+                
                 if (clientSentence == null) {
-                    exit();
                     break;
                 }
+                
                 if (clientSentence.startsWith("PING")) {
                     outputWriter.println("PING OK");
                 } else if (clientSentence.startsWith("UPING")) {
@@ -253,19 +250,21 @@ public class RedNodeInstance extends Thread {
                 } else if (clientSentence.startsWith("WHOAMI")) {
                     whoami();
                 } else if (clientSentence.startsWith("EXIT")) {
-                    exit();
                     break;
                 } else {
                     //not recognized command
                     outputWriter.println("NRC");
                 }
-            }
-            try {
-                socket.close();
-            } catch (IOException ex) {
-                App.bn.ConsolePrint(pre + "CONNECTION HANGUP");
-                exit();
-            }
+            }    
+            
+            //remember you can't kill the socket here
+        	//you have to let initTerm return and the socket closes by itself
+        	
+            //killing user tasks
+            killTasks();
+            
+            //setting state
+            state = -2;       
         }
     }
 
@@ -304,24 +303,7 @@ public class RedNodeInstance extends Thread {
     }
 
     public void exit() {
-        //killing auth socket
-        if (!socket.isClosed()) {
-	    	try {
-	        	outputWriter.println("BYE");
-	            socket.close();
-	        } catch (IOException ex) {
-	        	try {
-	        		socket.close();
-	        	} catch (Exception e) {
-	        		
-	        	}
-	        }
-        }
-        //killing user tasks
-        killTasks();
-        
-        //setting state
-        state = -2;                
+    	outputWriter.println("BYE");
     }
     
     private void killTasks(){

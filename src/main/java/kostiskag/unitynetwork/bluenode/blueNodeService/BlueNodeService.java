@@ -12,25 +12,26 @@ import kostiskag.unitynetwork.bluenode.App;
  */
 public class BlueNodeService extends Thread {
 
-    private String pre = "^SERVER ";
-    private Socket connectionSocket;
-    private BufferedReader inFromClient;
-    private PrintWriter outputWriter;
+    private final String pre = "^SERVER ";
+    private final Socket sessionSocket;
+    private final BufferedReader socketReader;
+    private final PrintWriter socketWriter;
 
-    BlueNodeService(Socket connectionSocket) {
-        this.connectionSocket = connectionSocket;
+    BlueNodeService(Socket sessionSocket) throws IOException {
+        this.sessionSocket = sessionSocket;
+        socketReader = new BufferedReader(new InputStreamReader(sessionSocket.getInputStream()));
+        socketWriter = new PrintWriter(sessionSocket.getOutputStream(), true);
     }
 
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre + "STARTING AN AUTH AT " + Thread.currentThread().getName());
+        App.bn.ConsolePrint(pre +"STARTING AN AUTH AT "+Thread.currentThread().getName());
         try {
             String[] args;
-            inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-            outputWriter = new PrintWriter(connectionSocket.getOutputStream(), true);
-            outputWriter.println("BLUENODE " + App.bn.name + " ");
+            
+            socketWriter.println("BLUENODE "+App.bn.name+" ");
 
-            String clientSentence = inFromClient.readLine();
+            String clientSentence = socketReader.readLine();
             App.bn.ConsolePrint(pre + clientSentence);
             args = clientSentence.split("\\s+");
 
@@ -41,89 +42,107 @@ public class BlueNodeService extends Thread {
             } else if (args.length == 1 && args[0].equals("TRACKER")) {
                 TrackingService();
             } else {
-                outputWriter.println("WRONG_COMMAND");
-                connectionSocket.close();
+                socketWriter.println("WRONG_COMMAND");                
             }
-            //do not put a socket.close down here because some objects save the socket instance
+            sessionSocket.close();            
         } catch (IOException ex) {
-            Logger.getLogger(BlueNodeService.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            try {
+				sessionSocket.close();
+			} catch (IOException e) {
+				
+			}
         }
     }
 
     private void BlueNodeService(String hostname) {
         try {
-            outputWriter.println("OK ");
-            String clientSentence = inFromClient.readLine();
+            socketWriter.println("OK ");
+            String clientSentence = socketReader.readLine();
             App.bn.ConsolePrint(pre + clientSentence);
             String[] args = clientSentence.split("\\s+");
 
             if (args.length == 1 && args[0].equals("ASSOCIATE")) {
-                BlueNodeFunctions.Associate(hostname,connectionSocket,inFromClient,outputWriter);
+                BlueNodeFunctions.Associate(hostname,sessionSocket,socketReader,socketWriter);
             } else if (args.length == 1 && args[0].equals("FULL_ASSOCIATE")) {
-                BlueNodeFunctions.FullAssociate(hostname,connectionSocket,inFromClient,outputWriter);
+                BlueNodeFunctions.FullAssociate(hostname,sessionSocket,socketReader,socketWriter);
             } else if (args.length == 2 && args[0].equals("GET_RED_HOSTNAME")) {
-                BlueNodeFunctions.GetRnHostname(hostname, args[1], connectionSocket,inFromClient,outputWriter);
+                BlueNodeFunctions.GetRnHostname(hostname, args[1], sessionSocket,socketReader,socketWriter);
             } else if (args.length == 2 && args[0].equals("CHECK")) {
-                BlueNodeFunctions.Check(hostname, args[1], connectionSocket,inFromClient,outputWriter);
+                BlueNodeFunctions.Check(hostname, args[1], sessionSocket,socketReader,socketWriter);
             } else if (args.length == 1 && args[0].equals("RELEASE")) {
-                BlueNodeFunctions.Release(hostname,connectionSocket,inFromClient,outputWriter);
+                BlueNodeFunctions.Release(hostname,sessionSocket,socketReader,socketWriter);
             } else if (args.length == 1 && args[0].equals("UPING")) {
-                BlueNodeFunctions.Uping(hostname,connectionSocket,inFromClient,outputWriter);
+                BlueNodeFunctions.Uping(hostname,sessionSocket,socketReader,socketWriter);
             } else if (args.length == 1 && args[0].equals("DPING")) {
-                BlueNodeFunctions.Dping(hostname,connectionSocket,inFromClient,outputWriter);
+                BlueNodeFunctions.Dping(hostname,sessionSocket,socketReader,socketWriter);
             } else if (args.length == 1 && args[0].equals("GET_RED_NODES")) {
-                BlueNodeFunctions.GetRNs(hostname,connectionSocket,inFromClient,outputWriter);
+                BlueNodeFunctions.GetRNs(hostname,sessionSocket,socketReader,socketWriter);
             } else if (args.length == 1 && args[0].equals("EXCHANGE_RED_NODES")) {
-                BlueNodeFunctions.ExchangeRNs(hostname,connectionSocket,inFromClient,outputWriter);
+                BlueNodeFunctions.ExchangeRNs(hostname,sessionSocket,socketReader,socketWriter);
             } else if (args.length == 2 && args[0].equals("FEED_RETURN_ROUTE")) {
-                BlueNodeFunctions.FeedReturnRoute(hostname, args[1], connectionSocket,inFromClient,outputWriter);
+                BlueNodeFunctions.FeedReturnRoute(hostname, args[1], sessionSocket,socketReader,socketWriter);
             } else {
-            	outputWriter.println("WRONG_COMMAND");                
+            	socketWriter.println("WRONG_COMMAND");                
             }
-            connectionSocket.close();
+            sessionSocket.close();
         } catch (IOException ex) {
-            Logger.getLogger(BlueNodeService.class.getName()).log(Level.SEVERE, null, ex);
+        	ex.printStackTrace();
+            try {
+				sessionSocket.close();
+			} catch (IOException e) {
+				
+			}
         }
     }
 
     private void RedNodeService(String hostname) {
         try {
-            outputWriter.println("OK");
-            String clientSentence = inFromClient.readLine();
+        	socketWriter.println("OK");
+            String clientSentence = socketReader.readLine();
             App.bn.ConsolePrint(pre + clientSentence);
             String[] args = clientSentence.split("\\s+");
 
             if (args.length == 3 && args[0].equals("LEASE")) {
-                RedNodeFunctions.Lease(connectionSocket, hostname, args[1], args[2]);
-                //no need for connection socket close - statefull
+                RedNodeFunctions.Lease(sessionSocket, socketReader, socketWriter, hostname, args[1], args[2]);
             } else {
-            	outputWriter.println("WRONG_COMMAND"); 
-            	connectionSocket.close();
-            }                       
+            	socketWriter.println("WRONG_COMMAND"); 
+            }
+            sessionSocket.close();
         } catch (IOException ex) {
-            Logger.getLogger(BlueNodeService.class.getName()).log(Level.SEVERE, null, ex);
+        	ex.printStackTrace();
+            try {
+				sessionSocket.close();
+			} catch (IOException e) {
+				
+			}
         }
     }
 
     private void TrackingService() {
         try {
-            outputWriter.println("OK");
-            String clientSentence = inFromClient.readLine();
+            socketWriter.println("OK");
+            String clientSentence = socketReader.readLine();
             App.bn.ConsolePrint(pre + clientSentence);
             String[] args = clientSentence.split("\\s+");
 
             if (args.length == 1 && args[0].equals("CHECK")) {
-                TrackingFunctions.check(outputWriter);
+                TrackingFunctions.check(socketWriter);
             } else if (args.length == 1 && args[0].equals("GETREDNODES")) {
-                TrackingFunctions.getrns(outputWriter);
+                TrackingFunctions.getrns(socketWriter);
             } else if (args.length == 1 && args[0].equals("KILLSIG")) {
-                TrackingFunctions.killsig(outputWriter);
+                TrackingFunctions.killsig(socketWriter);
             } else {
-            	outputWriter.println("WRONG_COMMAND");                
+            	socketWriter.println("WRONG_COMMAND");                
             }
-            connectionSocket.close();
+            sessionSocket.close();
         } catch (IOException ex) {
-            Logger.getLogger(BlueNodeService.class.getName()).log(Level.SEVERE, null, ex);
+        	ex.printStackTrace();
+            try {
+				sessionSocket.close();
+			} catch (IOException e) {
+				
+			}
         }
     }
 }

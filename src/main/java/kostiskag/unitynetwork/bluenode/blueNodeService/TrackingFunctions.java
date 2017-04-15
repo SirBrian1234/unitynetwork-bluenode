@@ -33,7 +33,7 @@ class TrackingFunctions {
     
     public static void killsig(PrintWriter outputWriter) {
         TCPSocketFunctions.sendFinalData("OK", outputWriter);
-        App.bn.localRedNodesTable.releaseAll();
+        App.bn.localRedNodesTable.exitAll();
         App.bn.die();
     }
 }

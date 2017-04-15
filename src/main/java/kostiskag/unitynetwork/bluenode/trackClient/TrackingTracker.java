@@ -39,7 +39,7 @@ public class TrackingTracker extends Thread {
             
             if (passedTime > App.bn.trackerMaxIdleTimeMin*1000*60) {
             	App.bn.ConsolePrint(pre+"GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL"); 
-                App.bn.localRedNodesTable.releaseAll();
+                App.bn.localRedNodesTable.exitAll();
                 App.bn.die();                
             }
         }

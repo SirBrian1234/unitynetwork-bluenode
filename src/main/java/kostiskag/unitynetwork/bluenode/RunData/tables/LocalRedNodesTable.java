@@ -83,40 +83,15 @@ public class LocalRedNodesTable {
             throw new Exception(pre + "MAXIMUM REDNODE CAPACITY REACHED.");
         }
     }   
-
-    public synchronized void releaseByVaddr(String vAddress) throws Exception {
-    	Iterator<RedNodeInstance> it = list.listIterator();
-        while(it.hasNext()) {
-        	RedNodeInstance rn = it.next();
-        	if (rn.getVaddress().equals(vAddress)) {
-        		it.remove();
-        		//informing tracker
-        		if (App.bn.network) {
-                    TrackingRedNodeFunctions.release(rn.getHostname());
-                }
-        		if (verbose) {
-        			App.bn.ConsolePrint(pre + "RELEASED ENTRY");
-        		}
-        		notifyGUI();
-        		rn.exit();
-        		return;
-        	}
-        }
-        throw new Exception(pre + "NO ENTRY FOR " + vAddress + " IN TABLE");
-    }
     
     public synchronized void releaseByHostname(String hostname) throws Exception {
     	Iterator<RedNodeInstance> it = list.listIterator();
         while(it.hasNext()) {
         	RedNodeInstance rn = it.next();
         	if (rn.getHostname().equals(hostname)) {
-        		rn.exit();
-        		if (App.bn.network) {
-                    TrackingRedNodeFunctions.release(rn.getHostname());
-                }
         		it.remove();
         		if (verbose) {
-        			App.bn.ConsolePrint(pre + "RELEASED ENTRY");
+        			App.bn.ConsolePrint(pre + "RELEASED LOCAL RED NODE "+hostname+"ENTRY FROM TABLE");
         		}
         		notifyGUI();
         		return;
@@ -127,18 +102,14 @@ public class LocalRedNodesTable {
     
     /**
      *  This is used in case of a network fall where we have to release all the connected red nodes
+     *  but we should not remove them as there is already their socket which will do the remove task
      */
-    public synchronized void releaseAll() {
+    public synchronized void exitAll() {
     	Iterator<RedNodeInstance> it = list.listIterator();
         while(it.hasNext()) {
         	RedNodeInstance rn = it.next();
         	rn.exit();
-        }
-        list.clear();
-        if (verbose) {
-        	App.bn.ConsolePrint(pre+"LOCAL RED NODE TABLE CLEARED");
-        }
-        notifyGUI();
+        }        
     }
     
     public synchronized Boolean checkOnline(String vAddress) {
@@ -158,7 +129,7 @@ public class LocalRedNodesTable {
 		Iterator<RedNodeInstance> it = list.listIterator();
         while(it.hasNext()) {
         	RedNodeInstance rn = it.next();
-        	fetched.add(rn.getVaddress()+" "+rn.getHostname());
+        	fetched.add(rn.getHostname()+" "+rn.getVaddress());
         }
         return fetched;
 	}

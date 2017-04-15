@@ -122,7 +122,7 @@ public class MainWindow extends javax.swing.JFrame {
                 int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you wish to terminate this Blue Node?\nThis may result in a partial network termination.\nIf you decide to close the BLue Node, it will send the appropriate kill signals to the connected Red Nodes.","",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
                 if(PromptResult==JOptionPane.YES_OPTION)
                 {
-                    App.bn.localRedNodesTable.releaseAll();
+                    App.bn.localRedNodesTable.exitAll();
                     if (App.bn.joined) {
             			try {
             				App.bn.leaveNetworkAndDie();
