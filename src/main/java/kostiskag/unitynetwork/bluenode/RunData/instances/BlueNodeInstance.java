@@ -1,6 +1,6 @@
 package kostiskag.unitynetwork.bluenode.RunData.instances;
 
-import static kostiskag.unitynetwork.bluenode.blueNodeClient.BlueNodeClientFunctions.isSameHostname;
+import static kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClientFunctions.isSameHostname;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -17,7 +17,7 @@ import kostiskag.unitynetwork.bluenode.blueThreads.BlueDownServiceServer;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueKeepAlive;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueUpServiceClient;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueUpServiceServer;
-import kostiskag.unitynetwork.bluenode.functions.TCPSocketFunctions;
+import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
 /**
  *

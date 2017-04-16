@@ -1,4 +1,4 @@
-package kostiskag.unitynetwork.bluenode.trackClient;
+package kostiskag.unitynetwork.bluenode.socket.trackClient;
 
 import kostiskag.unitynetwork.bluenode.App;
 

@@ -17,10 +17,10 @@ import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.LocalRedNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.RedRemoteAddressTable;
-import kostiskag.unitynetwork.bluenode.blueNodeService.BlueNodeServer;
 import kostiskag.unitynetwork.bluenode.functions.PortHandle;
-import kostiskag.unitynetwork.bluenode.trackClient.TrackingBlueNodeFunctions;
-import kostiskag.unitynetwork.bluenode.trackClient.TrackingTracker;
+import kostiskag.unitynetwork.bluenode.socket.blueNodeService.BlueNodeServer;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingBlueNodeFunctions;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingTracker;
 
 public class BlueNode extends Thread{
 	private static final String pre = "^BlueNode ";
@@ -241,7 +241,7 @@ public class BlueNode extends Thread{
 
 	public void leaveNetworkAndDie() throws Exception {
 		if (joined) {
-			if (kostiskag.unitynetwork.bluenode.trackClient.TrackingBlueNodeFunctions.release()) {
+			if (kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingBlueNodeFunctions.release()) {
 				ConsolePrint("^SUCCESSFULLY RELEASED FROM THE NETWORK");
 			}
 			joined = false;

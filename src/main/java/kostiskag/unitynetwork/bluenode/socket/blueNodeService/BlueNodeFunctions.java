@@ -1,4 +1,4 @@
-package kostiskag.unitynetwork.bluenode.blueNodeService;
+package kostiskag.unitynetwork.bluenode.socket.blueNodeService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,8 +10,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static java.lang.Thread.sleep;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.blueNodeClient.RemoteHandle;
-import kostiskag.unitynetwork.bluenode.functions.TCPSocketFunctions;
+import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
+import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.RemoteHandle;
 import kostiskag.unitynetwork.bluenode.Routing.*;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 

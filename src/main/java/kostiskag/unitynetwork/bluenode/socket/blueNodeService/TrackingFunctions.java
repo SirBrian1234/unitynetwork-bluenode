@@ -1,11 +1,11 @@
-package kostiskag.unitynetwork.bluenode.blueNodeService;
+package kostiskag.unitynetwork.bluenode.socket.blueNodeService;
 
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.functions.TCPSocketFunctions;
+import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
 /**
  *

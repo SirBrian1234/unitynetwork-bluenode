@@ -1,4 +1,4 @@
-package kostiskag.unitynetwork.bluenode.blueNodeClient;
+package kostiskag.unitynetwork.bluenode.socket.blueNodeClient;
 
 import kostiskag.unitynetwork.bluenode.App;
 

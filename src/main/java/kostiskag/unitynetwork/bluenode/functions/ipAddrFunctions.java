@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.trackClient.TrackingRedNodeFunctions;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctions;
 
 /**
  *

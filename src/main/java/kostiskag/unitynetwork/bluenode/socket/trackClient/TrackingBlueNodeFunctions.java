@@ -1,11 +1,11 @@
-package kostiskag.unitynetwork.bluenode.trackClient;
+package kostiskag.unitynetwork.bluenode.socket.trackClient;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.functions.TCPSocketFunctions;
+import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
 /**
  *

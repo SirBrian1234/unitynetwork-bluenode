@@ -1,4 +1,4 @@
-package kostiskag.unitynetwork.bluenode.blueNodeClient;
+package kostiskag.unitynetwork.bluenode.socket.blueNodeClient;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -10,9 +10,9 @@ import java.net.InetAddress;
 import java.net.Socket;
 import static java.lang.Thread.sleep;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.functions.TCPSocketFunctions;
 import kostiskag.unitynetwork.bluenode.Routing.*;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
 /**
  *

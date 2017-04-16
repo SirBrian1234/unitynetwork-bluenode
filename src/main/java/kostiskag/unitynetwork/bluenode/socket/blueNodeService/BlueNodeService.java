@@ -1,4 +1,4 @@
-package kostiskag.unitynetwork.bluenode.blueNodeService;
+package kostiskag.unitynetwork.bluenode.socket.blueNodeService;
 
 import java.io.*;
 import java.net.Socket;

@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.RunData.instances.RedNodeInstance;
-import kostiskag.unitynetwork.bluenode.trackClient.TrackingRedNodeFunctions;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctions;
 
 /**
  * This an object of this class holds all the local red nodes connected on this bluenode

@@ -1,4 +1,4 @@
-package kostiskag.unitynetwork.bluenode.blueNodeService;
+package kostiskag.unitynetwork.bluenode.socket.blueNodeService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import static java.lang.Thread.sleep;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.RedNodeInstance;
-import kostiskag.unitynetwork.bluenode.trackClient.TrackingRedNodeFunctions;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctions;
 
 /**
  *

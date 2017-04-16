@@ -1,6 +1,6 @@
 package kostiskag.unitynetwork.bluenode.GUI;
 
-import kostiskag.unitynetwork.bluenode.blueNodeClient.RemoteHandle;
+import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.RemoteHandle;
 
 /**
  *
