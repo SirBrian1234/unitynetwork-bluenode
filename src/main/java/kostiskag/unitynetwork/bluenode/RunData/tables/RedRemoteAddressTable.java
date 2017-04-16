@@ -42,7 +42,7 @@ public class RedRemoteAddressTable {
         return null;
     }
 
-    public void lease(String vAddress, String Hostname, String BlueNodeHostname) {
+    public void lease(String Hostname, String vAddress, String BlueNodeHostname) {
         if (count < size) {
             table[count].init(vAddress, Hostname, BlueNodeHostname, getTime.getSmallTimestamp());
             App.bn.ConsolePrint(pre + count + " LEASED " + vAddress + " KNOWN AS " + Hostname + " ON BLUE NODE " + BlueNodeHostname);

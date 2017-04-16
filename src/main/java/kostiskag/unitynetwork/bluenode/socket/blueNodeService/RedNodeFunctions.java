@@ -43,22 +43,17 @@ public class RedNodeFunctions {
                 //holds the thread as its statefull
                 
                 //after this point the thread is released and the release process follows
-                System.out.println("Tasks killed!!!");
-                
                 //release from network
                 if (App.bn.network) {
                     TrackingRedNodeFunctions.release(RNclient.getHostname());
                 }
                 
-                System.out.println("Released from netw");
                 //release from local red node table
                 try {
 					App.bn.localRedNodesTable.releaseByHostname(hostname);
 				} catch (Exception e) {
 					e.printStackTrace();
-				} 
-                
-                System.out.println("Reached the end!!!");
+				}                 
         }
     }
 }

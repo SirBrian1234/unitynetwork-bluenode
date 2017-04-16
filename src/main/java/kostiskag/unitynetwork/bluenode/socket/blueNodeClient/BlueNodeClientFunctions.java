@@ -12,6 +12,7 @@ import static java.lang.Thread.sleep;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.*;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
 /**
@@ -389,15 +390,7 @@ public class BlueNodeClientFunctions {
         }
         TCPSocketFunctions.readData(inputReader);
 
-        LinkedList<String> fetched = App.bn.localRedNodesTable.buildAddrHostStringList();
-        int size = fetched.size();
-        TCPSocketFunctions.sendFinalData("SENDING_LOCAL_RED_NODES " + size, outputWriter);
-        Iterator<String> it = fetched.listIterator();
-        while(it.hasNext()){
-        	String toSend = it.next();
-        	TCPSocketFunctions.sendFinalData(toSend, outputWriter);
-        }        
-        TCPSocketFunctions.sendFinalData("", outputWriter);
+        GlobalSocketFunctions.sendLocalRedNodes(outputWriter);
         TCPSocketFunctions.connectionClose(socket);
         return 1;
     }

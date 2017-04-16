@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static java.lang.Thread.sleep;
 import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.RemoteHandle;
 import kostiskag.unitynetwork.bluenode.Routing.*;
@@ -91,30 +92,14 @@ public class BlueNodeFunctions {
     }
 
     static void GetRNs(String hostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
-    	LinkedList<String> fetched = App.bn.localRedNodesTable.buildAddrHostStringList();
-        int size = fetched.size();
-        outputWriter.println("SENDING_LOCAL_RED_NODES " + size);
-        Iterator<String> it = fetched.listIterator();
-        while(it.hasNext()){
-        	String toSend = it.next();
-        	outputWriter.println(toSend);
-        }     
-        outputWriter.println();
+    	GlobalSocketFunctions.sendLocalRedNodes(outputWriter);
     }
 
     static void ExchangeRNs(String hostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
         try {
             String clientSentence = null;
             String[] args;
-            LinkedList<String> fetched = App.bn.localRedNodesTable.buildAddrHostStringList();
-            int size = fetched.size();
-            outputWriter.println("SENDING_LOCAL_RED_NODES " + size);            
-            Iterator<String> it = fetched.listIterator();
-            while(it.hasNext()){
-            	String toSend = it.next();
-            	outputWriter.println(toSend);
-            }     
-            outputWriter.println();
+            GlobalSocketFunctions.sendLocalRedNodes(outputWriter);
 
             clientSentence = inFromClient.readLine();
             App.bn.ConsolePrint(pre + clientSentence);
