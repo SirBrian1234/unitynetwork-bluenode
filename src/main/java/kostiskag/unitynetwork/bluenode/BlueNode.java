@@ -15,8 +15,8 @@ import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.RunData.IPpoll;
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
-import kostiskag.unitynetwork.bluenode.RunData.tables.LocalRedNodesTable;
-import kostiskag.unitynetwork.bluenode.RunData.tables.RedRemoteAddressTable;
+import kostiskag.unitynetwork.bluenode.RunData.tables.LocalRedNodeTable;
+import kostiskag.unitynetwork.bluenode.RunData.tables.RemoteRedNodeTable;
 import kostiskag.unitynetwork.bluenode.functions.PortHandle;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeService.BlueNodeServer;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingBlueNodeFunctions;
@@ -50,8 +50,8 @@ public class BlueNode extends Thread{
 	public PortHandle UDPports;
 	public TrackingTracker addr;
 	// our most important tables
-	public LocalRedNodesTable localRedNodesTable;
-	public RedRemoteAddressTable remoteRedNodesTable;
+	public LocalRedNodeTable localRedNodesTable;
+	public RemoteRedNodeTable remoteRedNodesTable;
 	public BlueNodesTable blueNodesTable;
 	// tracker data
 	public String echoAddress;
@@ -137,9 +137,8 @@ public class BlueNode extends Thread{
 		
 		// 2. initializing bluenodes data
 		UDPports = new PortHandle(startPort, endPort);
-		localRedNodesTable = new LocalRedNodesTable(maxRednodeEntries);
-		blueNodesTable = new BlueNodesTable(maxRednodeEntries * 10);
-		remoteRedNodesTable = new RedRemoteAddressTable(maxRednodeEntries * 10);
+		localRedNodesTable = new LocalRedNodeTable(maxRednodeEntries);
+		blueNodesTable = new BlueNodesTable();
 
 		// 3. init packet queues
 		manager = new QueueManager(200);

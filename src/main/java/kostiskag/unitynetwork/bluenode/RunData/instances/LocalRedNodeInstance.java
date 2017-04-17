@@ -25,7 +25,7 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctio
  * 
  * @author kostis
  */
-public class RedNodeInstance extends Thread {
+public class LocalRedNodeInstance extends Thread {
 
 	//to check if a RN is connected in another BN before auth
 	private final String pre = "^AUTH ";
@@ -49,11 +49,11 @@ public class RedNodeInstance extends Thread {
     private QueueManager man;
     private static Boolean didTrigger = false;
 
-    public RedNodeInstance() {
+    public LocalRedNodeInstance() {
         state = 0;
     }
     
-    public RedNodeInstance(String Hostname, String Username, String Password, String Vaddress, String PhAddressStr) {
+    public LocalRedNodeInstance(String Hostname, String Username, String Password, String Vaddress, String PhAddressStr) {
         state = 0;
         this.Username = Username;
         this.Hostname = Hostname;
@@ -62,7 +62,7 @@ public class RedNodeInstance extends Thread {
         this.PhAddressStr = PhAddressStr;
     }
 
-    public RedNodeInstance(Socket socket, String Hostname, String Username, String Password) {
+    public LocalRedNodeInstance(Socket socket, String Hostname, String Username, String Password) {
 
         this.Hostname = Hostname;
         this.Username = Username;
@@ -177,7 +177,7 @@ public class RedNodeInstance extends Thread {
             state = 1;
             
         } catch (IOException ex) {
-            Logger.getLogger(RedNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(LocalRedNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -212,7 +212,7 @@ public class RedNodeInstance extends Thread {
                         try {
                             sleep(500);
                         } catch (InterruptedException ex) {
-                            Logger.getLogger(RedNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
+                            Logger.getLogger(LocalRedNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
                         }
                         if (getUPing()) {
                             outputWriter.println("UPING OK");
@@ -281,7 +281,7 @@ public class RedNodeInstance extends Thread {
         try {
             sleep(3000);
         } catch (InterruptedException ex) {
-            Logger.getLogger(RedNodeInstance.class
+            Logger.getLogger(LocalRedNodeInstance.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -296,7 +296,7 @@ public class RedNodeInstance extends Thread {
         try {
             sleep(3000);
         } catch (InterruptedException ex) {
-            Logger.getLogger(RedNodeInstance.class
+            Logger.getLogger(LocalRedNodeInstance.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
         outputWriter.println("UPLINK REFRESH " + down.getDownport());

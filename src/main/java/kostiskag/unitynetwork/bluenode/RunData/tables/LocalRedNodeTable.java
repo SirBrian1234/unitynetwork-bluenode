@@ -5,7 +5,7 @@ import java.util.LinkedList;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
-import kostiskag.unitynetwork.bluenode.RunData.instances.RedNodeInstance;
+import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctions;
 
 /**
@@ -17,24 +17,24 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctio
  *
  * @author Konstantinos Kagiampakis
  */
-public class LocalRedNodesTable {
+public class LocalRedNodeTable {
 
     private final String pre = "^LOCAL RN TABLE ";
-    private final LinkedList<RedNodeInstance> list;
+    private final LinkedList<LocalRedNodeInstance> list;
     private final int maxRednodeEntries;
     private final boolean verbose;
     private final boolean notifyGui;
 
-    public LocalRedNodesTable(int maxRednodeEntries) {
-        list = new LinkedList<RedNodeInstance>();
+    public LocalRedNodeTable(int maxRednodeEntries) {
+        list = new LinkedList<LocalRedNodeInstance>();
         this.maxRednodeEntries = maxRednodeEntries;
         this.verbose = true;
         this.notifyGui = true;
         App.bn.ConsolePrint(pre +"INIT LOCAL RED NODE TABLE");
     }
     
-    public LocalRedNodesTable(int maxRednodeEntries, boolean verbose, boolean notifyGui) {
-        list = new LinkedList<RedNodeInstance>();
+    public LocalRedNodeTable(int maxRednodeEntries, boolean verbose, boolean notifyGui) {
+        list = new LinkedList<LocalRedNodeInstance>();
         this.maxRednodeEntries = maxRednodeEntries;
         this.verbose = verbose;
         this.notifyGui = notifyGui;
@@ -47,10 +47,10 @@ public class LocalRedNodesTable {
         return list.size();
     }
     
-    public synchronized RedNodeInstance getRedNodeInstanceByHn(String hostname) {
-        Iterator<RedNodeInstance> it = list.listIterator();
+    public synchronized LocalRedNodeInstance getRedNodeInstanceByHn(String hostname) {
+        Iterator<LocalRedNodeInstance> it = list.listIterator();
         while(it.hasNext()) {
-        	RedNodeInstance rn = it.next();
+        	LocalRedNodeInstance rn = it.next();
         	if (rn.getHostname().equals(hostname)) {
         		return rn;
         	}
@@ -58,10 +58,10 @@ public class LocalRedNodesTable {
         return null;
     }
     
-    public synchronized RedNodeInstance getRedNodeInstanceByAddr(String vaddress) {
-        Iterator<RedNodeInstance> it = list.listIterator();
+    public synchronized LocalRedNodeInstance getRedNodeInstanceByAddr(String vaddress) {
+        Iterator<LocalRedNodeInstance> it = list.listIterator();
         while(it.hasNext()) {
-        	RedNodeInstance rn = it.next();
+        	LocalRedNodeInstance rn = it.next();
         	if (rn.getVaddress().equals(vaddress)) {
         		return rn;
         	}
@@ -69,7 +69,7 @@ public class LocalRedNodesTable {
         return null;
     }        
 
-    public synchronized void lease(RedNodeInstance redNode) throws Exception {
+    public synchronized void lease(LocalRedNodeInstance redNode) throws Exception {
         if (list.size() < maxRednodeEntries) {
             list.add(redNode);
             if (verbose) {
@@ -85,9 +85,9 @@ public class LocalRedNodesTable {
     }   
     
     public synchronized void releaseByHostname(String hostname) throws Exception {
-    	Iterator<RedNodeInstance> it = list.listIterator();
+    	Iterator<LocalRedNodeInstance> it = list.listIterator();
         while(it.hasNext()) {
-        	RedNodeInstance rn = it.next();
+        	LocalRedNodeInstance rn = it.next();
         	if (rn.getHostname().equals(hostname)) {
         		it.remove();
         		if (verbose) {
@@ -105,17 +105,17 @@ public class LocalRedNodesTable {
      *  but we should not remove them as there is already their socket which will do the remove task
      */
     public synchronized void exitAll() {
-    	Iterator<RedNodeInstance> it = list.listIterator();
+    	Iterator<LocalRedNodeInstance> it = list.listIterator();
         while(it.hasNext()) {
-        	RedNodeInstance rn = it.next();
+        	LocalRedNodeInstance rn = it.next();
         	rn.exit();
         }        
     }
     
     public synchronized Boolean checkOnline(String vAddress) {
-        Iterator<RedNodeInstance> it = list.listIterator();
+        Iterator<LocalRedNodeInstance> it = list.listIterator();
         while(it.hasNext()) {
-        	RedNodeInstance rn = it.next();
+        	LocalRedNodeInstance rn = it.next();
         	if (rn.getVaddress().equals(vAddress)) {
         		return true;
         	}
@@ -126,9 +126,9 @@ public class LocalRedNodesTable {
     //builds a string list object with vaddress and hotname for BlueNodeClientFunctions
     public synchronized LinkedList<String> buildAddrHostStringList() {
 		LinkedList<String> fetched =  new LinkedList<>();
-		Iterator<RedNodeInstance> it = list.listIterator();
+		Iterator<LocalRedNodeInstance> it = list.listIterator();
         while(it.hasNext()) {
-        	RedNodeInstance rn = it.next();
+        	LocalRedNodeInstance rn = it.next();
         	fetched.add(rn.getHostname()+" "+rn.getVaddress());
         }
         return fetched;
@@ -136,10 +136,10 @@ public class LocalRedNodesTable {
 
     public synchronized String[][] buildGUIObj() {
     	String[][] object = new String[list.size()][];
-    	Iterator<RedNodeInstance> it = list.listIterator();
+    	Iterator<LocalRedNodeInstance> it = list.listIterator();
         int i=0;
     	while(it.hasNext()) {
-        	RedNodeInstance rn = it.next();
+        	LocalRedNodeInstance rn = it.next();
         	object[i] = new String[]{rn.getVaddress(), rn.getHostname(), rn.getUsername(), rn.getPhAddress(), ""+rn.getUp().getUpport(), ""+rn.getDown().getDownport()};
         	i++;
         }

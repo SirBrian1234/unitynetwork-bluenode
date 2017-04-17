@@ -6,7 +6,8 @@ import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
 
 /**
- * 
+ * An object of the accounts instance loads the user details when a host.list is
+ * being used. 
  *
  * @author Konstantinos Kagiampakis
  */

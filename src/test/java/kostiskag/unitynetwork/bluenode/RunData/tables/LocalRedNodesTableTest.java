@@ -8,16 +8,16 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.RunData.instances.RedNodeInstance;
+import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 
 public class LocalRedNodesTableTest {
 
 	@Test
 	public void initTest() {
-		LocalRedNodesTable table = new LocalRedNodesTable(2, false, false);
-		RedNodeInstance rn1 = new RedNodeInstance();
-		RedNodeInstance rn2 = new RedNodeInstance();
-		RedNodeInstance rn3 = new RedNodeInstance();
+		LocalRedNodeTable table = new LocalRedNodeTable(2, false, false);
+		LocalRedNodeInstance rn1 = new LocalRedNodeInstance();
+		LocalRedNodeInstance rn2 = new LocalRedNodeInstance();
+		LocalRedNodeInstance rn3 = new LocalRedNodeInstance();
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -29,10 +29,10 @@ public class LocalRedNodesTableTest {
 	
 	@Test
 	public void maxCapTest() {
-		LocalRedNodesTable table = new LocalRedNodesTable(2, false, false);
-		RedNodeInstance rn1 = new RedNodeInstance();
-		RedNodeInstance rn2 = new RedNodeInstance();
-		RedNodeInstance rn3 = new RedNodeInstance();
+		LocalRedNodeTable table = new LocalRedNodeTable(2, false, false);
+		LocalRedNodeInstance rn1 = new LocalRedNodeInstance();
+		LocalRedNodeInstance rn2 = new LocalRedNodeInstance();
+		LocalRedNodeInstance rn3 = new LocalRedNodeInstance();
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -45,10 +45,10 @@ public class LocalRedNodesTableTest {
 
 	@Test
 	public void getByHnTest() {
-		LocalRedNodesTable table = new LocalRedNodesTable(10, false, false);
-		RedNodeInstance rn1 = new RedNodeInstance("pakis-laptop","pakis","1234","10.0.0.1","192.168.1.1");
-		RedNodeInstance rn2 = new RedNodeInstance("pakis-laptop2","pakis","1234","10.0.0.2","192.168.1.1");
-		RedNodeInstance rn3 = new RedNodeInstance("pakis-laptop3","pakis","1234","10.0.0.3","192.168.1.1");
+		LocalRedNodeTable table = new LocalRedNodeTable(10, false, false);
+		LocalRedNodeInstance rn1 = new LocalRedNodeInstance("pakis-laptop","pakis","1234","10.0.0.1","192.168.1.1");
+		LocalRedNodeInstance rn2 = new LocalRedNodeInstance("pakis-laptop2","pakis","1234","10.0.0.2","192.168.1.1");
+		LocalRedNodeInstance rn3 = new LocalRedNodeInstance("pakis-laptop3","pakis","1234","10.0.0.3","192.168.1.1");
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -63,10 +63,10 @@ public class LocalRedNodesTableTest {
 	
 	@Test
 	public void getByVaddrTest() {
-		LocalRedNodesTable table = new LocalRedNodesTable(10, false, false);
-		RedNodeInstance rn1 = new RedNodeInstance("pakis-laptop","pakis","1234","10.0.0.1","192.168.1.1");
-		RedNodeInstance rn2 = new RedNodeInstance("pakis-laptop2","pakis","1234","10.0.0.2","192.168.1.1");
-		RedNodeInstance rn3 = new RedNodeInstance("pakis-laptop3","pakis","1234","10.0.0.3","192.168.1.1");
+		LocalRedNodeTable table = new LocalRedNodeTable(10, false, false);
+		LocalRedNodeInstance rn1 = new LocalRedNodeInstance("pakis-laptop","pakis","1234","10.0.0.1","192.168.1.1");
+		LocalRedNodeInstance rn2 = new LocalRedNodeInstance("pakis-laptop2","pakis","1234","10.0.0.2","192.168.1.1");
+		LocalRedNodeInstance rn3 = new LocalRedNodeInstance("pakis-laptop3","pakis","1234","10.0.0.3","192.168.1.1");
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -81,10 +81,10 @@ public class LocalRedNodesTableTest {
 	
 	@Ignore
 	public void releaseByHnTest() {
-		LocalRedNodesTable table = new LocalRedNodesTable(10, false, false);
-		RedNodeInstance rn1 = new RedNodeInstance("pakis-laptop","pakis","1234","10.0.0.1","192.168.1.1");
-		RedNodeInstance rn2 = new RedNodeInstance("pakis-laptop2","pakis","1234","10.0.0.2","192.168.1.1");
-		RedNodeInstance rn3 = new RedNodeInstance("pakis-laptop3","pakis","1234","10.0.0.3","192.168.1.1");
+		LocalRedNodeTable table = new LocalRedNodeTable(10, false, false);
+		LocalRedNodeInstance rn1 = new LocalRedNodeInstance("pakis-laptop","pakis","1234","10.0.0.1","192.168.1.1");
+		LocalRedNodeInstance rn2 = new LocalRedNodeInstance("pakis-laptop2","pakis","1234","10.0.0.2","192.168.1.1");
+		LocalRedNodeInstance rn3 = new LocalRedNodeInstance("pakis-laptop3","pakis","1234","10.0.0.3","192.168.1.1");
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -114,10 +114,10 @@ public class LocalRedNodesTableTest {
 	
 	@Test
 	public void checkOnlineTest() {
-		LocalRedNodesTable table = new LocalRedNodesTable(10, false, false);
-		RedNodeInstance rn1 = new RedNodeInstance("pakis-laptop","pakis","1234","10.0.0.1","192.168.1.1");
-		RedNodeInstance rn2 = new RedNodeInstance("pakis-laptop2","pakis","1234","10.0.0.2","192.168.1.1");
-		RedNodeInstance rn3 = new RedNodeInstance("pakis-laptop3","pakis","1234","10.0.0.3","192.168.1.1");
+		LocalRedNodeTable table = new LocalRedNodeTable(10, false, false);
+		LocalRedNodeInstance rn1 = new LocalRedNodeInstance("pakis-laptop","pakis","1234","10.0.0.1","192.168.1.1");
+		LocalRedNodeInstance rn2 = new LocalRedNodeInstance("pakis-laptop2","pakis","1234","10.0.0.2","192.168.1.1");
+		LocalRedNodeInstance rn3 = new LocalRedNodeInstance("pakis-laptop3","pakis","1234","10.0.0.3","192.168.1.1");
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -137,10 +137,10 @@ public class LocalRedNodesTableTest {
 	
 	@Test
 	public void buldStringTest() {
-		LocalRedNodesTable table = new LocalRedNodesTable(10, false, false);
-		RedNodeInstance rn1 = new RedNodeInstance("pakis-laptop","pakis","1234","10.0.0.1","192.168.1.1");
-		RedNodeInstance rn2 = new RedNodeInstance("pakis-laptop2","pakis","1234","10.0.0.2","192.168.1.1");
-		RedNodeInstance rn3 = new RedNodeInstance("pakis-laptop3","pakis","1234","10.0.0.3","192.168.1.1");
+		LocalRedNodeTable table = new LocalRedNodeTable(10, false, false);
+		LocalRedNodeInstance rn1 = new LocalRedNodeInstance("pakis-laptop","pakis","1234","10.0.0.1","192.168.1.1");
+		LocalRedNodeInstance rn2 = new LocalRedNodeInstance("pakis-laptop2","pakis","1234","10.0.0.2","192.168.1.1");
+		LocalRedNodeInstance rn3 = new LocalRedNodeInstance("pakis-laptop3","pakis","1234","10.0.0.3","192.168.1.1");
 		try {
 			table.lease(rn1);
 			table.lease(rn2);

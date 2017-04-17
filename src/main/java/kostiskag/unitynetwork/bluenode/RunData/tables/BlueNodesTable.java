@@ -1,127 +1,173 @@
 package kostiskag.unitynetwork.bluenode.RunData.tables;
 
+import java.util.Iterator;
+import java.util.LinkedList;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
+import kostiskag.unitynetwork.bluenode.RunData.instances.RemoteRedNodeInstance;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class BlueNodesTable {
 
-    private static String pre = "^REMOTE BLUENODE TABLE ";
-    private BlueNodeInstance[] table;
-    private int size;
-    private int count;
-    private BlueNodeInstance temp;
+    private final String pre = "^REMOTE BLUENODE TABLE ";
+    private final LinkedList<BlueNodeInstance> list;
+    private final boolean verbose;
+    private final boolean notifyGui;
 
-    public BlueNodesTable(int size) {
-        this.size = size;
-
-        table = new BlueNodeInstance[size];
-        for (int i = 0; i < size; i++) {
-            table[i] = null;
-        }
-        App.bn.ConsolePrint(pre + "INITIALIZED " + size);
+    public BlueNodesTable() {
+        list = new LinkedList<BlueNodeInstance>();
+        verbose = true;
+        notifyGui = true;
+        App.bn.ConsolePrint(pre + "INITIALIZED");
     }
-
-    public BlueNodeInstance getBlueNodeInstanceByHn(String hostname) {
-        for (int i = 0; i < count; i++) {
-            if (table[i].getHostname().equals(hostname)) {
-                return table[i];
-            }
-        }
-        return null;
-    }
-
-    public BlueNodeInstance getBlueNodeInstance(int place) {
-        return table[place];
-    }
-
-    public int getId(String hostname) {
-        for (int i = 0; i < count; i++) {
-            if (hostname.equals(table[i].getHostname())) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    //to lease tha efarmozetai sto telos ths diadikasias assosiate
-    public void lease(BlueNodeInstance node) {
-        if (count < size) {
-            table[count] = node;
-            App.bn.ConsolePrint(pre + count + " LEASED " + node.getHostname() + " ~ " + node.getPhaddress() + ":" + node.getDownport() + ":" + node.getUpport());
-            count++;
-            updateTable();
-        } else {
-            App.bn.ConsolePrint(pre + "NO MORE SPACE INSIDE REMOTE BLUENODE TABLE");
+    
+    public BlueNodesTable(boolean verbose, boolean notifyGui) {
+        list = new LinkedList<BlueNodeInstance>();
+        this.verbose = verbose;
+        this.notifyGui = notifyGui;
+        if (verbose) {
+        	App.bn.ConsolePrint(pre + "INITIALIZED");
         }
     }
 
-    private void release(int id) {
-        for (int i = 0; i < size; i++) {
-            if (i == id) //release                                                
-            {
-                if (count != 0) {
-
-                    temp = table[count - 1];
-                    table[count - 1] = table[i];
-                    table[i] = temp;
-                    table[count - 1] = null;
-                    count--;
-
-                    App.bn.ConsolePrint(pre + "RELEASED ENTRY");
-                    updateTable();
-                    return;
-                }
-            }
-        }
-        App.bn.ConsolePrint(pre + "NO ENTRY FOR " + id + " IN TABLE");
+    public synchronized BlueNodeInstance getBlueNodeInstanceByName(String name) throws Exception {
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		if (bn.getName().equals(name)) {
+    			return bn;
+    		}
+    	}
+    	throw new Exception(pre + "NO ENTRY FOR "+name+" IN TABLE");
+    }
+    
+    public synchronized BlueNodeInstance getBlueNodeInstanceByRRNVaddr(String vaddress) throws Exception {
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		if (bn.table.checkByVaddr(vaddress)) {
+    			return bn;
+    		}
+    	}
+    	throw new Exception(pre + "NO RRN ENTRY WITH VADDRESS "+vaddress+" IN TABLE");
+    }
+    
+    public synchronized BlueNodeInstance getBlueNodeInstanceByRRNHostname(String hostname) throws Exception {
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		if (bn.table.checkByHostname(hostname)) {
+    			return bn;
+    		}
+    	}
+    	throw new Exception(pre + "NO RRN ENTRY WITH HOSTNAME "+hostname+" IN TABLE");
     }
 
-    public boolean checkBlueNode(String hostname) {
-        for (int i = 0; i < count; i++) {
-            if (hostname.equals(table[i].getHostname())) {
-                return true;
-            }
-        }
+    //lease is applied at the end of the associate process
+    public synchronized void leaseBn(BlueNodeInstance blueNode) throws Exception {
+        //check if already exists
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		if (bn.getName().equals(blueNode.getName())) {
+    			throw new Exception(pre+"DUPLICATE ENTRY "+blueNode.getName()+" ATTEMPTED TO JOIN BNTABLE.");
+    		}
+    	}
+    	
+    	//add if not found
+    	list.add(blueNode);
+    	if (verbose) {
+    		App.bn.ConsolePrint(pre +"LEASED BLUE NODE " + blueNode.getName());
+    	}
+    	notifyGUI();
+    }
+
+    public synchronized void leaseRRn(BlueNodeInstance blueNode, String hostname, String vaddress) throws Exception {
+        //check if already exists from all bns
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		if (bn.table.checkByHostname(hostname) || bn.table.checkByVaddr(vaddress)) {
+    			throw new Exception(pre+"DUPLICATE ENTRY FOR REMOTE RED NODE "+hostname+" "+vaddress);
+    		}
+    	}    	
+    	//notify goes to RemoteRedNodeTable
+    	blueNode.table.lease(hostname, vaddress);
+    }
+    
+    public synchronized void releaseBn(String name) throws Exception {
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		if (bn.getName().equals(name)) {
+    			it.remove();
+    			if (verbose) {
+    				App.bn.ConsolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
+    			}
+    			notifyGUI();
+    			return;
+    		}
+    	} 
+        throw new Exception(pre + "NO ENTRY FOR "+name+" IN TABLE");
+    }
+
+    public synchronized boolean checkBlueNode(String name) {
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		if (bn.getName().equals(name)) {
+    			return true;
+    		}
+    	} 
+        return false;
+    }
+    
+    public synchronized boolean checkRemoteRedNodeByHostname(String hostname) {
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		if (bn.table.checkByHostname(hostname)) {
+    			return true;
+    		}
+    	} 
+        return false;
+    }
+    
+    public synchronized boolean checkRemoteRedNodeByVaddress(String vaddress) {
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		if (bn.table.checkByVaddr(vaddress)) {
+    			return true;
+    		}
+    	} 
         return false;
     }
 
-    public void delete(int[] delTable) {
-        App.bn.ConsolePrint(pre + "DELETING " + delTable.length + " BLUE NODES");
-        for (int i = delTable.length; i > 0; i--) {
-            App.bn.ConsolePrint(pre + "DELETING BLUE NODE " + delTable[i - 1]);
-            getBlueNodeInstance(delTable[i - 1]).killtasks();
-            getBlueNodeInstance(delTable[i - 1]).getQueueMan().clear();
-            release(delTable[i - 1]);
+    public synchronized String[][] buildBNGUIObj() {
+    	String[][] object = new String[list.size()][];
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+        int i=0;
+    	while(it.hasNext()) {
+        	BlueNodeInstance bn = it.next();
+        	object[i] = new String[]{bn.getName(), bn.getPhAddressStr(), ""+bn.getUpport(), ""+bn.getDownport()};
+        	i++;
         }
-        updateTable();
+    	return object;
     }
-
-    public void removeSingle(String hostname) {
-        int place = getId(hostname);
-        if (place != -1) {
-            App.bn.ConsolePrint(pre + "DELETING BLUE NODE " + hostname);
-            getBlueNodeInstance(place).killtasks();
-            getBlueNodeInstance(place).getQueueMan().clear();
-            release(place);
-            updateTable();
-        }
+    
+    public synchronized String[][] buildRRNGUIObj() {
+    	//TODO
+    	return null;
     }
-
-    public void updateTable() {
-        //MainWindow.hostable.
-        if (App.bn.gui) {
-            int rows = MainWindow.remotebtable.getRowCount();
-            for (int i = 0; i < rows; i++) {
-                MainWindow.remotebtable.removeRow(0);
-            }
-            for (int i = 0; i < count; i++) {
-                MainWindow.remotebtable.addRow(new Object[]{table[i].getHostname(), table[i].getPhaddress(), table[i].getUpport(), table[i].getDownport()});
-            }
-        }
+    
+    private void notifyGUI() {
+    	if (notifyGui) {
+    		App.bn.window.updateBNs();
+    	}
     }
 }

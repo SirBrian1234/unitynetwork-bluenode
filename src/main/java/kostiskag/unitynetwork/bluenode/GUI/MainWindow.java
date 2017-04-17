@@ -2,6 +2,7 @@ package kostiskag.unitynetwork.bluenode.GUI;
 
 import javax.swing.table.DefaultTableModel;
 import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.RemoteHandle;
 
 import java.awt.event.WindowAdapter;
@@ -25,17 +26,21 @@ import java.awt.Font;
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    public static final DefaultTableModel hostable = new DefaultTableModel(new String[][]{}, new String[]{"Virtual Address", "Hostname", "Username", "Physical Address", "Uplink Port", "Downlink Port"});;
-    public static final DefaultTableModel remotetable = new DefaultTableModel(new String[][]{}, new String[]{"Virtual Address", "Hostname", "Blue Node Hostname", "Checked"});;
-    public static final DefaultTableModel remotebtable = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Address", "Uplink Port", "Downlink Port"});
-    public static int messageCount = 0;
+    private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Virtual Address", "Hostname", "Username", "Physical Address", "Uplink Port", "Downlink Port"});;
+    private final DefaultTableModel remoteRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Blue Node Name", "Checked"});;
+    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Physical Address", "Uplink Port", "Downlink Port"});
+    public int messageCount = 0;
 
     public MainWindow() {
     	setTitle("Blue Node");
     	initComponents(); 
         if (!App.bn.network) {
     		jTabbedPane1.remove(2);
-    	}	
+    	}
+        
+        jTable1.setDefaultEditor(Object.class, null);
+        jTable2.setDefaultEditor(Object.class, null);
+        jTable3.setDefaultEditor(Object.class, null);
     }   
 
     private void initComponents() {
@@ -495,7 +500,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("Local Red Nodes"));
 
-        jTable1.setModel(hostable);
+        jTable1.setModel(localRedNodeTableModel);
         jScrollPane2.setViewportView(jTable1);
 
         jButton3.setText("Refresh Table");
@@ -545,7 +550,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel9.setBorder(javax.swing.BorderFactory.createTitledBorder("Remote Red Nodes"));
 
-        jTable2.setModel(remotetable);
+        jTable2.setModel(remoteRedNodeTableModel);
         jScrollPane1.setViewportView(jTable2);
 
         jButton5.setText("Refresh Table");
@@ -579,7 +584,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel10.setBorder(javax.swing.BorderFactory.createTitledBorder("Remote Assosiated BlueNodes"));
 
-        jTable3.setModel(remotebtable);
+        jTable3.setModel(remoteBlueNodeTableModel);
         jScrollPane3.setViewportView(jTable3);
 
         jButton12.setText("Check Online");
@@ -732,7 +737,7 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {
-        App.bn.remoteRedNodesTable.updateTable();
+    	updateRemoteRns();
     }
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -740,7 +745,7 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {
-        App.bn.blueNodesTable.updateTable();
+    	updateBNs();
     }
 
     private void jButton10ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -763,7 +768,8 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void jButton13ActionPerformed(java.awt.event.ActionEvent evt) {
         if (jTable3.getSelectedRow() != -1) {
-            new BlueStatus(App.bn.blueNodesTable.getBlueNodeInstance(jTable3.getSelectedRow()).getHostname()).setVisible(true);
+        	String name = (String) jTable3.getValueAt(jTable3.getSelectedRow(), 0);
+            new BlueStatus(name);
         }
     }
 
@@ -894,14 +900,43 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JToggleButton jToggleButton1;
     private JTextField txtOpMode;
 
-	public void updateLocalRns() {
+	public synchronized void updateLocalRns() {
 		String[][] obj = App.bn.localRedNodesTable.buildGUIObj();
-		int rows = hostable.getRowCount();
+		int rows = localRedNodeTableModel.getRowCount();
         for (int i = 0; i < rows; i++) {
-            hostable.removeRow(0);
+            localRedNodeTableModel.removeRow(0);
         }
         for (int i = 0; i < obj.length; i++) {
-            hostable.addRow(obj[i]);
+            localRedNodeTableModel.addRow(obj[i]);
         }
+        
+        jTable1.setModel(localRedNodeTableModel);
+        repaint();
 	}
-   }
+
+	public synchronized void updateBNs() {
+		String[][] obj = App.bn.blueNodesTable.buildBNGUIObj();
+		int rows = remoteBlueNodeTableModel.getRowCount();
+        for (int i = 0; i < rows; i++) {
+        	remoteBlueNodeTableModel.removeRow(0);
+        }
+        for (int i = 0; i < obj.length; i++) {
+        	remoteBlueNodeTableModel.addRow(obj[i]);
+        }	
+        jTable2.setModel(remoteBlueNodeTableModel);
+        repaint();
+	}
+
+	public synchronized void updateRemoteRns() {
+		String[][] obj = App.bn.blueNodesTable.buildRRNGUIObj();
+		int rows = remoteRedNodeTableModel.getRowCount();
+        for (int i = 0; i < rows; i++) {
+        	remoteRedNodeTableModel.removeRow(0);
+        }
+        for (int i = 0; i < obj.length; i++) {
+        	remoteRedNodeTableModel.addRow(obj[i]);
+        }		
+        jTable3.setModel(remoteRedNodeTableModel);
+        repaint();
+	}
+}
