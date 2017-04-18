@@ -19,6 +19,8 @@ import javax.swing.table.DefaultTableModel;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 /**
  * This is the main bluenode window. 
@@ -566,6 +568,11 @@ public class MainWindow extends javax.swing.JFrame {
         });
         
         JButton btnAddRemote = new JButton("Add Remote Red Node");
+        btnAddRemote.addActionListener(new ActionListener() {
+        	public void actionPerformed(java.awt.event.ActionEvent evt) {
+        		btnAddRemoteActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9Layout.setHorizontalGroup(
@@ -729,7 +736,11 @@ public class MainWindow extends javax.swing.JFrame {
         pack();
     }
 
-    private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+    protected void btnAddRemoteActionPerformed(ActionEvent evt) {
+		new AddRemoteRedNode().setVisible(true);
+	}
+
+	private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         if (jToggleButton1.isSelected() == true) {
             App.bn.viewTraffic = true;
         } else {
@@ -790,7 +801,7 @@ public class MainWindow extends javax.swing.JFrame {
     private void jButton13ActionPerformed(java.awt.event.ActionEvent evt) {
         if (jTable3.getSelectedRow() != -1) {
         	String name = (String) jTable3.getValueAt(jTable3.getSelectedRow(), 0);
-            new BlueStatus(name);
+            new BlueStatus(name).setVisible(true);
         }
     }
 
