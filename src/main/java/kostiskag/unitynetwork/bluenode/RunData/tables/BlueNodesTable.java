@@ -2,10 +2,11 @@ package kostiskag.unitynetwork.bluenode.RunData.tables;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
-import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 import kostiskag.unitynetwork.bluenode.RunData.instances.RemoteRedNodeInstance;
+import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
 
 /**
  *
@@ -104,7 +105,9 @@ public class BlueNodesTable {
     	while(it.hasNext()){
     		BlueNodeInstance bn = it.next();
     		if (bn.getName().equals(name)) {
-    			bn.killtasks();
+    			BlueNodeClient cl = new BlueNodeClient(bn);
+        		cl.removeThisBlueNodesProjection();
+        		bn.killtasks();  	    			
     			it.remove();
     			if (verbose) {
     				App.bn.ConsolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
@@ -127,12 +130,16 @@ public class BlueNodesTable {
         return false;
     }
     
-    public synchronized void sendKillSigsAndRelease() {
+    public synchronized void sendKillSigsAndReleaseForAll() {
     	Iterator<BlueNodeInstance> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNodeInstance bn = it.next();
-    		bn.killtasks();
-    		//send kill sig    		
+    		BlueNodeClient cl = new BlueNodeClient(bn);
+    		cl.removeThisBlueNodesProjection();
+    		bn.killtasks();  	
+    		if (verbose) {
+				App.bn.ConsolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
+			}
     	}
     	list.clear();
     }
@@ -158,6 +165,27 @@ public class BlueNodesTable {
     	} 
         return false;
     }
+    
+    public synchronized void releaseLocalRedNodeByHostnameFromBn(String hostname, String blueNodeName) {
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		if (bn.getName().equals(blueNodeName)) {
+    			BlueNodeClient cl = new BlueNodeClient(bn);
+        		cl.removeRedNodeProjectionByHn(hostname);
+        		return;
+    		}
+    	}         
+    }
+    
+    public synchronized void releaseLocalRedNodeByHostnameFromAll(String hostname) {
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		BlueNodeClient cl = new BlueNodeClient(bn);
+    		cl.removeRedNodeProjectionByHn(hostname);
+    	} 
+    }
 
     public synchronized String[][] buildBNGUIObj() {
     	String[][] object = new String[list.size()][];
@@ -165,15 +193,35 @@ public class BlueNodesTable {
         int i=0;
     	while(it.hasNext()) {
         	BlueNodeInstance bn = it.next();
-        	object[i] = new String[]{bn.getName(), bn.getPhAddressStr(), ""+bn.getUpport(), ""+bn.getDownport()};
+        	object[i] = new String[]{bn.getName(), bn.getPhAddressStr(), ""+bn.getRemoteAuthPort(),""+bn.getUpport(), ""+bn.getDownport()};
         	i++;
         }
     	return object;
     }
     
     public synchronized String[][] buildRRNGUIObj() {
-    	//TODO
-    	return null;
+    	//this block calculates the total size of the string array
+    	int totalSize = 0;
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()) {
+        	BlueNodeInstance bn = it.next();
+        	totalSize += bn.table.getSize();
+    	}
+    	String[][] object =  new String[totalSize][];
+    	
+    	//this block fills the array with the rrns from each bn
+    	it = list.listIterator();
+        int i=0;
+        while(it.hasNext()) {
+         	BlueNodeInstance bn = it.next();
+         	Iterator<RemoteRedNodeInstance> rit = bn.table.getList().listIterator(); 
+         	while(rit.hasNext()) {
+         		RemoteRedNodeInstance rn = rit.next();
+         		object[i] = new String[]{rn.getHostname(), rn.getVaddress() , bn.getName(), rn.getTime()};
+         		i++;
+         	}         	
+        }
+        return object;
     }
     
     private void notifyGUI() {

@@ -4,9 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
-import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctions;
 
 /**
  * This an object of this class holds all the local red nodes connected on this bluenode
@@ -151,7 +149,7 @@ public class LocalRedNodeTable {
         int i=0;
     	while(it.hasNext()) {
         	LocalRedNodeInstance rn = it.next();
-        	object[i] = new String[]{rn.getVaddress(), rn.getHostname(), rn.getUsername(), rn.getPhAddress(), ""+rn.getUp().getUpport(), ""+rn.getDown().getDownport()};
+        	object[i] = new String[]{rn.getHostname(), rn.getVaddress(), rn.getPhAddress(), ""+rn.getPort(), ""+rn.getUp().getUpport(), ""+rn.getDown().getDownport()};
         	i++;
         }
     	return object;

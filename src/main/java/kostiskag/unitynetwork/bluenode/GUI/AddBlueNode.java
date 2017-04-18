@@ -21,9 +21,7 @@ public class AddBlueNode extends javax.swing.JFrame implements Runnable {
      * Creates new form AddBlueNode
      */
     public AddBlueNode() {
-    	if (App.bn.joined) {
-    		initComponents();
-    	}
+    	initComponents();    	
     }
     
     private void initComponents() {
@@ -39,7 +37,7 @@ public class AddBlueNode extends javax.swing.JFrame implements Runnable {
         jLabel1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jLabel1.setText("Adding a new BlueNode");
 
-        jButton1.setText("ASSOCIATE");
+        jButton1.setText("SEARCH AND LEASE");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -92,12 +90,12 @@ public class AddBlueNode extends javax.swing.JFrame implements Runnable {
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (!jTextField1.getText().isEmpty() && jTextField1.getText().length() <= App.max_str_len_small_size) {            
-        	String phAddress = TrackingBlueNodeFunctions.getPhysical(jTextField1.getText());
-            App.bn.ConsolePrint("ADDING BLUE NODE "+jTextField1.getText()+" on address "+phAddress);
-            BlueNodeClient.addRemoteBlueNode(phAddress, 7000, jTextField1.getText(), jCheckBox1.isSelected());                    
-        } else {
-            App.bn.ConsolePrint("NOT JOINED YET");
+        if (App.bn.joined) {
+	    	if (!jTextField1.getText().isEmpty() && jTextField1.getText().length() <= App.max_str_len_small_size) {            
+	        	String phAddress = TrackingBlueNodeFunctions.getPhysical(jTextField1.getText());
+	            App.bn.ConsolePrint("ADDING BLUE NODE "+jTextField1.getText()+" on address "+phAddress);
+	            BlueNodeClient.addRemoteBlueNode(phAddress, 7000, jTextField1.getText(), jCheckBox1.isSelected());                    
+	        }
         }
     }
 

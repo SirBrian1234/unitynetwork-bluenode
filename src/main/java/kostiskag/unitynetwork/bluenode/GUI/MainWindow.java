@@ -30,16 +30,20 @@ import java.awt.event.ActionEvent;
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Virtual Address", "Hostname", "Username", "Physical Address", "Uplink Port", "Downlink Port"});;
-    private final DefaultTableModel remoteRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Blue Node Name", "Checked"});;
-    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Physical Address", "Uplink Port", "Downlink Port"});
+    private final Object lockLocal = new Object();
+    private final Object lockBn = new Object();
+    private final Object lockRRn = new Object();
+	private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port"});
+    private final DefaultTableModel remoteRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Blue Node Name", "Last Checked"});
+    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port"});
     public int messageCount = 0;
 
     public MainWindow() {
     	setTitle("Blue Node");
     	initComponents(); 
         if (!App.bn.network) {
-    		jTabbedPane1.remove(2);
+    		jTabbedPane1.remove(2);    		
+    		button.setVisible(false);
     	}
         
         jTable1.setDefaultEditor(Object.class, null);
@@ -516,6 +520,13 @@ public class MainWindow extends javax.swing.JFrame {
                 jButton3ActionPerformed(evt);
             }
         });
+        
+        button = new JButton("Remove Local Red Node Projection");
+        button.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent arg0) {
+        		removeLocalProject(arg0);
+        	}
+        });
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6Layout.setHorizontalGroup(
@@ -523,16 +534,21 @@ public class MainWindow extends javax.swing.JFrame {
         		.addGroup(jPanel6Layout.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(jPanel6Layout.createParallelGroup(Alignment.LEADING)
-        				.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 1356, Short.MAX_VALUE)
-        				.addComponent(jButton3))
+        				.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 1416, Short.MAX_VALUE)
+        				.addGroup(jPanel6Layout.createSequentialGroup()
+        					.addComponent(jButton3)
+        					.addPreferredGap(ComponentPlacement.RELATED)
+        					.addComponent(button, GroupLayout.PREFERRED_SIZE, 235, GroupLayout.PREFERRED_SIZE)))
         			.addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
         	jPanel6Layout.createParallelGroup(Alignment.LEADING)
         		.addGroup(jPanel6Layout.createSequentialGroup()
-        			.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 424, Short.MAX_VALUE)
+        			.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 435, Short.MAX_VALUE)
         			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addComponent(jButton3))
+        			.addGroup(jPanel6Layout.createParallelGroup(Alignment.BASELINE)
+        				.addComponent(jButton3)
+        				.addComponent(button)))
         );
         jPanel6.setLayout(jPanel6Layout);
 
@@ -736,12 +752,23 @@ public class MainWindow extends javax.swing.JFrame {
         pack();
     }
 
-    protected void btnAddRemoteActionPerformed(ActionEvent evt) {
+    protected void removeLocalProject(ActionEvent arg0) {
+		if (jTable1.getSelectedRow() > 0) {
+	    	try {
+	    		String hostname = (String) jTable1.getValueAt(jTable1.getSelectedRow(), 0);
+				App.bn.blueNodesTable.releaseLocalRedNodeByHostnameFromAll(hostname);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+    	}
+	}
+
+	protected void btnAddRemoteActionPerformed(ActionEvent evt) {
 		new AddRemoteRedNode().setVisible(true);
 	}
 
 	private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (jToggleButton1.isSelected() == true) {
+        if (jToggleButton1.isSelected()) {
             App.bn.viewTraffic = true;
         } else {
             App.bn.viewTraffic = false;
@@ -879,7 +906,8 @@ public class MainWindow extends javax.swing.JFrame {
         	txtOpMode.setText("Standalone/Plain");
         }
     }
-
+    
+    private javax.swing.JButton button;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
@@ -942,43 +970,50 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JToggleButton jToggleButton1;
     private JTextField txtOpMode;
 
-	public synchronized void updateLocalRns() {
-		String[][] obj = App.bn.localRedNodesTable.buildGUIObj();
-		int rows = localRedNodeTableModel.getRowCount();
-        for (int i = 0; i < rows; i++) {
-            localRedNodeTableModel.removeRow(0);
-        }
-        for (int i = 0; i < obj.length; i++) {
-            localRedNodeTableModel.addRow(obj[i]);
-        }
-        
-        jTable1.setModel(localRedNodeTableModel);
-        repaint();
+	public void updateLocalRns() {
+		synchronized (lockLocal) {
+			String[][] obj = App.bn.localRedNodesTable.buildGUIObj();
+			int rows = localRedNodeTableModel.getRowCount();
+	        for (int i = 0; i < rows; i++) {
+	            localRedNodeTableModel.removeRow(0);
+	        }
+	        for (int i = 0; i < obj.length; i++) {
+	            localRedNodeTableModel.addRow(obj[i]);
+	        }
+	        
+	        jTable1.setModel(localRedNodeTableModel);
+	        repaint();
+		}		
 	}
 
-	public synchronized void updateBNs() {
-		String[][] obj = App.bn.blueNodesTable.buildBNGUIObj();
-		int rows = remoteBlueNodeTableModel.getRowCount();
-        for (int i = 0; i < rows; i++) {
-        	remoteBlueNodeTableModel.removeRow(0);
-        }
-        for (int i = 0; i < obj.length; i++) {
-        	remoteBlueNodeTableModel.addRow(obj[i]);
-        }	
-        jTable2.setModel(remoteBlueNodeTableModel);
-        repaint();
+	public void updateBNs() {
+		synchronized (lockBn) {
+			String[][] obj = App.bn.blueNodesTable.buildBNGUIObj();
+			int rows = remoteBlueNodeTableModel.getRowCount();
+	        for (int i = 0; i < rows; i++) {
+	        	remoteBlueNodeTableModel.removeRow(0);
+	        }
+	        for (int i = 0; i < obj.length; i++) {
+	        	remoteBlueNodeTableModel.addRow(obj[i]);
+	        }	
+	        jTable2.setModel(remoteBlueNodeTableModel);
+	        repaint();
+
+		}
 	}
 
-	public synchronized void updateRemoteRns() {
-		String[][] obj = App.bn.blueNodesTable.buildRRNGUIObj();
-		int rows = remoteRedNodeTableModel.getRowCount();
-        for (int i = 0; i < rows; i++) {
-        	remoteRedNodeTableModel.removeRow(0);
-        }
-        for (int i = 0; i < obj.length; i++) {
-        	remoteRedNodeTableModel.addRow(obj[i]);
-        }		
-        jTable3.setModel(remoteRedNodeTableModel);
-        repaint();
+	public void updateRemoteRns() {
+		synchronized (lockRRn) {
+			String[][] obj = App.bn.blueNodesTable.buildRRNGUIObj();
+			int rows = remoteRedNodeTableModel.getRowCount();
+	        for (int i = 0; i < rows; i++) {
+	        	remoteRedNodeTableModel.removeRow(0);
+	        }
+	        for (int i = 0; i < obj.length; i++) {
+	        	remoteRedNodeTableModel.addRow(obj[i]);
+	        }		
+	        jTable3.setModel(remoteRedNodeTableModel);
+	        repaint();
+		}		
 	}
 }

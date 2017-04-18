@@ -83,7 +83,7 @@ public class BlueNodeClient {
 		TCPSocketFunctions.sendFinalData("RELEASE", outputWriter);        
         closeConnection();
 	}
-
+	
 	public int UPing() {
 		if (bn != null) {
 			TCPSocketFunctions.sendFinalData("UPING ", outputWriter);
@@ -163,6 +163,16 @@ public class BlueNodeClient {
         }
 	}
 	
+	public void removeRedNodeProjectionByHn(String hostname) {
+		String[] args = TCPSocketFunctions.sendData("RELEASE_REMOTE_REDNODE_BY_HN "+hostname, outputWriter, inputReader);     
+		closeConnection();
+	}
+	
+	public void removeRedNodeProjectionByVaddr(String vaddress) {
+		String[] args = TCPSocketFunctions.sendData("RELEASE_REMOTE_REDNODE_BY_VADDRESS "+vaddress, outputWriter, inputReader);     
+		closeConnection();
+	}
+	
 	public int getRemoteRedNodes() {
 		if (bn != null) {
 			String[] args = TCPSocketFunctions.sendData("GET_RED_NODES ", outputWriter, inputReader);
@@ -208,11 +218,13 @@ public class BlueNodeClient {
     	BlueNodeInstance node;
 		try {
 			node = new BlueNodeInstance(phAddress, authPort, AuthHostname, full);
-			if (node.getStatus() == 1) {
+			if (node.getStatus() > 0) {
 	            App.bn.blueNodesTable.leaseBn(node);
 	        }
 		} catch (Exception e) {
 			e.printStackTrace();
 		}                        
     }
+
+	
 }

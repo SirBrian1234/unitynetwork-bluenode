@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.RunData.instances.RemoteRedNodeInstance;
+import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
 
 /**
  * Here we keep all the remote red nodes leased by each blue node.
@@ -40,6 +41,10 @@ public class RemoteRedNodeTable {
     
     public BlueNodeInstance getBlueNode() {
 		return blueNode;
+	}
+    
+    public LinkedList<RemoteRedNodeInstance> getList() {
+		return list;
 	}
     
     public int getSize() {
@@ -149,7 +154,7 @@ public class RemoteRedNodeTable {
         notifyGUI();
     }
     
-    //no build guiObj here it will be called from  bns table
+    //no build guiObj here it will be called from  thhe bns table
     //here we just notify
     public void notifyGUI () {
     	if (notifyGui) {

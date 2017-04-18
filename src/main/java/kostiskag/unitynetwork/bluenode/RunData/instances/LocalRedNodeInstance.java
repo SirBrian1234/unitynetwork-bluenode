@@ -30,241 +30,65 @@ public class LocalRedNodeInstance {
 	//to check if a RN is connected in another BN before auth
 	private final String pre = "^AUTH ";
     //object data
-    private String PhAddressStr;
-    private InetAddress PhAddress;
+	private String Hostname;
     private String Vaddress;
-    private String Hostname;
-    private String Username;
-    private String Password;
+    private String phAddressStr;
+	private int port;    
     private int state = 0;
-    private boolean uping = false;
-    //object socket objs
-    private Socket socket;
-    private BufferedReader inFromClient;
-    private PrintWriter outputWriter;
-    //object threads queue
+    //socket objects
+    private BufferedReader socketReader;
+    private PrintWriter socketWriter;
+    //thread objects
     private RedDownService down;
     private RedlUpService up;
     private RedKeepAlive ka;
     private QueueManager man;
-    private static Boolean didTrigger = false;
+    //loggers
+    private boolean uping = false;
+    private boolean didTrigger = false;
 
     public LocalRedNodeInstance() {
         state = 0;
     }
     
-    public LocalRedNodeInstance(String Hostname, String Username, String Password, String Vaddress, String PhAddressStr) {
-        state = 0;
-        this.Username = Username;
+    public LocalRedNodeInstance(String Hostname, String Vaddress) {
         this.Hostname = Hostname;
-        this.Password = Password;
         this.Vaddress = Vaddress;
-        this.PhAddressStr = PhAddressStr;
+        this.state = 0;
     }
 
-    public LocalRedNodeInstance(Socket socket, String Hostname, String Username, String Password) {
+    public LocalRedNodeInstance(BufferedReader socketReader, PrintWriter socketWriter, String hostname, String vAddress, String phAddress, int port) {
+    	this.Hostname = hostname;
+        this.Vaddress = vAddress;
+        this.socketReader = socketReader;
+    	this.socketWriter = socketWriter;
+    	this.phAddressStr = phAddress;
+    	this.port = port;
 
-        this.Hostname = Hostname;
-        this.Username = Username;
-        this.socket = socket;
-
-        App.bn.ConsolePrint(pre + "STARTING A REDNODE AUTH AT " + Thread.currentThread().getName());
-        String[] args;
-
-        try {
-            inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            outputWriter = new PrintWriter(socket.getOutputStream(), true);
-
-            PhAddress = socket.getInetAddress();
-            PhAddressStr = PhAddress.getHostAddress();
-
-            if (App.bn.network && App.bn.joined) {
-                Vaddress = TrackingRedNodeFunctions.lease(Hostname, Username, Password);
-                
-                //leasing - reverse error capture     
-                if (Vaddress.equals("WRONG_COMMAND")) {
-                    App.bn.ConsolePrint(pre + "WRONG_COMMAND");
-                    outputWriter.println("BLUENODE FAILED");
-                    socket.close();
-                    state = -1;
-                    return;
-                } else if (Vaddress.equals("NOT_ONLINE")) {
-                    App.bn.ConsolePrint(pre + "NOT_ONLINE");
-                    outputWriter.println("BLUENODE FAILED");
-                    socket.close();
-                    state = -1;
-                    return;
-                } else if (Vaddress.equals("NOT_REGISTERED")) {
-                    App.bn.ConsolePrint(pre + "NOT_REGISTERED");
-                    outputWriter.println("BLUENODE FAILED");
-                    socket.close();
-                    state = -1;
-                    return;
-                } else if (Vaddress.equals("SYSTEM_ERROR")) {
-                    App.bn.ConsolePrint(pre + "SYSTEM_ERROR");
-                    outputWriter.println("BLUENODE FAILED");
-                    socket.close();
-                    state = -1;
-                    return;
-                } else if (Vaddress.equals("AUTH_FAILED")) {
-                    App.bn.ConsolePrint(pre + "USER FAILED 1");
-                    outputWriter.println("USER FAILED 1");
-                    socket.close();
-                    state = -1;
-                    return;
-                } else if (Vaddress.equals("USER_HOSTNAME_MISSMATCH")) {
-                    App.bn.ConsolePrint(pre + "HOSTNAME FAILED 3");
-                    outputWriter.println("HOSTNAME FAILED 3");
-                    socket.close();
-                    state = -1;
-                    return;
-                } else if (Vaddress.equals("ALLREADY_LEASED")) {
-                    App.bn.ConsolePrint(pre + "HOSTNAME FAILED 2");
-                    outputWriter.println("HOSTNAME FAILED 2");
-                    socket.close();
-                    state = -1;
-                    return;
-                } else if (Vaddress.equals("NOT_FOUND")) {
-                    App.bn.ConsolePrint(pre + "HOSTNAME FAILED 1");
-                    outputWriter.println("HOSTNAME FAILED 1");
-                    socket.close();
-                    state = -1;
-                    return;
-                } else if (Vaddress.equals("LEASE_FAILED")) {
-                    App.bn.ConsolePrint(pre + "HOSTNAME FAILED 1");
-                    outputWriter.println("HOSTNAME FAILED 1");
-                    socket.close();
-                    state = -1;
-                    return;
-                }
-                                
-            } else if (App.bn.useList) {
-            	Vaddress = App.bn.accounts.getVaddrIfExists(Hostname, Username, Password);                          	
-            } else if (!App.bn.useList && !App.bn.network) {
-                int addr_num = App.bn.bucket.poll();
-                Vaddress = IpAddrFunctions.numberTo10ipAddr(addr_num);
-            } else {
-            	Vaddress = null;
-            	socket.close();
-            	state = -1;
-            	return;
-            }
-                   
-            App.bn.ConsolePrint(pre + "USER AUTHED / STARTING ASSOSIATION");
-
-            if (App.bn.gui && didTrigger == false) {
-                MainWindow.jCheckBox2.setSelected(true);
-                didTrigger = true;
-            }
-
-            //queue manager
-            man = new QueueManager(10);
-
-            //downlink (allways by the aspect of bluenode)
-            down = new RedDownService(Vaddress);
-
-            //uplink (allways by the aspect of bluenode)
-            up = new RedlUpService(Vaddress);
-
-            //keep alive
-            ka = new RedKeepAlive(Vaddress);
-            
-            //starting the above
-            down.start();
-            up.start();
-            ka.start();
-            
-            state = 1;
-            
-        } catch (IOException ex) {
-            Logger.getLogger(LocalRedNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
+    	//notify the gui variables
+    	if (App.bn.gui && didTrigger == false) {
+            MainWindow.jCheckBox2.setSelected(true);
+            didTrigger = true;
         }
-    }
 
-    /**
-     * here we have the terminal loop a user may
-     * send commands to the BN monitoring his status
-     */
-    public void initTerm() {
-        if (state > 0) {
-            while (true) {
-                String clientSentence = null;
-                try {
-                    clientSentence = inFromClient.readLine();
-                } catch (Exception ex) {
-                    break;
-                }
-                
-                if (clientSentence == null) {
-                    break;
-                }
-                
-                if (clientSentence.startsWith("PING")) {
-                    outputWriter.println("PING OK");
-                } else if (clientSentence.startsWith("UPING")) {
-                    boolean set = false;
-                    for (int i = 0; i < 12; i++) {
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException ex) {
-                            ex.printStackTrace();
-                        }
-                        if (getUPing()) {
-                            outputWriter.println("UPING OK");
-                            set = true;
-                            break;
-                        }
-                    }
-                    if (set == false) {
-                        outputWriter.println("UPING FAILED");
-                    }
-                    setUPing(false);
+        //set queue manager
+        man = new QueueManager(10);
 
-                } else if (clientSentence.startsWith("DPING")) {
-                    if (getQueueMan() != null) {
+        //set downlink (allways by the aspect of bluenode)
+        down = new RedDownService(Vaddress);
 
-                        byte[] payload = "00001 [DPING PACKET]".getBytes();
-                        byte[] data = IpPacket.MakeUPacket(payload, null, null, true);
+        //set uplink (allways by the aspect of bluenode)
+        up = new RedlUpService(Vaddress);
 
-                        for (int i = 0; i < 2; i++) {
-                            getQueueMan().offer(data);
-                        }
-                        outputWriter.println("PING ON THE WAY");
-                    } else {
-                        outputWriter.println("BLUE NODE ERROR");
-                        App.bn.ConsolePrint(pre + "NO QUEUE FOUND FOR " + Vaddress + " HOST KILLED");
-                        killTasks();
-                        break;
-                    }
-                } else if (clientSentence.startsWith("DREFRESH")) {
-                    App.bn.ConsolePrint(pre + " " + Vaddress + " UP REFRESH");
-                    urefresh();
-                } else if (clientSentence.startsWith("UREFRESH")) {
-                    App.bn.ConsolePrint(pre + Vaddress + " DOWN REFRESH");
-                    drefresh();
-                } else if (clientSentence.startsWith("WHOAMI")) {
-                    whoami();
-                } else if (clientSentence.startsWith("EXIT")) {
-                    break;
-                } else {
-                    //not recognized command
-                    outputWriter.println("NRC");
-                }
-            }    
-            
-            //remember you can't kill the socket here
-        	//you have to let initTerm return and the socket closes by itself
-        	
-            //killing user tasks
-            killTasks();
-            
-            //setting state
-            state = -2;       
-        }
-    }
-    
-    public int getStatus() {
-        return state;
+        //set keep alive
+        ka = new RedKeepAlive(Vaddress);
+        
+        //start the above
+        down.start();
+        up.start();
+        ka.start();
+        
+        state = 1;
     }
 
     public String getHostname() {
@@ -276,17 +100,17 @@ public class LocalRedNodeInstance {
     }
 
     public String getPhAddress() {
-        return PhAddressStr;
+        return phAddressStr;
     }
 
-    public InetAddress getRealPhAddress() {
-        return PhAddress;
+    public int getPort() {
+		return port;
+	}
+    
+    public int getStatus() {
+        return state;
     }
-
-    public String getUsername() {
-        return Username;
-    }
-
+    
     public QueueManager getQueueMan() {
         return man;
     }
@@ -311,8 +135,91 @@ public class LocalRedNodeInstance {
         this.uping = b;
     }
 
+    /**
+     * here we have the terminal loop a user may
+     * send commands to the BN monitoring his status
+     */
+    public void initTerm() {
+        if (state > 0) {
+            while (true) {
+                String clientSentence = null;
+                try {
+                    clientSentence = socketReader.readLine();
+                } catch (Exception ex) {
+                    break;
+                }
+                
+                if (clientSentence == null) {
+                    break;
+                }
+                
+                if (clientSentence.startsWith("PING")) {
+                    socketWriter.println("PING OK");
+                } else if (clientSentence.startsWith("UPING")) {
+                    boolean set = false;
+                    for (int i = 0; i < 12; i++) {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
+                        if (getUPing()) {
+                            socketWriter.println("UPING OK");
+                            set = true;
+                            break;
+                        }
+                    }
+                    if (set == false) {
+                        socketWriter.println("UPING FAILED");
+                    }
+                    setUPing(false);
+
+                } else if (clientSentence.startsWith("DPING")) {
+                    if (getQueueMan() != null) {
+
+                        byte[] payload = "00001 [DPING PACKET]".getBytes();
+                        byte[] data = IpPacket.MakeUPacket(payload, null, null, true);
+
+                        for (int i = 0; i < 2; i++) {
+                            getQueueMan().offer(data);
+                        }
+                        socketWriter.println("PING ON THE WAY");
+                    } else {
+                        socketWriter.println("BLUE NODE ERROR");
+                        App.bn.ConsolePrint(pre + "NO QUEUE FOUND FOR " + Vaddress + " HOST KILLED");
+                        break;
+                    }
+                } else if (clientSentence.startsWith("DREFRESH")) {
+                    App.bn.ConsolePrint(pre + " " + Vaddress + " UP REFRESH");
+                    urefresh();
+                } else if (clientSentence.startsWith("UREFRESH")) {
+                    App.bn.ConsolePrint(pre + Vaddress + " DOWN REFRESH");
+                    drefresh();
+                } else if (clientSentence.startsWith("WHOAMI")) {
+                    whoami();
+                } else if (clientSentence.startsWith("EXIT")) {
+                    break;
+                } else {
+                    //not recognized command
+                    socketWriter.println("NRC");
+                }
+            }    
+            
+            //remember you can't kill the socket here
+        	//you have to let initTerm return and the socket closes by itself
+        	
+            //killing user tasks
+            down.kill();
+            up.kill();
+            ka.kill();
+            
+            //setting state
+            state = -1;       
+        }
+    }
+    
     private void whoami() {
-        outputWriter.println(Username + "/" + Hostname + "/" + Vaddress + " ~ " + PhAddressStr + ":" + up.getUpport() + ":" + down.getDownport());
+        socketWriter.println(Hostname + "/" + Vaddress + " ~ " + phAddressStr + ":" + up.getUpport() + ":" + down.getDownport());
     }
 
     private void urefresh() {
@@ -327,7 +234,7 @@ public class LocalRedNodeInstance {
             ex.printStackTrace();
         }
 
-        outputWriter.println("DOWNLINK REFRESH " + up.getUpport());
+        socketWriter.println("DOWNLINK REFRESH " + up.getUpport());
     }
 
     private void drefresh() {
@@ -340,16 +247,10 @@ public class LocalRedNodeInstance {
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
-        outputWriter.println("UPLINK REFRESH " + down.getDownport());
+        socketWriter.println("UPLINK REFRESH " + down.getDownport());
     }
 
     public void exit() {
-    	outputWriter.println("BYE");
+    	socketWriter.println("BYE");
     }
-    
-    private void killTasks() {
-    	down.kill();
-        up.kill();
-        ka.kill();
-    }   
 }

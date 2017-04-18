@@ -2,7 +2,13 @@ package kostiskag.unitynetwork.bluenode.GUI;
 
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
+
+import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingBlueNodeFunctions;
+
 import javax.swing.GroupLayout;
+import javax.swing.JRadioButton;
+import javax.swing.ButtonGroup;
 
 /**
  *
@@ -34,12 +40,19 @@ public class AddRemoteRedNode extends javax.swing.JFrame {
 
         jLabel3.setText("Hostname");
 
-        jButton1.setText("ASSOCIATE");
+        jButton1.setText("SEARCH AND LEASE");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
+        
+        rdbtnNewRadioButton = new JRadioButton("Seach by hostname");
+        rdbtnNewRadioButton.setSelected(true);
+        buttonGroup.add(rdbtnNewRadioButton);
+        
+        rdbtnNewRadioButton_1 = new JRadioButton("Search by vaddress");
+        buttonGroup.add(rdbtnNewRadioButton_1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         layout.setHorizontalGroup(
@@ -47,43 +60,59 @@ public class AddRemoteRedNode extends javax.swing.JFrame {
         		.addGroup(layout.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(layout.createParallelGroup(Alignment.LEADING)
-        				.addComponent(jLabel1)
+        				.addComponent(rdbtnNewRadioButton)
+        				.addComponent(rdbtnNewRadioButton_1)
         				.addGroup(layout.createSequentialGroup()
-        					.addComponent(jLabel3)
-        					.addPreferredGap(ComponentPlacement.UNRELATED)
-        					.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, 108, GroupLayout.PREFERRED_SIZE))
-        				.addGroup(layout.createSequentialGroup()
+        					.addGap(21)
         					.addComponent(jLabel2)
-        					.addPreferredGap(ComponentPlacement.UNRELATED)
+        					.addPreferredGap(ComponentPlacement.RELATED)
         					.addComponent(jTextField1, GroupLayout.PREFERRED_SIZE, 110, GroupLayout.PREFERRED_SIZE))
-        				.addComponent(jButton1, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE))
-        			.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        				.addGroup(layout.createSequentialGroup()
+        					.addGap(21)
+        					.addComponent(jLabel3)
+        					.addPreferredGap(ComponentPlacement.RELATED)
+        					.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, 108, GroupLayout.PREFERRED_SIZE))
+        				.addComponent(jButton1, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
+        				.addComponent(jLabel1))
+        			.addContainerGap(175, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
         	layout.createParallelGroup(Alignment.LEADING)
         		.addGroup(layout.createSequentialGroup()
         			.addContainerGap()
         			.addComponent(jLabel1)
-        			.addGap(18)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
+        			.addComponent(rdbtnNewRadioButton)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
         				.addComponent(jLabel3)
         				.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-        			.addGap(18)
+        			.addGap(5)
+        			.addComponent(rdbtnNewRadioButton_1)
+        			.addPreferredGap(ComponentPlacement.RELATED)
         			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
         				.addComponent(jLabel2)
         				.addComponent(jTextField1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-        			.addGap(18)
-        			.addComponent(jButton1)
-        			.addContainerGap(22, Short.MAX_VALUE))
+        			.addPreferredGap(ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+        			.addComponent(jButton1))
         );
         getContentPane().setLayout(layout);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String vaddress = jTextField1.getText();
-        String bnhostname = jTextField2.getText();
+        if (App.bn.joined) {
+	    	if (rdbtnNewRadioButton.isSelected()) {
+	        	String bnhostname = jTextField2.getText();
+	        	//TODO
+	        	//typical validate
+	        } else {
+	        	String vaddress = jTextField1.getText();
+	        	//TODO
+	        	//typical validate
+	        }
+        }
     }
 
     private javax.swing.JButton jButton1;
@@ -92,4 +121,7 @@ public class AddRemoteRedNode extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
+    private javax.swing.JRadioButton rdbtnNewRadioButton;
+    private javax.swing.JRadioButton rdbtnNewRadioButton_1;
+    private final ButtonGroup buttonGroup = new ButtonGroup();
 }

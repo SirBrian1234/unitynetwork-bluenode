@@ -236,7 +236,7 @@ public class BlueNode extends Thread{
 			//release from tracker
 			TrackingBlueNodeFunctions.release();
 			//release from bns
-			blueNodesTable.sendKillSigsAndRelease();
+			blueNodesTable.sendKillSigsAndReleaseForAll();
 			joined = false;
 			addr.Kill();
 			die();

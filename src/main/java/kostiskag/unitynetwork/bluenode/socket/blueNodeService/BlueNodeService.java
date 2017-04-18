@@ -88,7 +88,11 @@ public class BlueNodeService extends Thread {
 		                BlueNodeFunctions.getLocalRnVaddressByHostname(args[1], socketWriter);
 		            } else if (args.length == 2 && args[0].equals("GET_RED_HOSTNAME")) {
 		                BlueNodeFunctions.getLocalRnHostnameByVaddress(args[1], socketWriter);
-		            } else if (args.length == 3 && args[0].equals("FEED_RETURN_ROUTE")) {
+		            } else if (args.length == 2 && args[0].equals("RELEASE_REMOTE_REDNODE_BY_HN")) {
+		                BlueNodeFunctions.getRRNToBeReleasedByHn(bn, args[0], socketWriter);
+		            } else if (args.length == 2 && args[0].equals("RELEASE_REMOTE_REDNODE_BY_VADDRESS")) {
+		                BlueNodeFunctions.getRRNToBeReleasedByVaddr(bn, args[0], socketWriter);
+		            } else if (args.length == 3 && args[0].equals("LEASE_REMOTE_REDNODE")) {
 		                BlueNodeFunctions.getFeedReturnRoute(bn, args[0], args[1], socketWriter);
 		            } else {
 		            	socketWriter.println("WRONG_COMMAND");

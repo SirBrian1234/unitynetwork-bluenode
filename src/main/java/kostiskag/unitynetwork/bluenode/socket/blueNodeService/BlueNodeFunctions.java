@@ -126,4 +126,22 @@ public class BlueNodeFunctions {
         bn.table.lease(hostname, vaddress);
         outputWriter.println("OK");        
     }
+
+	public static void getRRNToBeReleasedByHn(BlueNodeInstance bn, String hostname, PrintWriter socketWriter) {
+		try {
+			bn.table.releaseByHostname(hostname);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		socketWriter.println("OK");  
+	}
+	
+	public static void getRRNToBeReleasedByVaddr(BlueNodeInstance bn, String vaddress, PrintWriter socketWriter) {
+		try {
+			bn.table.releaseByVaddr(vaddress);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		socketWriter.println("OK");  
+	}
 }	

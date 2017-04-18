@@ -44,6 +44,8 @@ public class BlueNodeInstance {
     
     /**
      * This object constructor is mainly used for testing.
+     * 
+     * @throws Exception 
      */
     public BlueNodeInstance(String name) {
     	this.name = name;    
@@ -140,6 +142,7 @@ public class BlueNodeInstance {
 
     /**
      * This is the client constructor.
+     * 
      * @throws Exception 
      */
     public BlueNodeInstance(String phAddress, int authPort, String name, boolean fullAssociation) throws Exception {
