@@ -22,7 +22,6 @@ public class RedDownService extends Thread {
 
     private final String pre;
     private final LocalRedNodeInstance rn;
-    private final String vaddress;
     //socket
     private DatagramSocket serverSocket;
     private int sourcePort;
@@ -33,8 +32,7 @@ public class RedDownService extends Thread {
 
     public RedDownService(LocalRedNodeInstance rn ) {
         this.rn = rn;
-    	this.vaddress = rn.getVaddress();
-    	pre =  "^RedDownService "+vaddress+" ";
+    	pre =  "^RedDownService "+rn.getHostname()+" ";
     	destPort = App.bn.UDPports.requestPort();        
     }
 
@@ -78,7 +76,7 @@ public class RedDownService extends Thread {
                 if (len > 0 && len <= 1500) {
                     data = new byte[len];
                     System.arraycopy(receivePacket.getData(), 0, data, 0, len);
-                    if (App.bn.gui && didTrigger == false) {
+                    if (App.bn.gui && !didTrigger) {
                         MainWindow.jCheckBox3.setSelected(true);
                         didTrigger = true;
                     }
@@ -90,14 +88,14 @@ public class RedDownService extends Thread {
                         if (args.length > 1) {                            
                             if (args[0].equals("00000")){
                                 //keep alive packet received
-                                App.bn.TrafficPrint(pre + version+" "+"[KEEP ALIVE]" ,0,0);
+                                App.bn.TrafficPrint(pre + version+" [KEEP ALIVE]" ,0,0);
                             }  else if (args[0].equals("00001")) {
                                 //rednode uping packet received                                              
-                                App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).setUPing(true);
+                                rn.setUPing(true);
                                 App.bn.TrafficPrint(pre + "REDNODE UPING RECEIVED",1,0);
                             } 
                         } else {
-                            System.out.println(pre + "wrong length");
+                        	App.bn.TrafficPrint(pre + "WRONG LENGTH",1,0);
                         }
                     } else if (version.equals("1")) {                        
                         byte[] payload = IpPacket.getPayloadU(data);
@@ -110,7 +108,7 @@ public class RedDownService extends Thread {
                                 App.bn.manager.offer(data); 
                             }  
                         } else {
-                            System.out.println(pre + "wrong length");
+                        	App.bn.TrafficPrint(pre + "WRONG LENGTH",2,0);
                         }
                     } else {             
                         App.bn.TrafficPrint(pre + "IPv4",3,0);
@@ -118,7 +116,6 @@ public class RedDownService extends Thread {
                     }
                 }
             } catch (java.net.SocketException ex1) {
-                App.bn.ConsolePrint(pre + "SOCKET DIED");
                 break;
             } catch (IOException ex) {
             	App.bn.ConsolePrint(pre + "IO ERROR");
@@ -127,7 +124,7 @@ public class RedDownService extends Thread {
             }
         }               
         App.bn.UDPports.releasePort(sourcePort);        
-        App.bn.ConsolePrint(pre + " ENDED");
+        App.bn.ConsolePrint(pre + "ENDED");
     }
 
     public void kill() {

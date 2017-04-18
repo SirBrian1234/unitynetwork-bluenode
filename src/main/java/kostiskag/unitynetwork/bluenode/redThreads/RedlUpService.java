@@ -23,7 +23,6 @@ public class RedlUpService extends Thread {
 
     private final String pre;
     private final LocalRedNodeInstance rn;
-    private final String vaddress;
     //socket    
     private int destPort;
     private int sourcePort;
@@ -42,8 +41,7 @@ public class RedlUpService extends Thread {
      */
     public RedlUpService(LocalRedNodeInstance rn) {        
         this.rn = rn;
-        this.vaddress = rn.getVaddress();
-        pre = "^RedlUpService "+vaddress+" ";
+        pre = "^RedlUpService "+rn.getHostname()+" ";
         sourcePort = App.bn.UDPports.requestPort();
     }
     
@@ -65,7 +63,7 @@ public class RedlUpService extends Thread {
     
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName() + " ON PORT " + sourcePort);        
+        App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + sourcePort);        
         
         try {
             serverSocket = new DatagramSocket(sourcePort);
@@ -100,21 +98,26 @@ public class RedlUpService extends Thread {
         destPort = receivedUDPPacket.getPort();
 
         /*
-         * Now a difficult task approaches as we have to create a lifo queue and
-         * a while to get packets from lifo and send them to the socket
+         * The task at hand is to use a synchronized packet queue and
+         * a while to get the packets from the queue and send them to the socket.
+         * In other words when there is a packet on queue write on socket.
          */
         while (!kill.get()) {
             byte[] data = null;
             try {
-                data = App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getQueueMan().poll();
-            } catch (java.lang.NullPointerException ex1) {
-                continue;
-            } catch (java.util.NoSuchElementException ex) {
+            	data = rn.getQueueMan().poll();                   
+            } catch (Exception ex1) {
                 continue;
             }
-
-            if (data.length <= 0 || data.length > 1500) {
-                System.out.println(pre + "wrong length");
+            
+            if (kill.get()) {
+            	break;
+            } else if (data == null) {
+            	continue;
+            } else if (data.length == 0) {
+            	continue;
+            } else if (data.length > 1500) {
+            	App.bn.TrafficPrint("Throwing oversized packet of size "+data.length, 3, 0);
                 continue;
             }
 
@@ -129,34 +132,35 @@ public class RedlUpService extends Thread {
                     if (args.length > 1) {
                         if (args[0].equals("00000")) {
                             //keep alive
-                            App.bn.TrafficPrint(pre + version + " " + "[KEEP ALIVE]", 0, 0);
+                            App.bn.TrafficPrint(pre+version +" [KEEP ALIVE]", 0, 0);
                         } else if (args[0].equals("00001")) {
-                            //le wild rednode ping!                                               
+                            //rednode ping                                               
                             rn.setUPing(true);
-                            App.bn.TrafficPrint(pre + "LE WILD RN DPING LEAVES", 1, 0);
+                            App.bn.TrafficPrint(pre + "DPING LEAVES", 1, 0);
                         }
                     } else {
-                        System.out.println(pre + "wrong length");
+                    	App.bn.TrafficPrint(pre + "WRONG LENGTH", 1, 0);                        
                     }
                 } 
-                if (App.bn.gui && trigger == false) {
+                if (App.bn.gui && !trigger) {
                     MainWindow.jCheckBox4.setSelected(true);
                     trigger = true;
                 }
             } catch (java.net.SocketException ex1) {
-                App.bn.ConsolePrint(pre + " SOCKET DIED");
+                break;
             } catch (IOException ex) {
                 ex.printStackTrace();
-                App.bn.ConsolePrint(pre + " IO ERROR");
+                App.bn.ConsolePrint(pre + "IO ERROR");
+                break;
             }
         }
-        App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getQueueMan().clear();        
         App.bn.UDPports.releasePort(sourcePort);
         App.bn.ConsolePrint(pre + "ENDED");                
     }
 
     public void kill() {
         kill.set(true);
-        serverSocket.close();                
+        serverSocket.close();
+        rn.getQueueMan().exit();
     }       
 }

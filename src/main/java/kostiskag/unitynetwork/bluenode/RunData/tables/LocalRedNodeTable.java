@@ -89,7 +89,7 @@ public class LocalRedNodeTable {
         	if (rn.getHostname().equals(hostname)) {
         		it.remove();
         		if (verbose) {
-        			App.bn.ConsolePrint(pre + "RELEASED LOCAL RED NODE "+hostname+"ENTRY FROM TABLE");
+        			App.bn.ConsolePrint(pre + "RELEASED LOCAL RED NODE "+hostname+" ENTRY FROM TABLE");
         		}
         		notifyGUI();
         		return;

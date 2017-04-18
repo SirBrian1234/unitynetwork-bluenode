@@ -186,8 +186,12 @@ public class BlueNode extends Thread{
 		}
 	}
 
-	// messagetype ~ 0 keep alive, 1 pings, 2 acks, 3 routing
-	// hosttype ~ 0 reds, 1 blues
+	/**
+	 *  Prints a message to traffic console. 
+	 *  
+	 *  @param messageType ~ 0 keep alive, 1 pings, 2 acks, 3 routing
+	 *  @param hostType ~ 0 reds, 1 blues
+	 */
 	public void TrafficPrint(String Message, int messageType, int hostType) {
 		if (gui) {
 			if (viewTraffic) {
