@@ -5,52 +5,64 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
+import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 
 /**
- *
- * @author kostis
- *
  * This service runs for every user it opens a UDP socket and waits a row to
  * fill then it sends the packets
+ * 
+ * @author kostis
  */
 public class RedlUpService extends Thread {
 
-    private String pre = "^UpService   ";
-    private boolean kill = false;
-    private static Boolean trigger = false;
+    private final String pre;
+    private final LocalRedNodeInstance rn;
+    private final String vaddress;
+    //socket    
     private int destPort;
     private int sourcePort;
-    private String vaddress;
-    private String serverStr;
-    private byte[] buffer = new byte[2048];
-    private byte[] data = null;
-    private DatagramPacket receivedUDPPacket;
-    private DatagramPacket sendUDPPacket;
-    private String clientStr;
-    private DatagramSocket serverSocket = null;
-    private InetAddress clientAddress;
+    private DatagramSocket serverSocket;
+    //triggers
+    private boolean trigger = false;
+    private AtomicBoolean kill = new AtomicBoolean(false);
 
-    /*
-     * HERE IS A BIG BUG, IF FISH NEVER FISHES THEN EVERYTHING IS STUCK AND WE
-     * HAVE A DEAD ENTRY
-     *
-     */
-    /*
+    /**
      * First the class must find all the valuable information to open the socket
      * we do this on the constructor so that the running time will be charged on
      * the AuthService Thread
+     * 
+     * IF FISH NEVER FISHES THEN EVERYTHING IS STUCK AND WE
+     * HAVE A DEAD ENTRY
      */
-    public RedlUpService(String vaddress) {
-        this.vaddress = vaddress;
+    public RedlUpService(LocalRedNodeInstance rn) {        
+        this.rn = rn;
+        this.vaddress = rn.getVaddress();
+        pre = "^RedlUpService "+vaddress+" ";
         sourcePort = App.bn.UDPports.requestPort();
-        pre = pre + vaddress+" ";
     }
-
+    
+    public int getSourcePort() {
+        return sourcePort;
+    }
+    
+    public int getDestPort() {
+		return destPort;
+	}
+    
+    public LocalRedNodeInstance getRn() {
+		return rn;
+	}
+    
+    public boolean getIsKilled() {
+    	return kill.get();
+    }
+    
     @Override
     public void run() {
         App.bn.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName() + " ON PORT " + sourcePort);        
@@ -69,7 +81,8 @@ public class RedlUpService extends Thread {
             Logger.getLogger(RedlUpService.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        receivedUDPPacket = new DatagramPacket(buffer, buffer.length);
+        byte[] buffer = new byte[2048];
+        DatagramPacket receivedUDPPacket = new DatagramPacket(buffer, buffer.length);
         try {
             serverSocket.receive(receivedUDPPacket);
         } catch (java.net.SocketTimeoutException ex) {
@@ -83,17 +96,15 @@ public class RedlUpService extends Thread {
             return;
         }
 
-        clientAddress = receivedUDPPacket.getAddress();
+        InetAddress clientAddress = receivedUDPPacket.getAddress();
         destPort = receivedUDPPacket.getPort();
 
         /*
          * Now a difficult task approaches as we have to create a lifo queue and
          * a while to get packets from lifo and send them to the socket
-         *
          */
-
-        while (!kill) {
-            data = null;
+        while (!kill.get()) {
+            byte[] data = null;
             try {
                 data = App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getQueueMan().poll();
             } catch (java.lang.NullPointerException ex1) {
@@ -107,7 +118,7 @@ public class RedlUpService extends Thread {
                 continue;
             }
 
-            sendUDPPacket = new DatagramPacket(data, data.length, clientAddress, destPort);
+            DatagramPacket sendUDPPacket = new DatagramPacket(data, data.length, clientAddress, destPort);
             try {
                 serverSocket.send(sendUDPPacket);
                 String version = IpPacket.getVersion(data);                
@@ -121,7 +132,7 @@ public class RedlUpService extends Thread {
                             App.bn.TrafficPrint(pre + version + " " + "[KEEP ALIVE]", 0, 0);
                         } else if (args[0].equals("00001")) {
                             //le wild rednode ping!                                               
-                            App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).setUPing(true);
+                            rn.setUPing(true);
                             App.bn.TrafficPrint(pre + "LE WILD RN DPING LEAVES", 1, 0);
                         }
                     } else {
@@ -133,23 +144,19 @@ public class RedlUpService extends Thread {
                     trigger = true;
                 }
             } catch (java.net.SocketException ex1) {
-                App.bn.ConsolePrint(pre + " SOCKET DIED FOR " + vaddress);
+                App.bn.ConsolePrint(pre + " SOCKET DIED");
             } catch (IOException ex) {
-                Logger.getLogger(RedlUpService.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
+                App.bn.ConsolePrint(pre + " IO ERROR");
             }
         }
-        App.bn.ConsolePrint(pre + " ENDED FOR " + vaddress);        
+        App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getQueueMan().clear();        
         App.bn.UDPports.releasePort(sourcePort);
-        sourcePort = -1;
+        App.bn.ConsolePrint(pre + "ENDED");                
     }
 
     public void kill() {
-        kill = true;
-        serverSocket.close();        
-        App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getQueueMan().clear();
-    }
-    
-    public int getUpport() {
-        return sourcePort;
-    }
+        kill.set(true);
+        serverSocket.close();                
+    }       
 }

@@ -52,6 +52,10 @@ public class BlueUpServiceServer extends Thread {
     public BlueNodeInstance getBlueNode() {
 		return blueNode;
 	}
+    
+    public boolean getIsKilled() {
+    	return kill.get();
+    }
 
     @Override
     public void run() {

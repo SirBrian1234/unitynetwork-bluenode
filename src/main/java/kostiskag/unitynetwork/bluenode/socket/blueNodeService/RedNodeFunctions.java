@@ -18,7 +18,7 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctio
  */
 public class RedNodeFunctions {
 	
-	private static String pre = "^LEASE LOCAL REDNODE";
+	private static String pre = "^LEASE LOCAL REDNODE ";
 
     static void lease(Socket connectionSocket, BufferedReader socketReader, PrintWriter socketWriter, String hostname, String Username, String Password) {
     	App.bn.ConsolePrint(pre + "LEASING "+hostname);
@@ -108,8 +108,8 @@ public class RedNodeFunctions {
             ex.printStackTrace();
         }
         
-        socketWriter.println("REG OK " + RNclient.getDown().getDownport() + " " + RNclient.getUp().getUpport() + " " + RNclient.getVaddress());
-        App.bn.ConsolePrint("RED NODE OK " +  RNclient.getHostname() + "/" + RNclient.getVaddress() +" ~ " + RNclient.getPhAddress() + ":" + RNclient.getUp().getUpport() + ":" + RNclient.getDown().getDownport());
+        socketWriter.println("REG OK " + RNclient.getDown().getDestPort() + " " + RNclient.getUp().getSourcePort() + " " + RNclient.getVaddress());
+        App.bn.ConsolePrint("RED NODE OK " +  RNclient.getHostname() + "/" + RNclient.getVaddress() +" ~ " + RNclient.getPhAddress() + ":" + RNclient.getUp().getSourcePort() + ":" + RNclient.getDown().getDestPort());
         
         //initTerm will use the session socket and will hold this thread
         RNclient.initTerm();
@@ -127,6 +127,7 @@ public class RedNodeFunctions {
 			App.bn.localRedNodesTable.releaseByHostname(hostname);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}                         
+		}
+        App.bn.ConsolePrint(pre+"ENDED");
     }
 }

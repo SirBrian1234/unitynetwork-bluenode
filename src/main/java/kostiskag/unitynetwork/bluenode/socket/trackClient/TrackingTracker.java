@@ -1,5 +1,7 @@
 package kostiskag.unitynetwork.bluenode.socket.trackClient;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import kostiskag.unitynetwork.bluenode.App;
 
 /**
@@ -9,7 +11,7 @@ import kostiskag.unitynetwork.bluenode.App;
 public class TrackingTracker extends Thread {
 
     private final String pre = "^Tracker sonar ";
-    boolean kill = false;
+    private AtomicBoolean kill = new AtomicBoolean(false);
     
     public TrackingTracker() {
     }
@@ -26,14 +28,14 @@ public class TrackingTracker extends Thread {
         }
         
         App.bn.ConsolePrint(pre+"JUST STARTED");             
-        while (!kill){
+        while (!kill.get()){
             App.bn.ConsolePrint(pre+"WAITING");
             try {
                 sleep(App.bn.trackerCheckSec*1000);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
-            if (kill) break;
+            if (kill.get()) break;
             int passedTime = App.bn.trackerRespond.getAndAdd(App.bn.trackerCheckSec*1000);
             App.bn.ConsolePrint(pre+" BUILDING TIME "+passedTime);
             
@@ -47,7 +49,6 @@ public class TrackingTracker extends Thread {
     }
 
     public void Kill() {
-        this.kill = true;
-    }
-       
+        kill.set(true);
+    }       
 }

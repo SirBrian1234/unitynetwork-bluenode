@@ -149,7 +149,7 @@ public class LocalRedNodeTable {
         int i=0;
     	while(it.hasNext()) {
         	LocalRedNodeInstance rn = it.next();
-        	object[i] = new String[]{rn.getHostname(), rn.getVaddress(), rn.getPhAddress(), ""+rn.getPort(), ""+rn.getUp().getUpport(), ""+rn.getDown().getDownport()};
+        	object[i] = new String[]{rn.getHostname(), rn.getVaddress(), rn.getPhAddress(), ""+rn.getPort(), ""+rn.getUp().getSourcePort(), ""+rn.getDown().getDestPort()};
         	i++;
         }
     	return object;

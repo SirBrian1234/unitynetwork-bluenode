@@ -75,13 +75,13 @@ public class LocalRedNodeInstance {
         man = new QueueManager(10);
 
         //set downlink (allways by the aspect of bluenode)
-        down = new RedDownService(Vaddress);
+        down = new RedDownService(this);
 
         //set uplink (allways by the aspect of bluenode)
-        up = new RedlUpService(Vaddress);
+        up = new RedlUpService(this);
 
         //set keep alive
-        ka = new RedKeepAlive(Vaddress);
+        ka = new RedKeepAlive(this);
         
         //start the above
         down.start();
@@ -219,13 +219,13 @@ public class LocalRedNodeInstance {
     }
     
     private void whoami() {
-        socketWriter.println(Hostname + "/" + Vaddress + " ~ " + phAddressStr + ":" + up.getUpport() + ":" + down.getDownport());
+        socketWriter.println(Hostname + "/" + Vaddress + " ~ " + phAddressStr + ":" + up.getSourcePort() + ":" + down.getDestPort());
     }
 
     private void urefresh() {
         up.kill();
 
-        up = new RedlUpService(Vaddress);
+        up = new RedlUpService(this);
         up.start();
 
         try {
@@ -234,12 +234,12 @@ public class LocalRedNodeInstance {
             ex.printStackTrace();
         }
 
-        socketWriter.println("DOWNLINK REFRESH " + up.getUpport());
+        socketWriter.println("DOWNLINK REFRESH " + up.getSourcePort());
     }
 
     private void drefresh() {
         down.kill();
-        down = new RedDownService(Vaddress);
+        down = new RedDownService(this);
         down.start();
 
         try {
@@ -247,7 +247,7 @@ public class LocalRedNodeInstance {
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
-        socketWriter.println("UPLINK REFRESH " + down.getDownport());
+        socketWriter.println("UPLINK REFRESH " + down.getDestPort());
     }
 
     public void exit() {
