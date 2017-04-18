@@ -1,6 +1,7 @@
 package kostiskag.unitynetwork.bluenode.Routing;
 
 import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
 /*
  *
@@ -54,15 +55,20 @@ public class PacketToHandle extends Thread {
                     App.bn.TrafficPrint(pre + version + " " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
                 }
 
-                if (App.bn.localRedNodesTable.checkOnline(destvaddress) == true) {
+                if (App.bn.blueNodesTable.checkRemoteRedNodeByVaddress(destvaddress)) {
                     //load the packet data to target users lifo
                     App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offer(data);
                     App.bn.TrafficPrint(pre + "LOCAL DESTINATION", 3, 0);
                 } else if (App.bn.joined) {
-                    if (App.bn.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
-                        String hostname = App.bn.remoteRedNodesTable.getRedRemoteAddress(destvaddress).getBlueNodeName();
-                        App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().offer(data);
-                        App.bn.TrafficPrint(pre + "REMOTE DESTINATION -> " + hostname, 3, 1);
+                    if (App.bn.blueNodesTable.checkRemoteRedNodeByVaddress(destvaddress)) {
+                        BlueNodeInstance bn;
+						try {
+							bn = App.bn.blueNodesTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
+							bn.getQueueMan().offer(data);
+	                        App.bn.TrafficPrint(pre + "REMOTE DESTINATION -> " + bn.getName(), 3, 1);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}                        
                     } else {
                         App.bn.TrafficPrint(pre + "NOT KNOWN BN WITH " + destvaddress, 3, 1);
                         App.bn.flyreg.seekDest(sourcevaddress, destvaddress);

@@ -1,22 +1,16 @@
 package kostiskag.unitynetwork.bluenode;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.FlyRegister;
 import kostiskag.unitynetwork.bluenode.Routing.PacketToHandle;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
-import kostiskag.unitynetwork.bluenode.RunData.IPpoll;
+import kostiskag.unitynetwork.bluenode.RunData.IpPoll;
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.LocalRedNodeTable;
-import kostiskag.unitynetwork.bluenode.RunData.tables.RemoteRedNodeTable;
 import kostiskag.unitynetwork.bluenode.functions.PortHandle;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeService.BlueNodeServer;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingBlueNodeFunctions;
@@ -51,7 +45,6 @@ public class BlueNode extends Thread{
 	public TrackingTracker addr;
 	// our most important tables
 	public LocalRedNodeTable localRedNodesTable;
-	public RemoteRedNodeTable remoteRedNodesTable;
 	public BlueNodesTable blueNodesTable;
 	// tracker data
 	public String echoAddress;
@@ -59,7 +52,7 @@ public class BlueNode extends Thread{
 	// gui data
 	public boolean viewTraffic = true;
 	private int messageCount = 0;	
-	public IPpoll bucket;
+	public IpPoll bucket;
 	public PrintWriter prt;
 	// objects
 	public BlueNodeServer auth;
@@ -175,7 +168,7 @@ public class BlueNode extends Thread{
 				die();
 			}
 		} else if (!useList) {
-			bucket = new IPpoll();
+			bucket = new IpPoll();
 			ConsolePrint("WARNING! BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nWHICH MEANS THAT ANYONE WHO KNOWS THE BN'S ADDRESS AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
 		}
 	}
@@ -240,9 +233,10 @@ public class BlueNode extends Thread{
 
 	public void leaveNetworkAndDie() throws Exception {
 		if (joined) {
-			if (kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingBlueNodeFunctions.release()) {
-				ConsolePrint("^SUCCESSFULLY RELEASED FROM THE NETWORK");
-			}
+			//release from tracker
+			TrackingBlueNodeFunctions.release();
+			//release from bns
+			blueNodesTable.sendKillSigsAndRelease();
 			joined = false;
 			addr.Kill();
 			die();

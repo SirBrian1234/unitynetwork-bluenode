@@ -128,15 +128,15 @@ public class LocalRedNodesTableTest {
 		assertEquals(table.getRedNodeInstanceByAddr("10.0.0.3").getHostname(), "pakis-laptop3");
 		assertEquals(table.getRedNodeInstanceByAddr("10.0.0.2").getHostname(), "pakis-laptop2");
 		assertEquals(table.getRedNodeInstanceByAddr("10.0.0.1").getHostname(), "pakis-laptop");
-		assertTrue(table.checkOnline("10.0.0.2"));
-		assertTrue(table.checkOnline("10.0.0.3"));
-		assertTrue(table.checkOnline("10.0.0.1"));
-		assertTrue(!table.checkOnline("10.0.0.4"));
-		assertTrue(!table.checkOnline("10.0.0.5"));
+		assertTrue(table.checkOnlineByVaddress("10.0.0.2"));
+		assertTrue(table.checkOnlineByVaddress("10.0.0.3"));
+		assertTrue(table.checkOnlineByVaddress("10.0.0.1"));
+		assertTrue(!table.checkOnlineByVaddress("10.0.0.4"));
+		assertTrue(!table.checkOnlineByVaddress("10.0.0.5"));
 	}
 	
 	@Test
-	public void buldStringTest() {
+	public void buildStringTest() {
 		LocalRedNodeTable table = new LocalRedNodeTable(10, false, false);
 		LocalRedNodeInstance rn1 = new LocalRedNodeInstance("pakis-laptop","pakis","1234","10.0.0.1","192.168.1.1");
 		LocalRedNodeInstance rn2 = new LocalRedNodeInstance("pakis-laptop2","pakis","1234","10.0.0.2","192.168.1.1");
@@ -150,9 +150,9 @@ public class LocalRedNodesTableTest {
 		}
 		
 		LinkedList<String> list = table.buildAddrHostStringList();
-		assertEquals(list.get(0), "10.0.0.1 pakis-laptop");
-		assertEquals(list.get(1), "10.0.0.2 pakis-laptop2");
-		assertEquals(list.get(2), "10.0.0.3 pakis-laptop3");
+		assertEquals(list.get(0), "pakis-laptop 10.0.0.1");
+		assertEquals(list.get(1), "pakis-laptop2 10.0.0.2");
+		assertEquals(list.get(2), "pakis-laptop3 10.0.0.3");
 		assertEquals(list.size(), 3);
 	}
 }

@@ -104,6 +104,7 @@ public class BlueNodesTable {
     	while(it.hasNext()){
     		BlueNodeInstance bn = it.next();
     		if (bn.getName().equals(name)) {
+    			bn.killtasks();
     			it.remove();
     			if (verbose) {
     				App.bn.ConsolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
@@ -124,6 +125,16 @@ public class BlueNodesTable {
     		}
     	} 
         return false;
+    }
+    
+    public synchronized void sendKillSigsAndRelease() {
+    	Iterator<BlueNodeInstance> it = list.listIterator();
+    	while(it.hasNext()){
+    		BlueNodeInstance bn = it.next();
+    		bn.killtasks();
+    		//send kill sig    		
+    	}
+    	list.clear();
     }
     
     public synchronized boolean checkRemoteRedNodeByHostname(String hostname) {

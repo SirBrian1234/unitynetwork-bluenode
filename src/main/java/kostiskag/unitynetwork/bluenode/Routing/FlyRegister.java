@@ -5,7 +5,8 @@ import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.RemoteHandle;
+import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingBlueNodeFunctions;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctions;
 
@@ -52,7 +53,7 @@ public class FlyRegister extends Thread {
             App.bn.ConsolePrint(pre + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
 
             //maybe it associated one loop back
-            if (App.bn.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
+            if (App.bn.blueNodesTable.checkRemoteRedNodeByVaddress(destvaddress)) {
                 App.bn.ConsolePrint(pre + "Allready associated entry");
                 continue;
             } else {                
@@ -70,10 +71,16 @@ public class FlyRegister extends Thread {
                         } else {
                             port = 7000;
                         }
-                        
-                        RemoteHandle.addBlueNodeWithExchange(BNHostname, address, port, sourcevaddress, destvaddress);
+                        BlueNodeClient.addRemoteBlueNode(address, port, BNHostname, true);                        
                     } else {
-                        RemoteHandle.BlueNodeExchange(BNHostname, sourcevaddress, destvaddress);
+                    	BlueNodeInstance bn;
+						try {
+							bn = App.bn.blueNodesTable.getBlueNodeInstanceByName(BNHostname);
+							BlueNodeClient cl = new BlueNodeClient(bn);
+	                    	cl.exchangeRedNodes();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}                     	
                     }
                     if (App.bn.blueNodesTable.checkBlueNode(BNHostname)) {                        
                         App.bn.TrafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", 3, 1);

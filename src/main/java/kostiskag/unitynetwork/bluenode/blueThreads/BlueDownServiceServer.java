@@ -2,11 +2,10 @@ package kostiskag.unitynetwork.bluenode.blueThreads;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
-import kostiskag.unitynetwork.bluenode.redThreads.RedDownService;
+import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.App;
 
 /**
@@ -15,45 +14,56 @@ import kostiskag.unitynetwork.bluenode.App;
  */
 public class BlueDownServiceServer extends Thread {
 
-    private String pre = "^DownService (DOWN) ";
-    private Boolean kill = false;
-    private static Boolean didTrigger = false;
-    private int downport;
-    private byte[] receiveData;
+    private final String pre;
+    private final BlueNodeInstance blueNode;
+    private final int downPort;
     private DatagramSocket serverSocket;
-    private DatagramPacket receivePacket;
-    private String hostname;        
+    private Boolean didTrigger = false;
+    private AtomicBoolean kill = new AtomicBoolean(false);    
 
-    public BlueDownServiceServer(String hostname) {
-        downport = App.bn.UDPports.requestPort();
-        this.hostname = hostname;        
-        pre = pre + hostname + " ";        
-    }    
+    public BlueDownServiceServer(BlueNodeInstance blueNode) {
+        this.downPort = App.bn.UDPports.requestPort();
+        this.blueNode = blueNode;
+        this.pre = "^BlueDownServiceServer "+blueNode.getName()+" ";        
+    }
+    
+    public int getDownport() {
+        return downPort;
+    }   
 
+    public BlueNodeInstance getBlueNode() {
+		return blueNode;
+	}
+    
+    public boolean isKilled() {
+		return kill.get();
+	}
+    
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName() + " ON PORT " + downport);       
+        App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + downPort);       
         
-        receiveData = new byte[2048];
+        byte[] receiveData = new byte[2048];
         serverSocket = null;
-
         try {
-            serverSocket = new DatagramSocket(downport);
+            serverSocket = new DatagramSocket(downPort);
         } catch (java.net.BindException ex) {
-            App.bn.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
+            ex.printStackTrace();
+            return;
         } catch (SocketException ex) {
-            Logger.getLogger(RedDownService.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            return;
         }
 
-        while (!kill) {
-            receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        while (!kill.get()) {
+        	DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             try {
                 serverSocket.receive(receivePacket);
                 int len = receivePacket.getLength();
                 if (len > 0 && len <= 1500) {
                     byte[] packet = new byte[len];
                     System.arraycopy(receivePacket.getData(), 0, packet, 0, len);
-                    if (App.bn.gui && didTrigger == false) {
+                    if (App.bn.gui && !didTrigger) {
                         MainWindow.jCheckBox7.setSelected(true);
                         didTrigger = true;
                     }
@@ -65,15 +75,15 @@ public class BlueDownServiceServer extends Thread {
                         if (args.length > 1) {                                                        
                             if (args[0].equals("00000")) {
                                 //keep alive
-                                App.bn.TrafficPrint(pre + version + " " +"[KEEP ALIVE]",0,1);
+                                App.bn.TrafficPrint(pre + version+" [KEEP ALIVE]",0,1);
                             } else if (args[0].equals("00002")) {
-                                //le wild blue node uping!
-                                App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);                                
-                                App.bn.TrafficPrint(pre + "LE WILD BN UPING FROM " + hostname + " APPEARS",1,1);                                
+                                //blue node uping!
+                                blueNode.setUping(true);                                
+                                App.bn.TrafficPrint(pre + "RECEIVED UPING",1,1);                                
                             } else if (args[0].equals("00003")) {
-                                //le wild blue node dping!
+                                //blue node dping!
                                 App.bn.dping = true;                                
-                                App.bn.TrafficPrint(pre + "LE WILD DPING FROM " + hostname + " APPEARS",1,1);
+                                App.bn.TrafficPrint(pre + "RECEIVED DPING",1,1);
                             } else if (args[0].equals("00004")) {
                                 //ack
                                 App.bn.TrafficPrint(pre + version + " " + receivedMessage,2,1);
@@ -84,25 +94,20 @@ public class BlueDownServiceServer extends Thread {
                         App.bn.manager.offer(packet);                        
                     }
                 } else {
-                    System.out.println(pre + "wrong length");
+                    System.out.println(pre + "WRONG LENGTH");
                 }
             } catch (java.net.SocketException ex1) {
-                App.bn.ConsolePrint(pre + " SOCKET CLOSED FOR " + hostname);
+                App.bn.ConsolePrint(pre + "SOCKET ERROR");
             } catch (IOException ex) {
-                App.bn.ConsolePrint(pre + " SOCKET ERROR FOR " + hostname);
+                App.bn.ConsolePrint(pre + "IO ERROR");
             }
         }
-        App.bn.ConsolePrint(pre + " ENDED FOR " + hostname);
-        App.bn.UDPports.releasePort(downport);
+        App.bn.UDPports.releasePort(downPort);
+        App.bn.ConsolePrint(pre + "ENDED");        
     }
 
     public void kill() {
-        kill = true;
-        serverSocket.close();
-        downport = -1;
+    	kill.set(true);
+    	serverSocket.close();             
     }        
-
-    public int getDownport() {
-        return downport;
-    }   
 }

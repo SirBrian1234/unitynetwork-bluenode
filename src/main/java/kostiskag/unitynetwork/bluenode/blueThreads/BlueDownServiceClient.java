@@ -1,118 +1,119 @@
 package kostiskag.unitynetwork.bluenode.blueThreads;
 
 import java.io.IOException;
-import java.net.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.GUI.*;
+import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
-import kostiskag.unitynetwork.bluenode.redThreads.RedlUpService;
+import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
 /**
- *
- * @author kostis
  * 
+ * @author kostis
  */
-public class BlueDownServiceClient extends Thread{
-	//remember = BDSClient is a client to BNS UP so he SENDS
-    private String pre = "^DownClient (UP) ";
-    private boolean kill = false;
-    
-    private static Boolean trigger = false;    
-    
-    private int downport;
-    private int sourcePort;
-    private String hostname;
-    
-    private DatagramPacket sendUDPPacket;
-    private DatagramSocket serverSocket = null;
-    private InetAddress BlueNodeAddress;
-    private byte[] data;
-    private DatagramPacket receivedUDPPacket;
-    private int destPort;
+public class BlueDownServiceClient extends Thread {
 
-    /*
-     * First the class must find all the valuable information to open the socket
-     * we do this on the constructor so that the running time will be charged on
-     * the AuthService Thread
-     */
-    
-    public BlueDownServiceClient(String hostname, int downport, String vaddress) {
-        this.hostname = hostname;
-        this.downport = downport;  
-        pre = pre + hostname + " ";
-        try {
-            BlueNodeAddress = InetAddress.getByName(vaddress);
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(BlueUpServiceServer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    @Override
-    public void run() {
-        App.bn.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName()+ " ON PORT "+downport);        
-        
-        try {
-            serverSocket = new DatagramSocket();
-        } catch (SocketException ex) {
-            Logger.getLogger(RedlUpService.class.getName()).log(Level.SEVERE, null, ex);
-        }                              
-        
-        while (!kill) {            
-            
-            try {
-                data = App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().poll();
-            } catch (java.lang.NullPointerException ex1){
-                continue;
-            } catch (java.util.NoSuchElementException ex) {
-                continue;
-            }            
-            sendUDPPacket = new DatagramPacket(data, data.length, BlueNodeAddress, downport);
-            //BlueNode.lvl3BlueNode.BlueNodesTable.getBlueNodeAddress(hostname).getTrafficMan().clearToSend();
-            try {
-                serverSocket.send(sendUDPPacket);
-                String version = IpPacket.getVersion(data);
-                if (version.equals("0")) {
-                    byte[] payload = IpPacket.getPayloadU(data);
-                    String receivedMessage = new String(payload);
-                    String args[] = receivedMessage.split("\\s+");
-                    if (args.length > 1) {
-                        if (args[0].equals("00000")) {
-                            //keep alive
-                            App.bn.TrafficPrint(pre + version + " " + "[KEEP ALIVE]", 0, 1);
-                        } else if (args[0].equals("00002")) {
-                            //le wild blue node uping!
-                            App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);
-                            App.bn.TrafficPrint(pre + "LE WILD RN UPING LEAVES", 1, 1);
-                        } else if (args[0].equals("00003")) {
-                            //le wild blue node dping!
-                            App.bn.dping = true;
-                            App.bn.TrafficPrint(pre + "LE WILD RN DPING LEAVES", 1, 1);
-                        }
-                    }
-                }                  
-                if (App.bn.gui && trigger == false) {
-                    MainWindow.jCheckBox6.setSelected(true);
-                    trigger = true;
-                }
-            } catch (java.net.SocketException ex1) {
-                App.bn.ConsolePrint(pre + " SOCKET DIED FOR " + hostname);
-            } catch (IOException ex) {                
-                App.bn.ConsolePrint(pre + "SOCKET ERROR FOR " + hostname);
-            }
-        }
-        App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
-        App.bn.UDPports.releasePort(sourcePort);  
-        App.bn.ConsolePrint(pre + "ENDED FOR " + hostname);        
-    }
+	private final String pre;
+	private final BlueNodeInstance blueNode;
+	private final InetAddress blueNodePhAddress;
+	private final int downport;
+	DatagramSocket clientSocket;
+	private Boolean didTrigger = false;
+	private AtomicBoolean kill = new AtomicBoolean(false);
 
-    public void kill() {
-        kill = true;               
-        serverSocket.close();             
-    }
+	/**
+	 * First the class must find all the valuable information to open the socket
+	 * we do this on the constructor so that the running time will be charged on
+	 * the AuthService Thread remember = BlueDownServiceClient is a client
+	 * thread to BlueUpServiceserver, therefore he is the one to SEND.
+	 */
+	public BlueDownServiceClient(BlueNodeInstance blueNode, int downport) {
+		this.blueNode = blueNode;
+		this.pre = "^BlueDownServiceClient " + blueNode.getName() + " ";
+		this.blueNodePhAddress = blueNode.getPhaddress();		
+		this.downport = downport;
+	}
 
-    public int getDownport() {        
-        return downport;
-    }        
+	public int getDownport() {
+		return downport;
+	}
+
+	public BlueNodeInstance getBlueNode() {
+		return blueNode;
+	}
+
+	public boolean isKilled() {
+		return kill.get();
+	}
+
+	@Override
+	public void run() {
+		App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + downport);
+
+		clientSocket = null;
+		try {
+			clientSocket = new DatagramSocket();
+		} catch (SocketException ex) {
+			ex.printStackTrace();
+			blueNode.getQueueMan().clear();
+			App.bn.ConsolePrint(pre + "FORCE ENDED");
+			return;
+		}
+
+		while (!kill.get()) {
+
+			byte[] data = null;
+			try {
+				data = blueNode.getQueueMan().poll();
+			} catch (java.lang.NullPointerException ex1) {
+				continue;
+			} catch (java.util.NoSuchElementException ex) {
+				continue;
+			}
+			DatagramPacket sendUDPPacket = new DatagramPacket(data, data.length, blueNodePhAddress, downport);
+			try {
+				clientSocket.send(sendUDPPacket);
+				String version = IpPacket.getVersion(data);
+				if (version.equals("0")) {
+					byte[] payload = IpPacket.getPayloadU(data);
+					String receivedMessage = new String(payload);
+					String args[] = receivedMessage.split("\\s+");
+					if (args.length > 1) {
+						if (args[0].equals("00000")) {
+							// keep alive
+							App.bn.TrafficPrint(pre + version + " [KEEP ALIVE]", 0, 1);
+						} else if (args[0].equals("00002")) {
+							// blue node uping!
+							blueNode.setUping(true);
+							App.bn.TrafficPrint(pre + "UPING LEAVES", 1, 1);
+						} else if (args[0].equals("00003")) {
+							// blue node dping!
+							App.bn.dping = true;
+							App.bn.TrafficPrint(pre + "DPING LEAVES", 1, 1);
+						}
+					}
+				}
+				if (App.bn.gui && didTrigger == false) {
+					MainWindow.jCheckBox6.setSelected(true);
+					didTrigger = true;
+				}
+			} catch (java.net.SocketException ex1) {
+				App.bn.ConsolePrint(pre + "SOCKET ERROR");
+			} catch (IOException ex2) {
+				App.bn.ConsolePrint(pre + "IO ERROR");
+			}
+		}
+
+		blueNode.getQueueMan().clear();
+		App.bn.ConsolePrint(pre + "ENDED");
+	}
+
+	public void kill() {
+		kill.set(true);
+		clientSocket.close();		
+	}
 }

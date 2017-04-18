@@ -8,7 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static java.lang.Thread.sleep;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.RunData.instances.RedNodeInstance;
+import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctions;
 
 /**
@@ -17,9 +17,9 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctio
  */
 public class RedNodeFunctions {
 
-    static void Lease(Socket connectionSocket, BufferedReader socketReader, PrintWriter socketWriter, String hostname, String Username, String Password) {
+    static void lease(Socket connectionSocket, BufferedReader socketReader, PrintWriter socketWriter, String hostname, String Username, String Password) {
         
-    	RedNodeInstance RNclient = new RedNodeInstance(connectionSocket, hostname, Username, Password);
+    	LocalRedNodeInstance RNclient = new LocalRedNodeInstance(connectionSocket, hostname, Username, Password);
         if (RNclient.getStatus() > 0) {                        
             	
         		try {
@@ -32,7 +32,7 @@ public class RedNodeFunctions {
                 try {
                     sleep(3000);
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(RedNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
+                    ex.printStackTrace();
                 }
                 
                 socketWriter.println("REG OK " + RNclient.getDown().getDownport() + " " + RNclient.getUp().getUpport() + " " + RNclient.getVaddress());

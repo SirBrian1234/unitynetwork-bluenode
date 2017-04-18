@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
 /**
  *
@@ -36,11 +37,11 @@ public class BlueNodeService extends Thread {
             args = clientSentence.split("\\s+");
 
             if (args.length == 2 && args[0].equals("BLUENODE")) {
-                BlueNodeService(args[1]);
+                blueNodeService(args[1]);
             } else if (args.length == 2 && args[0].equals("REDNODE")) {
-                RedNodeService(args[1]);
+                redNodeService(args[1]);
             } else if (args.length == 1 && args[0].equals("TRACKER")) {
-                TrackingService();
+                trackingService();
             } else {
                 socketWriter.println("WRONG_COMMAND");                
             }
@@ -55,34 +56,48 @@ public class BlueNodeService extends Thread {
         }
     }
 
-    private void BlueNodeService(String hostname) {
+    private void blueNodeService(String blueNodeName) {
         try {
             socketWriter.println("OK ");
             String clientSentence = socketReader.readLine();
             App.bn.ConsolePrint(pre + clientSentence);
             String[] args = clientSentence.split("\\s+");
 
-            if (args.length == 1 && args[0].equals("ASSOCIATE")) {
-                BlueNodeFunctions.Associate(hostname,sessionSocket,socketReader,socketWriter);
+            if (args.length == 1 && args[0].equals("CHECK")) {
+            	socketWriter.println("OK");
+            } else if (args.length == 1 && args[0].equals("ASSOCIATE")) {
+                BlueNodeFunctions.associate(blueNodeName,sessionSocket,socketReader,socketWriter);
             } else if (args.length == 1 && args[0].equals("FULL_ASSOCIATE")) {
-                BlueNodeFunctions.FullAssociate(hostname,sessionSocket,socketReader,socketWriter);
-            } else if (args.length == 2 && args[0].equals("GET_RED_HOSTNAME")) {
-                BlueNodeFunctions.GetRnHostname(hostname, args[1], sessionSocket,socketReader,socketWriter);
-            } else if (args.length == 2 && args[0].equals("CHECK")) {
-                BlueNodeFunctions.Check(hostname, args[1], sessionSocket,socketReader,socketWriter);
-            } else if (args.length == 1 && args[0].equals("RELEASE")) {
-                BlueNodeFunctions.Release(hostname,sessionSocket,socketReader,socketWriter);
-            } else if (args.length == 1 && args[0].equals("UPING")) {
-                BlueNodeFunctions.Uping(hostname,sessionSocket,socketReader,socketWriter);
-            } else if (args.length == 1 && args[0].equals("DPING")) {
-                BlueNodeFunctions.Dping(hostname,sessionSocket,socketReader,socketWriter);
-            } else if (args.length == 1 && args[0].equals("GET_RED_NODES")) {
-                BlueNodeFunctions.GetRNs(hostname,sessionSocket,socketReader,socketWriter);
-            } else if (args.length == 1 && args[0].equals("EXCHANGE_RED_NODES")) {
-                BlueNodeFunctions.ExchangeRNs(hostname,sessionSocket,socketReader,socketWriter);
-            } else if (args.length == 2 && args[0].equals("FEED_RETURN_ROUTE")) {
-                BlueNodeFunctions.FeedReturnRoute(hostname, args[1], sessionSocket,socketReader,socketWriter);
-            } else {
+                BlueNodeFunctions.fullAssociate(blueNodeName,sessionSocket,socketReader,socketWriter);
+            } else if (App.bn.blueNodesTable.checkBlueNode(blueNodeName)) {            	
+            	//these options are only for leased bns
+            	BlueNodeInstance bn;
+				try {
+					bn = App.bn.blueNodesTable.getBlueNodeInstanceByName(blueNodeName);
+					if (args.length == 1 && args[0].equals("UPING")) {
+		                BlueNodeFunctions.Uping(bn, socketWriter);
+		            } else if (args.length == 1 && args[0].equals("DPING")) {
+		                BlueNodeFunctions.Dping(bn,socketWriter);
+		            } else if (args.length == 1 && args[0].equals("RELEASE")) {
+		                BlueNodeFunctions.releaseBn(blueNodeName,socketWriter);
+		            } else if (args.length == 1 && args[0].equals("GET_RED_NODES")) {
+		                BlueNodeFunctions.giveLRNs(socketWriter);
+		            } else if (args.length == 1 && args[0].equals("EXCHANGE_RED_NODES")) {
+		                BlueNodeFunctions.exchangeRNs(bn, socketReader, socketWriter);
+		            } else if (args.length == 2 && args[0].equals("GET_RED_VADDRESS")) {
+		                BlueNodeFunctions.getLocalRnVaddressByHostname(args[1], socketWriter);
+		            } else if (args.length == 2 && args[0].equals("GET_RED_HOSTNAME")) {
+		                BlueNodeFunctions.getLocalRnHostnameByVaddress(args[1], socketWriter);
+		            } else if (args.length == 3 && args[0].equals("FEED_RETURN_ROUTE")) {
+		                BlueNodeFunctions.getFeedReturnRoute(bn, args[0], args[1], socketWriter);
+		            } else {
+		            	socketWriter.println("WRONG_COMMAND");
+		            }
+				} catch (Exception e) {
+					e.printStackTrace();
+					socketWriter.println("WRONG_COMMAND");					
+				}	            
+            } else {            
             	socketWriter.println("WRONG_COMMAND");                
             }
             sessionSocket.close();
@@ -96,7 +111,7 @@ public class BlueNodeService extends Thread {
         }
     }
 
-    private void RedNodeService(String hostname) {
+    private void redNodeService(String hostname) {
         try {
         	socketWriter.println("OK");
             String clientSentence = socketReader.readLine();
@@ -104,7 +119,7 @@ public class BlueNodeService extends Thread {
             String[] args = clientSentence.split("\\s+");
 
             if (args.length == 3 && args[0].equals("LEASE")) {
-                RedNodeFunctions.Lease(sessionSocket, socketReader, socketWriter, hostname, args[1], args[2]);
+                RedNodeFunctions.lease(sessionSocket, socketReader, socketWriter, hostname, args[1], args[2]);
             } else {
             	socketWriter.println("WRONG_COMMAND"); 
             }
@@ -119,7 +134,7 @@ public class BlueNodeService extends Thread {
         }
     }
 
-    private void TrackingService() {
+    private void trackingService() {
         try {
             socketWriter.println("OK");
             String clientSentence = socketReader.readLine();

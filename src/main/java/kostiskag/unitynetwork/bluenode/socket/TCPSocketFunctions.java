@@ -67,7 +67,8 @@ public class TCPSocketFunctions {
         try {
             outputWriter = new PrintWriter(socket.getOutputStream(), true);
         } catch (IOException ex) {
-            Logger.getLogger(TCPSocketFunctions.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            return null;
         }
         
         return outputWriter;
@@ -80,9 +81,23 @@ public class TCPSocketFunctions {
         try {
             receivedMessage = inputReader.readLine();
         } catch (IOException ex) {
-            Logger.getLogger(TCPSocketFunctions.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            return null;
         }
                 
+        args = receivedMessage.split("\\s+");
+        return args;
+    }
+    
+    public static String[] readData(BufferedReader inputReader) {
+        String receivedMessage = null;
+        String[] args = null;
+        try {
+            receivedMessage = inputReader.readLine();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }                
         args = receivedMessage.split("\\s+");
         return args;
     }
@@ -91,24 +106,13 @@ public class TCPSocketFunctions {
         outputWriter.println(data);
     }
 
-    public static String[] readData(BufferedReader inputReader) {
-        String receivedMessage = null;
-        String[] args = null;
-        try {
-            receivedMessage = inputReader.readLine();
-        } catch (IOException ex) {
-            Logger.getLogger(TCPSocketFunctions.class.getName()).log(Level.SEVERE, null, ex);
-        }                
-        args = receivedMessage.split("\\s+");
-        return args;
-    }
-
     public static void connectionClose(Socket socket) {
         try {
-            socket.close();
+            if (!socket.isClosed()) {
+            	socket.close();
+            }
         } catch (IOException ex) {
-            Logger.getLogger(TCPSocketFunctions.class.getName()).log(Level.SEVERE, null, ex);
-        }
-       
+            ex.printStackTrace();
+        }       
     }
 }

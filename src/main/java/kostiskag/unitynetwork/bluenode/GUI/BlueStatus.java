@@ -2,8 +2,7 @@ package kostiskag.unitynetwork.bluenode.GUI;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
-import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClientFunctions;
-import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.RemoteHandle;
+import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
 
 /**
  *
@@ -264,61 +263,45 @@ public class BlueStatus extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        ConsolePrint("^DPING");
-        int msg = BlueNodeClientFunctions.DPing(name);
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+        consolePrint("^UPING");
+        BlueNodeClient cl = new BlueNodeClient(bn);
+        int msg = cl.UPing();
         if (msg==1) {       
-            ConsolePrint("^DPING OK");            
-        }
-        else if (msg==0){
-            ConsolePrint("^DPING FAILED");
-        } else if (msg == -1){
-            ConsolePrint("^WRONG SETUP");
-        }  else if (msg==-2) {
-            ConsolePrint("^SAME HOSTNAME, REMOVING");
-            RemoteHandle.removeBlueNode(name);
-        } else if (msg==-3) {
-            ConsolePrint("^DIFFERENT HOSTNAME FROM DB, REMOVING");
-            RemoteHandle.removeBlueNode(name);
-        }
+            consolePrint("^UPING OK");
+            jButton2.setEnabled(true);
+        } else if (msg==0) {
+            consolePrint("^UPING FAILED");
+        } 
+    }
+    
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+        consolePrint("^DPING");
+        BlueNodeClient cl = new BlueNodeClient(bn);
+        int msg = cl.DPing();
+        if (msg==1) {       
+            consolePrint("^DPING OK");            
+        } else if (msg==0){
+            consolePrint("^DPING FAILED");
+        } 
     }
     
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
         jTextArea1.setText("");
     }
     
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {
-        ConsolePrint("^REFRESHING QUEUE");
-        jTextField6.setText("" + bn.getQueueMan().getlen());
-    }
-    
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {
-        ConsolePrint("^EMPTYING QUEUE");
+        consolePrint("^EMPTYING QUEUE");
         bn.getQueueMan().clear();
         jTextField6.setText("" + bn.getQueueMan().getlen());
     }
     
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        ConsolePrint("^UPING");
-        int msg = BlueNodeClientFunctions.UPing(name);
-        if (msg==1) {       
-            ConsolePrint("^UPING OK");
-            jButton2.setEnabled(true);
-        }
-        else if (msg==0) {
-            ConsolePrint("^UPING FAILED");
-        } else if (msg==-1) {
-            ConsolePrint("^WRONG SETUP");
-        } else if (msg==-2) {
-            ConsolePrint("^SAME HOSTNAME, REMOVING");
-            RemoteHandle.removeBlueNode(name);
-        } else if (msg==-3) {
-            ConsolePrint("^DIFFERENT HOSTNAME FROM DB, REMOVING");
-            RemoteHandle.removeBlueNode(name);
-        } 
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {
+        consolePrint("^REFRESHING QUEUE");
+        jTextField6.setText("" + bn.getQueueMan().getlen());
     }
-            
-    public void ConsolePrint(String Message) {        
+           
+    private void consolePrint(String Message) {        
         jTextArea1.append(Message + "\n");
     }
 

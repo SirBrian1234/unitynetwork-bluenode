@@ -1,22 +1,24 @@
 package kostiskag.unitynetwork.bluenode.GUI;
 
-import javax.swing.table.DefaultTableModel;
-import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
-import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.RemoteHandle;
-
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout;
-import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
-import java.awt.Color;
-import java.awt.Font;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableModel;
+
+import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
 
 /**
  * This is the main bluenode window. 
@@ -91,17 +93,20 @@ public class MainWindow extends javax.swing.JFrame {
         jPanel6 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
+        jTable1.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jButton3 = new javax.swing.JButton();
         jButton3.setToolTipText("Refresh the GUI representation to match the inner data.");
         jPanel7 = new javax.swing.JPanel();
         jPanel9 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable2 = new javax.swing.JTable();
+        jTable2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jButton5 = new javax.swing.JButton();
         jButton5.setToolTipText("Refresh the GUI representation to match the inner data.");
         jPanel10 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTable3 = new javax.swing.JTable();
+        jTable3.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jButton12 = new javax.swing.JButton();
         jButton7 = new javax.swing.JButton();
         jButton7.setToolTipText("Refresh the GUI representation to match the inner data.");
@@ -559,6 +564,8 @@ public class MainWindow extends javax.swing.JFrame {
                 jButton5ActionPerformed(evt);
             }
         });
+        
+        JButton btnAddRemote = new JButton("Add Remote Red Node");
 
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9Layout.setHorizontalGroup(
@@ -566,19 +573,21 @@ public class MainWindow extends javax.swing.JFrame {
         		.addGroup(jPanel9Layout.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(jPanel9Layout.createParallelGroup(Alignment.LEADING)
-        				.addGroup(jPanel9Layout.createSequentialGroup()
-        					.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 808, Short.MAX_VALUE)
-        					.addContainerGap())
+        				.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 812, Short.MAX_VALUE)
         				.addGroup(jPanel9Layout.createSequentialGroup()
         					.addComponent(jButton5, GroupLayout.PREFERRED_SIZE, 132, GroupLayout.PREFERRED_SIZE)
-        					.addGap(688))))
+        					.addPreferredGap(ComponentPlacement.UNRELATED)
+        					.addComponent(btnAddRemote, GroupLayout.PREFERRED_SIZE, 149, GroupLayout.PREFERRED_SIZE)))
+        			.addContainerGap())
         );
         jPanel9Layout.setVerticalGroup(
-        	jPanel9Layout.createParallelGroup(Alignment.LEADING)
-        		.addGroup(Alignment.TRAILING, jPanel9Layout.createSequentialGroup()
-        			.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 424, Short.MAX_VALUE)
+        	jPanel9Layout.createParallelGroup(Alignment.TRAILING)
+        		.addGroup(jPanel9Layout.createSequentialGroup()
+        			.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 435, Short.MAX_VALUE)
         			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addComponent(jButton5))
+        			.addGroup(jPanel9Layout.createParallelGroup(Alignment.BASELINE)
+        				.addComponent(jButton5)
+        				.addComponent(btnAddRemote)))
         );
         jPanel9.setLayout(jPanel9Layout);
 
@@ -615,7 +624,7 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        jButton13.setText("Status");
+        jButton13.setText("Open Status Window");
         jButton13.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton13ActionPerformed(evt);
@@ -757,13 +766,25 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {
-        int[] table = jTable3.getSelectedRows();
-        RemoteHandle.removeBlueNodes(table);
+        int row = jTable3.getSelectedRow();        
+        try {
+			App.bn.blueNodesTable.releaseBn((String) jTable3.getValueAt(row, 0));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
 
     private void jButton12ActionPerformed(java.awt.event.ActionEvent evt) {
-        int[] table = jTable3.getSelectedRows();
-        RemoteHandle.upingBlueNodes(table);
+    	int row = jTable3.getSelectedRow();
+        try {
+        	BlueNodeInstance bn = App.bn.blueNodesTable.getBlueNodeInstanceByName((String) jTable3.getValueAt(row, 0));
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			if (cl.checkBlueNode()) {
+				App.bn.ConsolePrint(bn.getName()+"is active.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
 
     private void jButton13ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -774,13 +795,23 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void jButton14ActionPerformed(java.awt.event.ActionEvent evt) {
-        int[] table = jTable3.getSelectedRows();
-        RemoteHandle.GetRemoteRedNodes(table);
+        int row = jTable3.getSelectedRow();
+        try {
+			BlueNodeClient cl = new BlueNodeClient(App.bn.blueNodesTable.getBlueNodeInstanceByName((String) jTable3.getValueAt(row, 0)));
+			cl.getRemoteRedNodes();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
 
     private void jButton15ActionPerformed(java.awt.event.ActionEvent evt) {
-        int[] table = jTable3.getSelectedRows();
-        RemoteHandle.ExchangeRedNodes(table);
+    	int row = jTable3.getSelectedRow();
+        try {
+			BlueNodeClient cl = new BlueNodeClient(App.bn.blueNodesTable.getBlueNodeInstanceByName((String) jTable3.getValueAt(row, 0)));
+			cl.exchangeRedNodes();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
 
     private void jCheckBox5ActionPerformed(java.awt.event.ActionEvent evt) {

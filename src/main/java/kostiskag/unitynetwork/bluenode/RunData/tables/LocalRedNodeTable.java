@@ -112,11 +112,22 @@ public class LocalRedNodeTable {
         }        
     }
     
-    public synchronized Boolean checkOnline(String vAddress) {
+    public synchronized Boolean checkOnlineByVaddress(String vAddress) {
         Iterator<LocalRedNodeInstance> it = list.listIterator();
         while(it.hasNext()) {
         	LocalRedNodeInstance rn = it.next();
         	if (rn.getVaddress().equals(vAddress)) {
+        		return true;
+        	}
+        }
+        return false;
+    }
+    
+    public synchronized Boolean checkOnlineByHostname(String hostname) {
+        Iterator<LocalRedNodeInstance> it = list.listIterator();
+        while(it.hasNext()) {
+        	LocalRedNodeInstance rn = it.next();
+        	if (rn.getHostname().equals(hostname)) {
         		return true;
         	}
         }

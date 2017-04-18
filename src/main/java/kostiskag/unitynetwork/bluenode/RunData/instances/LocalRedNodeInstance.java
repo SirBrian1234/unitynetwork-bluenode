@@ -12,7 +12,7 @@ import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
-import kostiskag.unitynetwork.bluenode.functions.ipAddrFunctions;
+import kostiskag.unitynetwork.bluenode.functions.IpAddrFunctions;
 import kostiskag.unitynetwork.bluenode.redThreads.RedDownService;
 import kostiskag.unitynetwork.bluenode.redThreads.RedKeepAlive;
 import kostiskag.unitynetwork.bluenode.redThreads.RedlUpService;
@@ -25,7 +25,7 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctio
  * 
  * @author kostis
  */
-public class LocalRedNodeInstance extends Thread {
+public class LocalRedNodeInstance {
 
 	//to check if a RN is connected in another BN before auth
 	private final String pre = "^AUTH ";
@@ -142,7 +142,7 @@ public class LocalRedNodeInstance extends Thread {
             	Vaddress = App.bn.accounts.getVaddrIfExists(Hostname, Username, Password);                          	
             } else if (!App.bn.useList && !App.bn.network) {
                 int addr_num = App.bn.bucket.poll();
-                Vaddress = ipAddrFunctions.numberTo10ipAddr(addr_num);
+                Vaddress = IpAddrFunctions.numberTo10ipAddr(addr_num);
             } else {
             	Vaddress = null;
             	socket.close();
@@ -181,11 +181,6 @@ public class LocalRedNodeInstance extends Thread {
         }
     }
 
-    @Override
-    public void run(){
-    	
-    }
-
     /**
      * here we have the terminal loop a user may
      * send commands to the BN monitoring his status
@@ -210,9 +205,9 @@ public class LocalRedNodeInstance extends Thread {
                     boolean set = false;
                     for (int i = 0; i < 12; i++) {
                         try {
-                            sleep(500);
+                            Thread.sleep(500);
                         } catch (InterruptedException ex) {
-                            Logger.getLogger(LocalRedNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
+                            ex.printStackTrace();
                         }
                         if (getUPing()) {
                             outputWriter.println("UPING OK");
@@ -267,51 +262,7 @@ public class LocalRedNodeInstance extends Thread {
             state = -2;       
         }
     }
-
-    private void whoami() {
-        outputWriter.println(Username + "/" + Hostname + "/" + Vaddress + " ~ " + PhAddressStr + ":" + up.getUpport() + ":" + down.getDownport());
-    }
-
-    private void urefresh() {
-        up.kill();
-
-        up = new RedlUpService(Vaddress);
-        up.start();
-
-        try {
-            sleep(3000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(LocalRedNodeInstance.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
-
-        outputWriter.println("DOWNLINK REFRESH " + up.getUpport());
-    }
-
-    private void drefresh() {
-        down.kill();
-        down = new RedDownService(Vaddress);
-        down.start();
-
-        try {
-            sleep(3000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(LocalRedNodeInstance.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
-        outputWriter.println("UPLINK REFRESH " + down.getDownport());
-    }
-
-    public void exit() {
-    	outputWriter.println("BYE");
-    }
     
-    private void killTasks(){
-    	down.kill();
-        up.kill();
-        ka.kill();
-    }
-
     public int getStatus() {
         return state;
     }
@@ -339,15 +290,7 @@ public class LocalRedNodeInstance extends Thread {
     public QueueManager getQueueMan() {
         return man;
     }
-
-    public boolean isUPinged() {
-        return uping;
-    }
-
-    public void setUPing(boolean b) {
-        this.uping = b;
-    }
-
+    
     private boolean getUPing() {
         return uping;
     }
@@ -359,4 +302,54 @@ public class LocalRedNodeInstance extends Thread {
     public RedDownService getDown() {
         return down;
     }
+
+    public boolean isUPinged() {
+        return uping;
+    }
+    
+    public void setUPing(boolean b) {
+        this.uping = b;
+    }
+
+    private void whoami() {
+        outputWriter.println(Username + "/" + Hostname + "/" + Vaddress + " ~ " + PhAddressStr + ":" + up.getUpport() + ":" + down.getDownport());
+    }
+
+    private void urefresh() {
+        up.kill();
+
+        up = new RedlUpService(Vaddress);
+        up.start();
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+
+        outputWriter.println("DOWNLINK REFRESH " + up.getUpport());
+    }
+
+    private void drefresh() {
+        down.kill();
+        down = new RedDownService(Vaddress);
+        down.start();
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        outputWriter.println("UPLINK REFRESH " + down.getDownport());
+    }
+
+    public void exit() {
+    	outputWriter.println("BYE");
+    }
+    
+    private void killTasks() {
+    	down.kill();
+        up.kill();
+        ka.kill();
+    }   
 }

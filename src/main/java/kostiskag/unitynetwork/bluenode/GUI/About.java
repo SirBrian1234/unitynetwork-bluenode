@@ -27,7 +27,7 @@ public class About extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        jLabel1.setText("BlueNode lvl3");
+        jLabel1.setText("Blue Node");
 
         jScrollPane1.setBorder(null);
 

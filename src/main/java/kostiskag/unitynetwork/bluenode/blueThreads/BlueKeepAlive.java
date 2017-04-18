@@ -1,54 +1,69 @@
 package kostiskag.unitynetwork.bluenode.blueThreads;
 
-import java.net.InetAddress;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
+import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
 /**
- *
- * @author kostis
+ * It has been detected that some NATs may remove entries from their
+ * tables if they had been idle for a long time. This is a problem for us and
+ * for this reason we need to keep alive the peer UDP connections. This
+ * class's thread will offer three packets every timeInSec in order to 
+ * keep alive the connections. 
+ * 
+ * @author Konstantinos Kagiampakis
  */
 public class BlueKeepAlive extends Thread {
-    private static String pre = "^KEEP ALIVE ";
-    private boolean kill = false;
-    private int time;
-    private String hostname;
-    InetAddress address;
-    byte[] payload = ("00000 "+App.bn.name+" [KEEP ALIVE]  ").getBytes();
-    byte[] data;    
-
-    public BlueKeepAlive(String hostname) {
-        time = App.bn.keepAliveTime;
-        this.hostname = hostname;
-        data = IpPacket.MakeUPacket(payload, null, null, true);                
+    private final String pre;
+    private final BlueNodeInstance blueNode;
+    private final int numOfPacketsToSend;
+    private final int timeInSec;
+    private final byte[] packet; 
+    private AtomicBoolean kill = new AtomicBoolean(false);
+    
+    public BlueKeepAlive(BlueNodeInstance blueNode) {        
+    	this.blueNode = blueNode;
+        this.pre = "^KEEP ALIVE "+blueNode.getName()+" ";
+    	this.timeInSec = App.bn.keepAliveTime;
+    	this.numOfPacketsToSend = 3;        
+        this.packet = IpPacket.MakeUPacket(("00000 "+App.bn.name+" [KEEP ALIVE]  ").getBytes(), null, null, true);                
     }
+    
+    public BlueNodeInstance getBlueNode() {
+		return blueNode;
+	}
+    
+    public boolean isKilled() {
+		return kill.get();
+	}
 
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre + "STARTED FOR " + hostname+ " AT " + Thread.currentThread().getName());        
+        App.bn.ConsolePrint(pre + "STARTED AT "+Thread.currentThread().getName());        
         
         try {
             sleep(2000);
         } catch (InterruptedException ex) {
-            Logger.getLogger(BlueKeepAlive.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         }
-            
-        while (!kill) {                                    
-            for (int i=0; i<3; i++) {                    
-                App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().offer(data);                                    
+        
+        //this offers three packets and sleeps again
+        while (!kill.get()) {                                    
+            for (int i=0; i<numOfPacketsToSend; i++) {                    
+                blueNode.getQueueMan().offer(packet);                                    
             }            
             try {
-                sleep(time * 1000);
+                sleep(timeInSec * 1000);
             } catch (InterruptedException ex) {
-                Logger.getLogger(BlueKeepAlive.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
         }
+        App.bn.ConsolePrint(pre+" ENDED");    
     }
     
-    public void kill(){
-        kill=true;
-        App.bn.ConsolePrint(pre+" ENDED FOR "+hostname);        
+    public void kill() {
+        kill.set(true);            
     }
 }

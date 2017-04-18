@@ -1,6 +1,6 @@
 package kostiskag.unitynetwork.bluenode.RunData.instances;
 
-import kostiskag.unitynetwork.bluenode.functions.getTime;
+import kostiskag.unitynetwork.bluenode.functions.GetTime;
 
 /**
  * A remote red node instance is used from a remote red node table. 
@@ -18,7 +18,7 @@ public class RemoteRedNodeInstance {
         this.hostname = hostname;
         this.vAddress = vAddress;
         this.blueNode = blueNode;        
-        this.timestamp = getTime.getSmallTimestamp();
+        this.timestamp = GetTime.getSmallTimestamp();
     }
 
     public String getHostname() {
@@ -38,6 +38,6 @@ public class RemoteRedNodeInstance {
     }
     
     public void updateTime() {
-        this.timestamp = getTime.getSmallTimestamp();
+        this.timestamp = GetTime.getSmallTimestamp();
     }   
 }

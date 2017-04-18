@@ -12,7 +12,7 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctio
  *
  * @author kostis
  */
-public class ipAddrFunctions {
+public class IpAddrFunctions {
 
     public static String numberTo10ipAddr(int vaddressNum) {
         if (vaddressNum > 0) {

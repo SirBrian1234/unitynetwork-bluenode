@@ -1,31 +1,34 @@
 package kostiskag.unitynetwork.bluenode.Routing;
 
 import java.util.LinkedList;
-import java.util.Queue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author kostis
  */
-
 public class QueueManager extends Thread {
-    private final int capacity;
-    private Queue<byte[]> queue;
+    private final int maxCapacity;
+    private final LinkedList<byte[]> queue;
+    
+    /**
+     * This constructor can be used from the bluenode and for each 
+     * local rednode or bluenode instance.
+     * 
+     * @param blueNode
+     * @param maxCapacity
+     */
+    public QueueManager(int maxCapacity) {
+        this.maxCapacity = maxCapacity;
+        queue = new LinkedList<byte[]>();
+    }
+    
+   public synchronized void offer(byte[] data) {        
 
-    public QueueManager(int capacity) {
-        this.capacity = capacity;
-        queue = new LinkedList();
-    }        
-
-    public synchronized void offer(byte[] data) {        
-
-        while(queue.size() == capacity) {
+        while(queue.size() == maxCapacity) {
             try {
                 wait();
             } catch (InterruptedException ex) {
-                Logger.getLogger(QueueManager.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
         }
 
@@ -38,7 +41,7 @@ public class QueueManager extends Thread {
             try {
                 wait();
             } catch (InterruptedException ex) {
-                Logger.getLogger(QueueManager.class.getName()).log(Level.SEVERE, null, ex);
+            	ex.printStackTrace();
             }
         }
 
