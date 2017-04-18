@@ -49,7 +49,7 @@ public class MultipleBlueNodesWithRedNodesScenario {
 			e1.printStackTrace();
 		}
 		
-		LocalRedNodeInstance rn = new LocalRedNodeInstance("ouiou1", "ouiou", "1234","10.0.0.1","1.2.3.4");
+		LocalRedNodeInstance rn = new LocalRedNodeInstance("ouiou1", "10.0.0.1");
 		try {
 			bn.localRedNodesTable.lease(rn);
 		} catch (Exception e) {
