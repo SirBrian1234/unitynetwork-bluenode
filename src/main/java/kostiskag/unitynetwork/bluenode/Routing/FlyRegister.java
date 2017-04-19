@@ -61,17 +61,16 @@ public class FlyRegister extends Thread {
                 if (BNHostname != null) {
                     //we might have him associated but we may not have his rrd
                     if (!App.bn.blueNodesTable.checkBlueNode(BNHostname)) {
-                        String phaddress = TrackingBlueNodeFunctions.getPhysical(BNHostname);
-                        String[] args = phaddress.split(":");
+                        String[] args = TrackingBlueNodeFunctions.getPhysical(BNHostname);
                         String address = args[0];
-                        int port;
+                        int port = Integer.parseInt(args[1]);
                         
-                        if (args.length > 1) {
-                            port = Integer.parseInt(args[1]);
-                        } else {
-                            port = 7000;
-                        }
-                        BlueNodeClient.addRemoteBlueNode(address, port, BNHostname, true);                        
+                        BlueNodeClient cl = new BlueNodeClient(BNHostname, address, port);
+                        try {
+							cl.associateClient();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}                        
                     } else {
                     	BlueNodeInstance bn;
 						try {

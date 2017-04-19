@@ -66,7 +66,7 @@ public class TrackingBlueNodeFunctions {
         }
     }
 
-    public static String getPhysical(String BNHostname) {
+    public static String[] getPhysical(String BNHostname) {
         InetAddress addr = TCPSocketFunctions.getAddress(App.bn.trackerAddress);
         int port = App.bn.trackerPort;
         Socket socket = TCPSocketFunctions.absoluteConnect(addr, port);
@@ -80,7 +80,7 @@ public class TrackingBlueNodeFunctions {
         if (args[0].equals("OK")) {
             args = TCPSocketFunctions.sendData("GETPH " + BNHostname, writer, reader);
             if (!args[0].equals("NOT_FOUND")) {
-                return args[0];
+                return args;
             } else {
                 return null;
             }

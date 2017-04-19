@@ -92,9 +92,14 @@ public class AddBlueNode extends javax.swing.JFrame implements Runnable {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         if (App.bn.joined) {
 	    	if (!jTextField1.getText().isEmpty() && jTextField1.getText().length() <= App.max_str_len_small_size) {            
-	        	String phAddress = TrackingBlueNodeFunctions.getPhysical(jTextField1.getText());
-	            App.bn.ConsolePrint("ADDING BLUE NODE "+jTextField1.getText()+" on address "+phAddress);
-	            BlueNodeClient.addRemoteBlueNode(phAddress, 7000, jTextField1.getText(), jCheckBox1.isSelected());                    
+	        	String[] args = TrackingBlueNodeFunctions.getPhysical(jTextField1.getText());	        	
+	            App.bn.ConsolePrint("ADDING BLUE NODE "+jTextField1.getText()+" on address "+args[0]);
+	            BlueNodeClient cl = new BlueNodeClient(jTextField1.getText(), args[0], Integer.parseInt(args[1]));
+	            try {
+					cl.associateClient();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}                    
 	        }
         }
     }

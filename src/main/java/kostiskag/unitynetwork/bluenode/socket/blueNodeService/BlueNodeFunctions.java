@@ -5,6 +5,7 @@ import static java.lang.Thread.sleep;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 
 import kostiskag.unitynetwork.bluenode.App;
@@ -19,30 +20,54 @@ import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
 public class BlueNodeFunctions {
 
     private static String pre = "^Blue Node Functions";
-    static void associate(String hostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
-        BlueNodeInstance BNclient;
+    static void associate(String name, Socket connectionSocket, BufferedReader socketReader, PrintWriter socketWriter) {
+        
+    	App.bn.ConsolePrint(pre + "STARTING A BLUE AUTH AT " + Thread.currentThread().getName());
+        String[] args;
+        
+        if (App.bn.blueNodesTable.checkBlueNode(name)) {
+        	socketWriter.println("BLUE_NODE_ALLREADY_IN_LIST");
+        	return;
+        }
+        
+        InetAddress phAddress = connectionSocket.getInetAddress();
+        String phAddressStr = phAddress.getHostAddress(); 
+    	
+    	//create obj
+        BlueNodeInstance bn = null;
 		try {
-			BNclient = new BlueNodeInstance(hostname, false, connectionSocket);
-			if (BNclient.getStatus() > 0) {
-	            App.bn.blueNodesTable.leaseBn(BNclient);            
-	        }
+			bn = new BlueNodeInstance(name, phAddressStr);			
 		} catch (Exception e) {
 			e.printStackTrace();
-		}        
+			bn.killtasks();
+			return;
+		}
+        
+        socketWriter.println("ASSOSIATING "+App.bn.authPort+" "+bn.getUpport()+" "+bn.getDownport());        
+        String clientSentence;
+		try {
+			clientSentence = socketReader.readLine();
+			args = clientSentence.split("\\s+");
+	        int remoteAuthPort = Integer.parseInt(args[0]);
+	        bn.setRemoteAuthPort(remoteAuthPort);
+	        
+	        App.bn.ConsolePrint(pre + clientSentence);
+	        App.bn.ConsolePrint(pre + "remote auth port "+remoteAuthPort+" upport "+bn.getUpport()+" downport "+bn.getDownport());
+	    	
+	    	try {
+				App.bn.blueNodesTable.leaseBn(bn);
+				App.bn.ConsolePrint(pre + "LEASED REMOTE BN "+name);
+			} catch (Exception e) {
+				e.printStackTrace();
+				bn.killtasks();
+			}            
+	        	    	
+		} catch (IOException e) {
+			e.printStackTrace();
+			bn.killtasks();
+		}        	       
     }
 
-    static void fullAssociate(String hostname, Socket connectionSocket, BufferedReader inFromClient, PrintWriter outputWriter) {
-        BlueNodeInstance BNclient;
-		try {
-			BNclient = new BlueNodeInstance(hostname, true, connectionSocket);
-			if (BNclient.getStatus() > 0) {
-	            App.bn.blueNodesTable.leaseBn(BNclient);            
-	        }
-		} catch (Exception e) {
-			e.printStackTrace();
-		}        
-    }
-    
     static void Uping(BlueNodeInstance bn, PrintWriter outputWriter) {
     	bn.setUping(false);        
         try {
@@ -73,7 +98,7 @@ public class BlueNodeFunctions {
 			App.bn.blueNodesTable.releaseBn(BlueNodeName);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		}        
     }
     
     static void giveLRNs(PrintWriter outputWriter) {

@@ -67,8 +67,6 @@ public class BlueNodeService extends Thread {
             	socketWriter.println("OK");
             } else if (args.length == 1 && args[0].equals("ASSOCIATE")) {
                 BlueNodeFunctions.associate(blueNodeName,sessionSocket,socketReader,socketWriter);
-            } else if (args.length == 1 && args[0].equals("FULL_ASSOCIATE")) {
-                BlueNodeFunctions.fullAssociate(blueNodeName,sessionSocket,socketReader,socketWriter);
             } else if (App.bn.blueNodesTable.checkBlueNode(blueNodeName)) {            	
             	//these options are only for leased bns
             	BlueNodeInstance bn;
@@ -84,10 +82,10 @@ public class BlueNodeService extends Thread {
 		                BlueNodeFunctions.giveLRNs(socketWriter);
 		            } else if (args.length == 1 && args[0].equals("EXCHANGE_RED_NODES")) {
 		                BlueNodeFunctions.exchangeRNs(bn, socketReader, socketWriter);
-		            } else if (args.length == 2 && args[0].equals("GET_RED_VADDRESS")) {
-		                BlueNodeFunctions.getLocalRnVaddressByHostname(args[1], socketWriter);
 		            } else if (args.length == 2 && args[0].equals("GET_RED_HOSTNAME")) {
 		                BlueNodeFunctions.getLocalRnHostnameByVaddress(args[1], socketWriter);
+		            } else if (args.length == 2 && args[0].equals("GET_RED_VADDRESS")) {
+		                BlueNodeFunctions.getLocalRnVaddressByHostname(args[1], socketWriter);
 		            } else if (args.length == 2 && args[0].equals("RELEASE_REMOTE_REDNODE_BY_HN")) {
 		                BlueNodeFunctions.getRRNToBeReleasedByHn(bn, args[0], socketWriter);
 		            } else if (args.length == 2 && args[0].equals("RELEASE_REMOTE_REDNODE_BY_VADDRESS")) {
