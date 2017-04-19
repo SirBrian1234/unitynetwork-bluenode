@@ -7,8 +7,7 @@ import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
-import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingBlueNodeFunctions;
-import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctions;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 
 /**
  *
@@ -57,11 +56,13 @@ public class FlyRegister extends Thread {
                 App.bn.ConsolePrint(pre + "Allready associated entry");
                 continue;
             } else {                
-                String BNHostname = TrackingRedNodeFunctions.checkOnlineByAddr(destvaddress);                
+            	TrackerClient tr = new TrackerClient();
+                String BNHostname = tr.checkRnOnlineByVaddr(destvaddress);                
                 if (BNHostname != null) {
                     //we might have him associated but we may not have his rrd
                     if (!App.bn.blueNodesTable.checkBlueNode(BNHostname)) {
-                        String[] args = TrackingBlueNodeFunctions.getPhysical(BNHostname);
+                    	tr = new TrackerClient();
+                        String[] args = tr.getPhysicalBn(BNHostname);
                         String address = args[0];
                         int port = Integer.parseInt(args[1]);
                         

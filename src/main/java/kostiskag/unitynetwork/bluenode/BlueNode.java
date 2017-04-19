@@ -13,7 +13,7 @@ import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.LocalRedNodeTable;
 import kostiskag.unitynetwork.bluenode.functions.PortHandle;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeService.BlueNodeServer;
-import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingBlueNodeFunctions;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingTracker;
 
 public class BlueNode extends Thread{
@@ -216,16 +216,15 @@ public class BlueNode extends Thread{
 
 	public boolean joinNetwork() throws Exception {
 		if (network && !name.isEmpty() && authPort > 0 && authPort <= 65535) {
-			int leased = TrackingBlueNodeFunctions.lease(name, authPort);
-			if (leased > 0) {
+			TrackerClient tr = new TrackerClient();			
+			boolean leased = tr.leaseBn(authPort);
+			if (tr.isConnected() && leased) {
 				ConsolePrint("^SUCCESFULLY REGISTERED WITH THE NETWORK");
 				return true;
 			} else {
-				if (leased == -2) {
+				if (!tr.isConnected()) {
 					ConsolePrint("^FAILED TO REGISTER WITH THE NETWORK, HOST NOT FOUND");
-				} else if (leased == -1) {
-					ConsolePrint("^FAILED TO REGISTER WITH THE NETWORK, NOT REGISTERED BN");
-				} else if (leased == 0) {
+				} else {
 					ConsolePrint("^FAILED TO REGISTER WITH THE NETWORK, LEASE FAILED");
 				}
 				return false;
@@ -238,7 +237,8 @@ public class BlueNode extends Thread{
 	public void leaveNetworkAndDie() throws Exception {
 		if (joined) {
 			//release from tracker
-			TrackingBlueNodeFunctions.release();
+			TrackerClient tr = new TrackerClient();	
+			tr.releaseBn();			
 			//release from bns
 			blueNodesTable.sendKillSigsAndReleaseForAll();
 			joined = false;

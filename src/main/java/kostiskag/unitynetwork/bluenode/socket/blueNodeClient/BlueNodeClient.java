@@ -6,7 +6,6 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
@@ -16,7 +15,7 @@ import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
 public class BlueNodeClient {
 
-	public static String pre = "^CLIENT ";
+	public static String pre = "^BlueNodeClient ";
 	private final String name;
 	Socket sessionSocket;
 	BufferedReader socketReader;
@@ -43,6 +42,10 @@ public class BlueNodeClient {
 		this.authPort = authPort;	
 		this.bn = null;
 		initConnection();
+	}
+	
+	public boolean isConnected() {
+		return connected;
 	}
 
 	private void initConnection() {

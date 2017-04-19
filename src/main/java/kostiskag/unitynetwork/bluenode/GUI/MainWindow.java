@@ -17,8 +17,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
-import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -30,7 +28,11 @@ import java.awt.event.ActionEvent;
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    private final Object lockLocal = new Object();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 5505085647328297106L;
+	private final Object lockLocal = new Object();
     private final Object lockBn = new Object();
     private final Object lockRRn = new Object();
 	private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port"});
@@ -43,7 +45,6 @@ public class MainWindow extends javax.swing.JFrame {
     	initComponents(); 
         if (!App.bn.network) {
     		jTabbedPane1.remove(2);    		
-    		button.setVisible(false);
     	}
         
         jTable1.setDefaultEditor(Object.class, null);
@@ -113,14 +114,12 @@ public class MainWindow extends javax.swing.JFrame {
         jScrollPane3 = new javax.swing.JScrollPane();
         jTable3 = new javax.swing.JTable();
         jTable3.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        jButton12 = new javax.swing.JButton();
         jButton7 = new javax.swing.JButton();
         jButton7.setToolTipText("Refresh the GUI representation to match the inner data.");
         jButton10 = new javax.swing.JButton();
-        jButton8 = new javax.swing.JButton();
+        jButton10.setBackground(new Color(204, 51, 0));
         jButton13 = new javax.swing.JButton();
-        jButton14 = new javax.swing.JButton();
-        jButton15 = new javax.swing.JButton();
+        jButton13.setBackground(new Color(204, 51, 0));
 
         jMenuItem1.setText("jMenuItem1");
 
@@ -517,15 +516,8 @@ public class MainWindow extends javax.swing.JFrame {
         jButton3.setText("Refresh Table");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+            	updateLocalRns();
             }
-        });
-        
-        button = new JButton("Remove Local Red Node Projection");
-        button.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent arg0) {
-        		removeLocalProject(arg0);
-        	}
         });
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
@@ -535,10 +527,7 @@ public class MainWindow extends javax.swing.JFrame {
         			.addContainerGap()
         			.addGroup(jPanel6Layout.createParallelGroup(Alignment.LEADING)
         				.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 1416, Short.MAX_VALUE)
-        				.addGroup(jPanel6Layout.createSequentialGroup()
-        					.addComponent(jButton3)
-        					.addPreferredGap(ComponentPlacement.RELATED)
-        					.addComponent(button, GroupLayout.PREFERRED_SIZE, 235, GroupLayout.PREFERRED_SIZE)))
+        				.addComponent(jButton3))
         			.addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
@@ -546,9 +535,7 @@ public class MainWindow extends javax.swing.JFrame {
         		.addGroup(jPanel6Layout.createSequentialGroup()
         			.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 435, Short.MAX_VALUE)
         			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addGroup(jPanel6Layout.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(jButton3)
-        				.addComponent(button)))
+        			.addComponent(jButton3))
         );
         jPanel6.setLayout(jPanel6Layout);
 
@@ -583,10 +570,11 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
         
-        JButton btnAddRemote = new JButton("Add Remote Red Node");
+        JButton btnAddRemote = new JButton("Lookup Remote Red Node");
+        btnAddRemote.setBackground(new Color(204, 51, 0));
         btnAddRemote.addActionListener(new ActionListener() {
         	public void actionPerformed(java.awt.event.ActionEvent evt) {
-        		btnAddRemoteActionPerformed(evt);
+        		trackerRNLookup(evt);
             }
         });
 
@@ -597,20 +585,18 @@ public class MainWindow extends javax.swing.JFrame {
         			.addContainerGap()
         			.addGroup(jPanel9Layout.createParallelGroup(Alignment.LEADING)
         				.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 812, Short.MAX_VALUE)
-        				.addGroup(jPanel9Layout.createSequentialGroup()
-        					.addComponent(jButton5, GroupLayout.PREFERRED_SIZE, 132, GroupLayout.PREFERRED_SIZE)
-        					.addPreferredGap(ComponentPlacement.UNRELATED)
-        					.addComponent(btnAddRemote, GroupLayout.PREFERRED_SIZE, 149, GroupLayout.PREFERRED_SIZE)))
+        				.addComponent(btnAddRemote, GroupLayout.PREFERRED_SIZE, 190, GroupLayout.PREFERRED_SIZE)
+        				.addComponent(jButton5, GroupLayout.PREFERRED_SIZE, 132, GroupLayout.PREFERRED_SIZE))
         			.addContainerGap())
         );
         jPanel9Layout.setVerticalGroup(
         	jPanel9Layout.createParallelGroup(Alignment.TRAILING)
-        		.addGroup(jPanel9Layout.createSequentialGroup()
-        			.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 435, Short.MAX_VALUE)
+        		.addGroup(Alignment.LEADING, jPanel9Layout.createSequentialGroup()
+        			.addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 402, GroupLayout.PREFERRED_SIZE)
         			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addGroup(jPanel9Layout.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(jButton5)
-        				.addComponent(btnAddRemote)))
+        			.addComponent(jButton5)
+        			.addPreferredGap(ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
+        			.addComponent(btnAddRemote))
         );
         jPanel9.setLayout(jPanel9Layout);
 
@@ -619,13 +605,6 @@ public class MainWindow extends javax.swing.JFrame {
         jTable3.setModel(remoteBlueNodeTableModel);
         jScrollPane3.setViewportView(jTable3);
 
-        jButton12.setText("Check Online");
-        jButton12.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton12ActionPerformed(evt);
-            }
-        });
-
         jButton7.setText("Refresh Table");
         jButton7.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -633,81 +612,57 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        jButton10.setText("Add Static Entry");
+        jButton10.setText("New BN Associate / Check");
         jButton10.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton10ActionPerformed(evt);
-            }
-        });
-
-        jButton8.setText("Remove Selected");
-        jButton8.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton8ActionPerformed(evt);
+            	openNewBnWindow();
             }
         });
 
         jButton13.setText("Open Status Window");
         jButton13.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton13ActionPerformed(evt);
+                openBlueStatus();
             }
         });
-
-        jButton14.setText("Get Remote Red Nodes");
-        jButton14.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton14ActionPerformed(evt);
-            }
+        
+        btnOpenBlueNode = new JButton("Open Associated Blue Node Client Funtions");
+        btnOpenBlueNode.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		openAssosiatedWindow();
+        	}
         });
-
-        jButton15.setText("Exchange Red Nodes");
-        jButton15.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton15ActionPerformed(evt);
-            }
-        });
+        btnOpenBlueNode.setBackground(new Color(153, 153, 0));
 
         javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
-        jPanel10.setLayout(jPanel10Layout);
         jPanel10Layout.setHorizontalGroup(
-            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel10Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 566, Short.MAX_VALUE)
-                    .addGroup(jPanel10Layout.createSequentialGroup()
-                        .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton10, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton8, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(jPanel10Layout.createSequentialGroup()
-                        .addComponent(jButton14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton15, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton13, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+        	jPanel10Layout.createParallelGroup(Alignment.LEADING)
+        		.addGroup(jPanel10Layout.createSequentialGroup()
+        			.addContainerGap()
+        			.addGroup(jPanel10Layout.createParallelGroup(Alignment.LEADING)
+        				.addComponent(jScrollPane3, GroupLayout.DEFAULT_SIZE, 566, Short.MAX_VALUE)
+        				.addComponent(jButton7, GroupLayout.PREFERRED_SIZE, 146, GroupLayout.PREFERRED_SIZE)
+        				.addGroup(jPanel10Layout.createSequentialGroup()
+        					.addComponent(jButton13)
+        					.addPreferredGap(ComponentPlacement.UNRELATED)
+        					.addComponent(jButton10, GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)
+        					.addPreferredGap(ComponentPlacement.UNRELATED)
+        					.addComponent(btnOpenBlueNode, GroupLayout.PREFERRED_SIZE, 247, GroupLayout.PREFERRED_SIZE)))
+        			.addContainerGap())
         );
         jPanel10Layout.setVerticalGroup(
-            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel10Layout.createSequentialGroup()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton7)
-                    .addComponent(jButton10)
-                    .addComponent(jButton8)
-                    .addComponent(jButton12))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton13)
-                    .addComponent(jButton14)
-                    .addComponent(jButton15)))
+        	jPanel10Layout.createParallelGroup(Alignment.LEADING)
+        		.addGroup(jPanel10Layout.createSequentialGroup()
+        			.addComponent(jScrollPane3, GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addComponent(jButton7)
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addGroup(jPanel10Layout.createParallelGroup(Alignment.BASELINE)
+        				.addComponent(jButton13)
+        				.addComponent(jButton10)
+        				.addComponent(btnOpenBlueNode)))
         );
+        jPanel10.setLayout(jPanel10Layout);
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
@@ -752,19 +707,32 @@ public class MainWindow extends javax.swing.JFrame {
         pack();
     }
 
-    protected void removeLocalProject(ActionEvent arg0) {
-		if (jTable1.getSelectedRow() > 0) {
-	    	try {
-	    		String hostname = (String) jTable1.getValueAt(jTable1.getSelectedRow(), 0);
-				App.bn.blueNodesTable.releaseLocalRedNodeByHostnameFromAll(hostname);
-			} catch (Exception e) {
-				e.printStackTrace();
+    private void openNewBnWindow() {
+        new NonAssociatedBlueNodeClientGUI().setVisible(true);     
+    }
+    
+    protected void openAssosiatedWindow() {
+		int row = jTable3.getSelectedRow();
+		System.out.println(row+(String) jTable3.getValueAt(row, 0));
+		if (row >= 0) {
+			try {
+				new AssociatedBlueNodeClientGUI((String) jTable3.getValueAt(row, 0)).setVisible();
+			} catch (Exception e1) {
+				e1.printStackTrace();
 			}
-    	}
+		}
 	}
 
-	protected void btnAddRemoteActionPerformed(ActionEvent evt) {
-		new AddRemoteRedNode().setVisible(true);
+	private void openBlueStatus() {
+        int row = jTable3.getSelectedRow();
+    	if (row >= 0) {
+        	String name = (String) jTable3.getValueAt(row, 0);
+            new BlueNodeStatusGUI(name).setVisible(true);
+        }
+    }
+	
+	protected void trackerRNLookup(ActionEvent evt) {
+		new TrackerLookupGUI().setVisible(true);
 	}
 
 	private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -787,69 +755,8 @@ public class MainWindow extends javax.swing.JFrame {
     	updateRemoteRns();
     }
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
-        updateLocalRns();
-    }
-
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {
     	updateBNs();
-    }
-
-    private void jButton10ActionPerformed(java.awt.event.ActionEvent evt) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Thread(new AddBlueNode()).run();
-            }
-        });
-    }
-
-    private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {
-        int row = jTable3.getSelectedRow();        
-        try {
-			App.bn.blueNodesTable.releaseBn((String) jTable3.getValueAt(row, 0));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-    }
-
-    private void jButton12ActionPerformed(java.awt.event.ActionEvent evt) {
-    	int row = jTable3.getSelectedRow();
-        try {
-        	BlueNodeInstance bn = App.bn.blueNodesTable.getBlueNodeInstanceByName((String) jTable3.getValueAt(row, 0));
-			BlueNodeClient cl = new BlueNodeClient(bn);
-			if (cl.checkBlueNode()) {
-				App.bn.ConsolePrint(bn.getName()+"is active.");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-    }
-
-    private void jButton13ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (jTable3.getSelectedRow() != -1) {
-        	String name = (String) jTable3.getValueAt(jTable3.getSelectedRow(), 0);
-            new BlueStatus(name).setVisible(true);
-        }
-    }
-
-    private void jButton14ActionPerformed(java.awt.event.ActionEvent evt) {
-        int row = jTable3.getSelectedRow();
-        try {
-			BlueNodeClient cl = new BlueNodeClient(App.bn.blueNodesTable.getBlueNodeInstanceByName((String) jTable3.getValueAt(row, 0)));
-			cl.getRemoteRedNodes();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-    }
-
-    private void jButton15ActionPerformed(java.awt.event.ActionEvent evt) {
-    	int row = jTable3.getSelectedRow();
-        try {
-			BlueNodeClient cl = new BlueNodeClient(App.bn.blueNodesTable.getBlueNodeInstanceByName((String) jTable3.getValueAt(row, 0)));
-			cl.exchangeRedNodes();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
     }
 
     private void jCheckBox5ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -892,34 +799,14 @@ public class MainWindow extends javax.swing.JFrame {
     private void jCheckBox12ActionPerformed(java.awt.event.ActionEvent evt) {
         App.bn.autoScrollDown = jCheckBox12.isSelected();
     }
-    
-    public void setBlueNodeInfo() {    
-        jTextField1.setText(App.bn.name);
-        jTextField2.setText("" + App.bn.authPort);
-        jTextField4.setText("" + App.bn.maxRednodeEntries);
-        jTextField5.setText("" + App.bn.startPort + "-" + App.bn.endPort);
-        if (App.bn.network) {
-        	txtOpMode.setText("Network");
-        } else if (App.bn.useList){
-        	txtOpMode.setText("Standalone/List");
-        } else {
-        	txtOpMode.setText("Standalone/Plain");
-        }
-    }
-    
-    private javax.swing.JButton button;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
-    private javax.swing.JButton jButton12;
     private javax.swing.JButton jButton13;
-    private javax.swing.JButton jButton14;
-    private javax.swing.JButton jButton15;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton7;
-    private javax.swing.JButton jButton8;
     private javax.swing.JCheckBox jCheckBox10;
     private javax.swing.JCheckBox jCheckBox11;
     private javax.swing.JCheckBox jCheckBox12;
@@ -969,6 +856,21 @@ public class MainWindow extends javax.swing.JFrame {
     public static javax.swing.JTextField jTextField5;
     private javax.swing.JToggleButton jToggleButton1;
     private JTextField txtOpMode;
+    private JButton btnOpenBlueNode;
+    
+    public void setBlueNodeInfo() {    
+        jTextField1.setText(App.bn.name);
+        jTextField2.setText("" + App.bn.authPort);
+        jTextField4.setText("" + App.bn.maxRednodeEntries);
+        jTextField5.setText("" + App.bn.startPort + "-" + App.bn.endPort);
+        if (App.bn.network) {
+        	txtOpMode.setText("Network");
+        } else if (App.bn.useList){
+        	txtOpMode.setText("Standalone/List");
+        } else {
+        	txtOpMode.setText("Standalone/Plain");
+        }
+    }
 
 	public void updateLocalRns() {
 		synchronized (lockLocal) {
@@ -986,22 +888,6 @@ public class MainWindow extends javax.swing.JFrame {
 		}		
 	}
 
-	public void updateBNs() {
-		synchronized (lockBn) {
-			String[][] obj = App.bn.blueNodesTable.buildBNGUIObj();
-			int rows = remoteBlueNodeTableModel.getRowCount();
-	        for (int i = 0; i < rows; i++) {
-	        	remoteBlueNodeTableModel.removeRow(0);
-	        }
-	        for (int i = 0; i < obj.length; i++) {
-	        	remoteBlueNodeTableModel.addRow(obj[i]);
-	        }	
-	        jTable2.setModel(remoteBlueNodeTableModel);
-	        repaint();
-
-		}
-	}
-
 	public void updateRemoteRns() {
 		synchronized (lockRRn) {
 			String[][] obj = App.bn.blueNodesTable.buildRRNGUIObj();
@@ -1012,8 +898,23 @@ public class MainWindow extends javax.swing.JFrame {
 	        for (int i = 0; i < obj.length; i++) {
 	        	remoteRedNodeTableModel.addRow(obj[i]);
 	        }		
-	        jTable3.setModel(remoteRedNodeTableModel);
+	        jTable2.setModel(remoteRedNodeTableModel);
 	        repaint();
 		}		
+	}
+	
+	public void updateBNs() {
+		synchronized (lockBn) {
+			String[][] obj = App.bn.blueNodesTable.buildBNGUIObj();
+			int rows = remoteBlueNodeTableModel.getRowCount();
+	        for (int i = 0; i < rows; i++) {
+	        	remoteBlueNodeTableModel.removeRow(0);
+	        }
+	        for (int i = 0; i < obj.length; i++) {
+	        	remoteBlueNodeTableModel.addRow(obj[i]);
+	        }	
+	        jTable3.setModel(remoteBlueNodeTableModel);
+	        repaint();
+		}
 	}
 }

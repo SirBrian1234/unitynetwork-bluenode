@@ -16,7 +16,6 @@ import kostiskag.unitynetwork.bluenode.functions.IpAddrFunctions;
 import kostiskag.unitynetwork.bluenode.redThreads.RedDownService;
 import kostiskag.unitynetwork.bluenode.redThreads.RedKeepAlive;
 import kostiskag.unitynetwork.bluenode.redThreads.RedlUpService;
-import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctions;
 
 /** 
  * RedAuthService runs every time for a single user only It is responsible for

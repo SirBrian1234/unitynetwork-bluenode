@@ -10,7 +10,7 @@ import static java.lang.Thread.sleep;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 import kostiskag.unitynetwork.bluenode.functions.IpAddrFunctions;
-import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctions;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 
 /**
  *
@@ -34,7 +34,8 @@ public class RedNodeFunctions {
     	if (App.bn.network && App.bn.joined) {
             
     		//collect vaddress from tracker
-    		Vaddress = TrackingRedNodeFunctions.lease(hostname, Username, Password);
+    		TrackerClient tr = new TrackerClient();
+    		Vaddress = tr.leaseRn(hostname, Username, Password);
             
             //leasing - reverse error capture     
             if (Vaddress.equals("WRONG_COMMAND")) {
@@ -118,7 +119,8 @@ public class RedNodeFunctions {
         
         //release from the network
         if (App.bn.network && App.bn.joined) {
-            TrackingRedNodeFunctions.release(RNclient.getHostname());
+        	TrackerClient tr = new TrackerClient();
+            tr.releaseRnByHostname(RNclient.getHostname());
             App.bn.blueNodesTable.releaseLocalRedNodeByHostnameFromAll(RNclient.getHostname());
         }
         

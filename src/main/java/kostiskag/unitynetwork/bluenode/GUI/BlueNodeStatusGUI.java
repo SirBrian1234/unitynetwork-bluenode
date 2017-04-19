@@ -8,7 +8,7 @@ import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
  *
  * @author kostis
  */
-public class BlueStatus extends javax.swing.JFrame {
+public class BlueNodeStatusGUI extends javax.swing.JFrame {
 
     private final String name;
     private BlueNodeInstance bn;
@@ -16,12 +16,12 @@ public class BlueStatus extends javax.swing.JFrame {
     /**
      * Creates new form BlueStatus
      */
-    public BlueStatus() {
+    public BlueNodeStatusGUI() {
     	name = "";
         initComponents();        
     }
     
-    public BlueStatus(String name) {
+    public BlueNodeStatusGUI(String name) {
         this.name = name;
         initComponents();
         jLabel1.setText(name);

@@ -2,11 +2,7 @@ package kostiskag.unitynetwork.bluenode.functions;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingRedNodeFunctions;
 
 /**
  *
@@ -30,7 +26,7 @@ public class IpAddrFunctions {
 	        try {
 	            return InetAddress.getByAddress(address).getHostAddress();
 	        } catch (UnknownHostException ex) {
-	            Logger.getLogger(TrackingRedNodeFunctions.class.getName()).log(Level.SEVERE, null, ex);
+	            ex.printStackTrace();
 	            return null;
 	        }
         } else {
@@ -43,7 +39,7 @@ public class IpAddrFunctions {
         try {
             addr = InetAddress.getByName(vaddress);
         } catch (UnknownHostException ex) {
-            Logger.getLogger(TrackingRedNodeFunctions.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         }
         byte[] address = addr.getAddress();
         byte[] hostpart = new byte[3];

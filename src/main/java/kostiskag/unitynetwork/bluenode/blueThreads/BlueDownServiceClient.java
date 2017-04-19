@@ -85,7 +85,7 @@ public class BlueDownServiceClient extends Thread {
 					if (args.length > 1) {
 						if (args[0].equals("00000")) {
 							// keep alive
-							App.bn.TrafficPrint(pre + version + " [KEEP ALIVE]", 0, 1);
+							App.bn.TrafficPrint(pre +receivedMessage, 0, 1);
 						} else if (args[0].equals("00002")) {
 							// blue node uping!
 							blueNode.setUping(true);
