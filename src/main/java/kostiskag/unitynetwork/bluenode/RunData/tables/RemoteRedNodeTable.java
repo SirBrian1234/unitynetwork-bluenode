@@ -29,6 +29,14 @@ public class RemoteRedNodeTable {
     	App.bn.ConsolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
     }
     
+    public RemoteRedNodeTable(BlueNodeInstance blueNode, LinkedList<RemoteRedNodeInstance> list) {
+    	this.blueNode = blueNode;
+        this.list =  list;
+        verbose = true;
+        notifyGui = true;
+    	App.bn.ConsolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
+    }
+    
     public RemoteRedNodeTable(BlueNodeInstance blueNode, boolean verbose, boolean notifyGui) {
     	this.blueNode = blueNode;
         list =  new LinkedList<RemoteRedNodeInstance>();

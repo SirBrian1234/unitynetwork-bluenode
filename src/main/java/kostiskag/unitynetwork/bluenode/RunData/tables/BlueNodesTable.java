@@ -236,4 +236,47 @@ public class BlueNodesTable {
     		App.bn.window.updateRemoteRns();
     	}
     }
+
+    /*
+     * for all the associated blue nodes where the calling bn is
+     * a server...
+     */
+	public void rebuildTableViaAuthClient() {
+		Iterator<BlueNodeInstance> iterator = list.listIterator();
+    	while (iterator.hasNext()) {
+    		BlueNodeInstance element = iterator.next();   
+    		if (element.isServer()) {
+	            try {
+	            	BlueNodeClient cl = new BlueNodeClient(element);
+					if (cl.checkBlueNode()) {
+						System.out.println(pre+"Fetching RNs from BN "+element.getName());
+					    element.updateTime();
+					    cl = new BlueNodeClient(element);
+					    LinkedList<RemoteRedNodeInstance> rns = cl.getRemoteRedNodesObj(); 
+					    LinkedList<RemoteRedNodeInstance> in = element.table.getList();
+					    LinkedList<RemoteRedNodeInstance> valid = new LinkedList<RemoteRedNodeInstance>();
+					    Iterator<RemoteRedNodeInstance> rnsIt = rns.iterator();
+					    
+					    while (rnsIt.hasNext()) {
+					    	RemoteRedNodeInstance outE = rnsIt.next();				    	
+				    		Iterator<RemoteRedNodeInstance> inIt = in.iterator();
+				    		while(inIt.hasNext()) {
+				    			RemoteRedNodeInstance inE = inIt.next();	
+					    		if (inE.getHostname().equals(outE.getHostname())) {
+					    			valid.add(inE);			    			
+					    		}				    	
+				    		}
+					    }				    
+					    element.table = new RemoteRedNodeTable(element, valid);
+					} else {                
+						iterator.remove();               
+					}
+				} catch (Exception e) {
+					iterator.remove();  
+				}
+    		}
+    	}
+    	System.out.println(pre+" BN Table rebuilt");
+    	notifyGUI();    	
+	}
 }

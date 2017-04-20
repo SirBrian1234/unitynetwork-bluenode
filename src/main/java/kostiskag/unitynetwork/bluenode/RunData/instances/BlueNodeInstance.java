@@ -37,7 +37,7 @@ public class BlueNodeInstance {
     //time
     private String timestamp;
     //threads, objects
-    public final RemoteRedNodeTable table;
+    public RemoteRedNodeTable table;
     private final BlueKeepAlive ka;
     private final QueueManager man;
     private BlueDownServiceServer down;

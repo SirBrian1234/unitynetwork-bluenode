@@ -6,10 +6,12 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.LinkedList;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.RunData.instances.RemoteRedNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
@@ -188,6 +190,15 @@ public class BlueNodeClient {
 			GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, socketWriter);
 		}
 		closeConnection();
+	}
+	
+	public LinkedList<RemoteRedNodeInstance> getRemoteRedNodesObj() {
+		LinkedList<RemoteRedNodeInstance> fetched = new LinkedList<RemoteRedNodeInstance>();
+		if (bn != null && connected) {
+			//TODO
+		}
+		closeConnection();
+		return fetched;
 	}
 	
 	public void giveLocalRedNodes() {
