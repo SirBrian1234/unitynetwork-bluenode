@@ -31,7 +31,7 @@ public class TrackerClient {
 		this.reader = TCPSocketFunctions.makeReadWriter(socket);
 		this.writer = TCPSocketFunctions.makeWriteWriter(socket);
 		String args[] = TCPSocketFunctions.readData(reader);
-		args = TCPSocketFunctions.sendData("BLUENODE " + name, writer, reader);
+		args = TCPSocketFunctions.sendData("BLUENODE"+" "+name, writer, reader);
 
 		if (args[0].equals("OK")) {
 			connected = true;
@@ -54,7 +54,7 @@ public class TrackerClient {
 
 	public boolean leaseBn(int authport) {
 		if (connected) {
-			String[] args = TCPSocketFunctions.sendData("LEASE BN " + authport, writer, reader);
+			String[] args = TCPSocketFunctions.sendData("LEASE"+" "+authport, writer, reader);
 			closeCon();
 			
 			if (args[0].equals("LEASED")) {
@@ -71,7 +71,7 @@ public class TrackerClient {
 
 	public boolean releaseBn() {
 		if (connected) {
-			String[] args = TCPSocketFunctions.sendData("RELEASE BN", writer, reader);
+			String[] args = TCPSocketFunctions.sendData("RELEASE", writer, reader);
 			closeCon();
 			
 			if (args[0].equals("RELEASED")) {
@@ -91,7 +91,7 @@ public class TrackerClient {
 	 */
 	public String[] getPhysicalBn(String BNHostname) {
 		if (connected) {
-			String[] args = TCPSocketFunctions.sendData("GETPH " + BNHostname, writer, reader);
+			String[] args = TCPSocketFunctions.sendData("GETPH"+" "+BNHostname, writer, reader);
 			closeCon();
 			if (!args[0].equals("NOT_FOUND")) {
 				return args;
@@ -114,7 +114,7 @@ public class TrackerClient {
 	 */
 	public String leaseRn(String Hostname, String Username, String Password) {
 		if (connected) {
-	    	String[] args = TCPSocketFunctions.sendData("LEASE RN " +Hostname+" "+Username+" "+Password, writer, reader);
+	    	String[] args = TCPSocketFunctions.sendData("LEASE_RN"+" "+Hostname+" "+Username+" "+Password, writer, reader);
 	    	closeCon();
 	
 	        if (args[0].equals("LEASED")) {
@@ -133,7 +133,7 @@ public class TrackerClient {
 	 */
     public void releaseRnByHostname(String hostname) {
     	if (connected) {
-	        TCPSocketFunctions.sendFinalData("RELEASE RN "+hostname, writer);       
+	        TCPSocketFunctions.sendFinalData("RELEASE_RN"+" "+hostname, writer);       
 	        closeCon();
     	}
     }
@@ -147,7 +147,7 @@ public class TrackerClient {
      */
     public String checkRnOnlineByHostname(String hostanme) {
     	if (connected) {
-	    	String[] args = TCPSocketFunctions.sendData("CHECKRN " + hostanme, writer, reader);
+	    	String[] args = TCPSocketFunctions.sendData("CHECK_RN"+" "+hostanme, writer, reader);
 	        closeCon();
 	        
 	        if (args[0].equals("OFFLINE")) {
@@ -168,7 +168,7 @@ public class TrackerClient {
      */
     public String checkRnOnlineByVaddr(String vaddress) {            
     	if (connected) {
-	        String[] args = TCPSocketFunctions.sendData("CHECKRNA " + vaddress, writer, reader);        
+	        String[] args = TCPSocketFunctions.sendData("CHECK_RNA"+" "+vaddress, writer, reader);        
 	        closeCon();
 	        
 	        if (args[0].equals("OFFLINE")) {
