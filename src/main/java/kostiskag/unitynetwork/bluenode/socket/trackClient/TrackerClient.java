@@ -59,6 +59,7 @@ public class TrackerClient {
 			
 			if (args[0].equals("LEASED")) {
 				App.bn.echoAddress = args[1];
+				App.bn.window.setEchoIpAddress(args[1]);
 				App.bn.ConsolePrint(pre + "ECHO ADDRESS IS " + App.bn.echoAddress);
 				return true;
 			} else {

@@ -113,6 +113,7 @@ public class BlueNodesTable {
     				App.bn.ConsolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
     			}
     			notifyGUI();
+    			notifyRGUI();
     			return;
     		}
     	} 
@@ -193,7 +194,7 @@ public class BlueNodesTable {
         int i=0;
     	while(it.hasNext()) {
         	BlueNodeInstance bn = it.next();
-        	object[i] = new String[]{bn.getName(), bn.getPhAddressStr(), ""+bn.getRemoteAuthPort(),""+bn.getUpport(), ""+bn.getDownport()};
+        	object[i] = new String[]{bn.getName(), bn.isTheRemoteAServer(), bn.getPhAddressStr(), ""+bn.getRemoteAuthPort(),""+bn.getUpport(), ""+bn.getDownport()};
         	i++;
         }
     	return object;
@@ -227,6 +228,12 @@ public class BlueNodesTable {
     private void notifyGUI() {
     	if (notifyGui) {
     		App.bn.window.updateBNs();
+    	}
+    }
+    
+    private void notifyRGUI () {
+    	if (notifyGui) {
+    		App.bn.window.updateRemoteRns();
     	}
     }
 }

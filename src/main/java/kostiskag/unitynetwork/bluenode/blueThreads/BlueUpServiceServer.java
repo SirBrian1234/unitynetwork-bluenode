@@ -112,20 +112,20 @@ public class BlueUpServiceServer extends Thread {
                 String version = IpPacket.getVersion(data);
                 if (version.equals("0")) {
                     byte[] payload = IpPacket.getPayloadU(data);
-                    String receivedMessage = new String(payload);
-                    String args[] = receivedMessage.split("\\s+");
+                    String sentMessage = new String(payload);
+                    String args[] = sentMessage.split("\\s+");
                     if (args.length > 1) {
                         if (args[0].equals("00000")) {
                             //keep alive
-                            App.bn.TrafficPrint(pre+version+" [KEEP ALIVE]", 0, 1);
+                            App.bn.TrafficPrint(pre+sentMessage, 0, 1);
                         } else if (args[0].equals("00002")) {
                             //blue node uping!
                             blueNode.setUping(true);
-                            App.bn.TrafficPrint(pre + "UPING LEAVES", 1, 1);
+                            App.bn.TrafficPrint(pre + "UPING SENT", 1, 1);
                         } else if (args[0].equals("00003")) {
                             //blue node dping!
-                            App.bn.dping = true;
-                            App.bn.TrafficPrint(pre + "DPING LEAVES", 1, 1);
+                        	blueNode.setDping(true);   
+                            App.bn.TrafficPrint(pre + "DPING SENT", 1, 1);
                         } 
                     }
                 }

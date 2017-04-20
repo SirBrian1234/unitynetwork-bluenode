@@ -12,6 +12,7 @@ import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 
 /**
  *
@@ -20,52 +21,60 @@ import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
 public class BlueNodeFunctions {
 
     private static String pre = "^Blue Node Functions";
-    static void associate(String name, Socket connectionSocket, BufferedReader socketReader, PrintWriter socketWriter) {
-        
+    
+    static void associate(String name, Socket connectionSocket, BufferedReader socketReader, PrintWriter socketWriter) {        
     	App.bn.ConsolePrint(pre + "STARTING A BLUE AUTH AT " + Thread.currentThread().getName());
-        String[] args;
+    	InetAddress phAddress;
+    	String phAddressStr;
+    	int authPort = 0;
+    	String[] args;
         
-        if (App.bn.blueNodesTable.checkBlueNode(name)) {
-        	socketWriter.println("BLUE_NODE_ALLREADY_IN_LIST");
+        if (App.bn.name.equals(name)) {
+        	socketWriter.println("ERROR");
         	return;
+        } else if (App.bn.blueNodesTable.checkBlueNode(name)) {
+        	socketWriter.println("ERROR");
+        	return;
+        } else {
+        	//tracker lookup
+        	TrackerClient tr = new TrackerClient();
+        	args = tr.getPhysicalBn(name);
+        	authPort = Integer.parseInt(args[1]);
+        	
+        	phAddress = connectionSocket.getInetAddress();
+            phAddressStr = phAddress.getHostAddress(); 
+            
+            if (args[0].equals("OFFLINE")) {
+            	socketWriter.println("ERROR");
+            	return;
+            } else if (!args[0].equals(phAddressStr)) {
+            	socketWriter.println("ERROR");
+            	return;
+            }
         }
+        App.bn.ConsolePrint(pre + "BN "+name+" IS VALID AT ADDR "+phAddressStr+":"+authPort);
         
-        InetAddress phAddress = connectionSocket.getInetAddress();
-        String phAddressStr = phAddress.getHostAddress(); 
-    	
-    	//create obj
+    	//create obj first in order to open its threads
         BlueNodeInstance bn = null;
 		try {
-			bn = new BlueNodeInstance(name, phAddressStr);			
+			bn = new BlueNodeInstance(name, phAddressStr, authPort);			
 		} catch (Exception e) {
 			e.printStackTrace();
 			bn.killtasks();
+			socketWriter.println("ERROR");
 			return;
 		}
         
-        socketWriter.println("ASSOSIATING "+App.bn.authPort+" "+bn.getUpport()+" "+bn.getDownport());        
-        String clientSentence;
-		try {
-			clientSentence = socketReader.readLine();
-			args = clientSentence.split("\\s+");
-	        int remoteAuthPort = Integer.parseInt(args[0]);
-	        bn.setRemoteAuthPort(remoteAuthPort);
-	        
-	        App.bn.ConsolePrint(pre + clientSentence);
-	        App.bn.ConsolePrint(pre + "remote auth port "+remoteAuthPort+" upport "+bn.getUpport()+" downport "+bn.getDownport());
-	    	
-	    	try {
-				App.bn.blueNodesTable.leaseBn(bn);
-				App.bn.ConsolePrint(pre + "LEASED REMOTE BN "+name);
-			} catch (Exception e) {
-				e.printStackTrace();
-				bn.killtasks();
-			}            
-	        	    	
-		} catch (IOException e) {
+        socketWriter.println("ASSOSIATING "+bn.getUpport()+" "+bn.getDownport());        
+		App.bn.ConsolePrint(pre + "remote auth port "+bn.getRemoteAuthPort()+" upport "+bn.getUpport()+" downport "+bn.getDownport());
+    	
+    	try {
+			App.bn.blueNodesTable.leaseBn(bn);
+			App.bn.ConsolePrint(pre + "LEASED REMOTE BN "+name);
+		} catch (Exception e) {
 			e.printStackTrace();
 			bn.killtasks();
-		}        	       
+		}            	        	    		     	       
     }
 
     static void Uping(BlueNodeInstance bn, PrintWriter outputWriter) {
@@ -84,9 +93,10 @@ public class BlueNodeFunctions {
 
     static void Dping(BlueNodeInstance bn, PrintWriter outputWriter) {
         outputWriter.println("DPING SENDING");
-        byte[] payload = ("00003 " + App.bn.name + " [DPING PACKET]").getBytes();
+        byte[] payload = ("00003 "+App.bn.name+" [DPING PACKET]").getBytes();
         byte[] data = IpPacket.MakeUPacket(payload, null, null, true);
         try {
+			bn.getQueueMan().offer(data);
 			bn.getQueueMan().offer(data);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -97,43 +107,26 @@ public class BlueNodeFunctions {
         try {
 			App.bn.blueNodesTable.releaseBn(BlueNodeName);
 		} catch (Exception e) {
-			e.printStackTrace();
+			
 		}        
     }
+    
+    public static void getLRNs(BlueNodeInstance bn, BufferedReader socketReader, PrintWriter socketWriter) {
+		GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, socketWriter);
+	}
     
     static void giveLRNs(PrintWriter outputWriter) {
     	GlobalSocketFunctions.sendLocalRedNodes(outputWriter);
     }
 
     static void exchangeRNs(BlueNodeInstance bn, BufferedReader inFromClient, PrintWriter outputWriter) {
-        try {
-            String clientSentence = null;
-            String[] args;
-            GlobalSocketFunctions.sendLocalRedNodes(outputWriter);
-
-            clientSentence = inFromClient.readLine();
-            App.bn.ConsolePrint(pre + clientSentence);
-            args = clientSentence.split("\\s+");
-
-            int count = Integer.parseInt(args[1]);
-            for (int i = 0; i < count; i++) {
-                clientSentence = inFromClient.readLine();
-                App.bn.ConsolePrint(pre + clientSentence);
-                args = clientSentence.split("\\s+");
-
-                if (!App.bn.blueNodesTable.checkRemoteRedNodeByHostname(args[0])) {
-                    bn.table.lease(args[0], args[1]);
-                }
-            }
-            clientSentence = inFromClient.readLine();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+    	GlobalSocketFunctions.sendLocalRedNodes(outputWriter);	
+    	GlobalSocketFunctions.getRemoteRedNodes(bn, inFromClient, outputWriter);                
     }
 
     static void getLocalRnVaddressByHostname(String hostname, PrintWriter outputWriter) {
         if (App.bn.localRedNodesTable.checkOnlineByHostname(hostname)) {
-            outputWriter.println("ONLINE "+App.bn.localRedNodesTable.getRedNodeInstanceByHn(hostname).getVaddress());
+            outputWriter.println(App.bn.localRedNodesTable.getRedNodeInstanceByHn(hostname).getVaddress());
         } else {
             outputWriter.println("OFFLINE");
         }
@@ -141,14 +134,18 @@ public class BlueNodeFunctions {
     
     static void getLocalRnHostnameByVaddress(String vaddress, PrintWriter outputWriter) {
         if (App.bn.localRedNodesTable.checkOnlineByVaddress(vaddress)) {
-        	outputWriter.println("ONLINE "+App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getHostname());
+        	outputWriter.println(App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getHostname());
         } else {
             outputWriter.println("OFFLINE");
         }
     }
 
     static void getFeedReturnRoute(BlueNodeInstance bn, String hostname, String vaddress, PrintWriter outputWriter) {        
-        bn.table.lease(hostname, vaddress);
+        try {
+			App.bn.blueNodesTable.leaseRRn(bn, hostname, vaddress);
+		} catch (Exception e) {
+			
+		}
         outputWriter.println("OK");        
     }
 
@@ -156,7 +153,7 @@ public class BlueNodeFunctions {
 		try {
 			bn.table.releaseByHostname(hostname);
 		} catch (Exception e) {
-			e.printStackTrace();
+			
 		}
 		socketWriter.println("OK");  
 	}
@@ -165,7 +162,7 @@ public class BlueNodeFunctions {
 		try {
 			bn.table.releaseByVaddr(vaddress);
 		} catch (Exception e) {
-			e.printStackTrace();
+			
 		}
 		socketWriter.println("OK");  
 	}

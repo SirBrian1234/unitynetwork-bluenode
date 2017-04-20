@@ -156,7 +156,7 @@ public class RemoteRedNodeTable {
     
     //no build guiObj here it will be called from  thhe bns table
     //here we just notify
-    public void notifyGUI () {
+    private void notifyGUI () {
     	if (notifyGui) {
     		App.bn.window.updateRemoteRns();
     	}

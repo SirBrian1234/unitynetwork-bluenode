@@ -80,6 +80,8 @@ public class BlueNodeService extends Thread {
 		                BlueNodeFunctions.releaseBn(blueNodeName,socketWriter);
 		            } else if (args.length == 1 && args[0].equals("GET_RED_NODES")) {
 		                BlueNodeFunctions.giveLRNs(socketWriter);
+		            } else if (args.length == 1 && args[0].equals("GIVE_RED_NODES")) {
+		                BlueNodeFunctions.getLRNs(bn, socketReader, socketWriter);
 		            } else if (args.length == 1 && args[0].equals("EXCHANGE_RED_NODES")) {
 		                BlueNodeFunctions.exchangeRNs(bn, socketReader, socketWriter);
 		            } else if (args.length == 2 && args[0].equals("GET_RED_HOSTNAME")) {
@@ -87,11 +89,11 @@ public class BlueNodeService extends Thread {
 		            } else if (args.length == 2 && args[0].equals("GET_RED_VADDRESS")) {
 		                BlueNodeFunctions.getLocalRnVaddressByHostname(args[1], socketWriter);
 		            } else if (args.length == 2 && args[0].equals("RELEASE_REMOTE_REDNODE_BY_HN")) {
-		                BlueNodeFunctions.getRRNToBeReleasedByHn(bn, args[0], socketWriter);
+		                BlueNodeFunctions.getRRNToBeReleasedByHn(bn, args[1], socketWriter);
 		            } else if (args.length == 2 && args[0].equals("RELEASE_REMOTE_REDNODE_BY_VADDRESS")) {
-		                BlueNodeFunctions.getRRNToBeReleasedByVaddr(bn, args[0], socketWriter);
+		                BlueNodeFunctions.getRRNToBeReleasedByVaddr(bn, args[1], socketWriter);
 		            } else if (args.length == 3 && args[0].equals("LEASE_REMOTE_REDNODE")) {
-		                BlueNodeFunctions.getFeedReturnRoute(bn, args[0], args[1], socketWriter);
+		                BlueNodeFunctions.getFeedReturnRoute(bn, args[1], args[2], socketWriter);
 		            } else {
 		            	socketWriter.println("WRONG_COMMAND");
 		            }

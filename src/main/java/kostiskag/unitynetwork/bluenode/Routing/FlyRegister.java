@@ -51,16 +51,30 @@ public class FlyRegister extends Thread {
             
             App.bn.ConsolePrint(pre + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
 
-            //maybe it associated one loop back
             if (App.bn.blueNodesTable.checkRemoteRedNodeByVaddress(destvaddress)) {
+            	//check if it was associated one loop back
                 App.bn.ConsolePrint(pre + "Allready associated entry");
                 continue;
-            } else {                
+            } else {
+            	//make stuff
             	TrackerClient tr = new TrackerClient();
                 String BNHostname = tr.checkRnOnlineByVaddr(destvaddress);                
-                if (BNHostname != null) {
-                    //we might have him associated but we may not have his rrd
-                    if (!App.bn.blueNodesTable.checkBlueNode(BNHostname)) {
+                if (BNHostname != null) {                    
+                    if (App.bn.blueNodesTable.checkBlueNode(BNHostname)) {
+                    	//we might have him associated but we may not have his rrd
+                    	BlueNodeInstance bn;
+						try {
+							bn = App.bn.blueNodesTable.getBlueNodeInstanceByName(BNHostname);
+							BlueNodeClient cl = new BlueNodeClient(bn);
+							String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
+	                    	if (!remoteHostname.equals("OFFLINE")) {
+	                    		App.bn.blueNodesTable.leaseRRn(bn, remoteHostname, destvaddress);
+	                    	}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}   
+					} else {
+						//if he is not associated at all, then associate
                     	tr = new TrackerClient();
                         String[] args = tr.getPhysicalBn(BNHostname);
                         String address = args[0];
@@ -70,23 +84,33 @@ public class FlyRegister extends Thread {
                         try {
 							cl.associateClient();
 						} catch (Exception e) {
-							e.printStackTrace();
-						}                        
-                    } else {
-                    	BlueNodeInstance bn;
+							 App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, 3, 1);  
+							 continue;
+						} 
+                        App.bn.TrafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", 3, 1);
+                        
+                        //we were associated now it's time to feed return route
+                        BlueNodeInstance bn;
 						try {
 							bn = App.bn.blueNodesTable.getBlueNodeInstanceByName(BNHostname);
-							BlueNodeClient cl = new BlueNodeClient(bn);
-	                    	cl.exchangeRedNodes();
+							cl = new BlueNodeClient(bn);
+							cl.feedReturnRoute(App.bn.localRedNodesTable.getRedNodeInstanceByAddr(sourcevaddress).getHostname(), sourcevaddress);
 						} catch (Exception e) {
 							e.printStackTrace();
-						}                     	
-                    }
-                    if (App.bn.blueNodesTable.checkBlueNode(BNHostname)) {                        
-                        App.bn.TrafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", 3, 1);
-                    } else {
-                        App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, 3, 1);                                                
-                    }
+						}
+						
+                        //and then request the dest rn hotsname
+                        try {
+							bn = App.bn.blueNodesTable.getBlueNodeInstanceByName(BNHostname);
+							cl = new BlueNodeClient(bn);
+	                    	String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
+	                    	if (!remoteHostname.equals("OFFLINE")) {
+	                    		App.bn.blueNodesTable.leaseRRn(bn, remoteHostname, destvaddress);
+	                    	}
+						} catch (Exception e) {
+							e.printStackTrace();
+						} 						
+                    }                    
                 } else {
                    App.bn.ConsolePrint(pre + "NOT FOUND "+destvaddress+" ON NETWORK");                     
                 }

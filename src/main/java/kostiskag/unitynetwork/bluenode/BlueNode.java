@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.FlyRegister;
-import kostiskag.unitynetwork.bluenode.Routing.PacketToHandle;
+import kostiskag.unitynetwork.bluenode.Routing.Router;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.RunData.IpPoll;
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
@@ -39,7 +39,6 @@ public class BlueNode extends Thread{
 	public boolean autoScrollDown = true;
 	// run data
 	public boolean joined = false;
-	public boolean dping;
 	public int keepAliveTime = 5;
 	public PortHandle UDPports;
 	public TrackingTracker addr;
@@ -56,7 +55,7 @@ public class BlueNode extends Thread{
 	public PrintWriter prt;
 	// objects
 	public BlueNodeServer auth;
-	public PacketToHandle router;
+	public Router router;
 	public MainWindow window;
 	public FlyRegister flyreg;
 	public QueueManager manager;
@@ -142,7 +141,7 @@ public class BlueNode extends Thread{
 		auth.start();
 
 		// 5. init router ~ basically blue node's router
-		router = new PacketToHandle();
+		router = new Router();
 		router.start();
 
 		// 6. init urouter ~ unknown router the one that manages new hosts new

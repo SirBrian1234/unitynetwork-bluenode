@@ -79,11 +79,11 @@ public class BlueDownServiceServer extends Thread {
                             } else if (args[0].equals("00002")) {
                                 //blue node uping!
                                 blueNode.setUping(true);                                
-                                App.bn.TrafficPrint(pre + "RECEIVED UPING",1,1);                                
+                                App.bn.TrafficPrint(pre + "UPING RECEIVED",1,1);                                
                             } else if (args[0].equals("00003")) {
                                 //blue node dping!
-                                App.bn.dping = true;                                
-                                App.bn.TrafficPrint(pre + "RECEIVED DPING",1,1);
+                            	blueNode.setDping(true);                            
+                                App.bn.TrafficPrint(pre + "DPING RECEIVED",1,1);
                             } else if (args[0].equals("00004")) {
                                 //ack
                                 App.bn.TrafficPrint(pre + version + " " + receivedMessage,2,1);

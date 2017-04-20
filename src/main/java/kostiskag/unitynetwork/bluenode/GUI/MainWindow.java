@@ -37,7 +37,7 @@ public class MainWindow extends javax.swing.JFrame {
     private final Object lockRRn = new Object();
 	private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port"});
     private final DefaultTableModel remoteRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Blue Node Name", "Last Checked"});
-    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port"});
+    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Is a Server", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port"});
     public int messageCount = 0;
 
     public MainWindow() {
@@ -118,8 +118,6 @@ public class MainWindow extends javax.swing.JFrame {
         jButton7.setToolTipText("Refresh the GUI representation to match the inner data.");
         jButton10 = new javax.swing.JButton();
         jButton10.setBackground(new Color(204, 51, 0));
-        jButton13 = new javax.swing.JButton();
-        jButton13.setBackground(new Color(204, 51, 0));
 
         jMenuItem1.setText("jMenuItem1");
 
@@ -217,25 +215,33 @@ public class MainWindow extends javax.swing.JFrame {
         txtOpMode.setText("Network");
         txtOpMode.setEditable(false);
         txtOpMode.setColumns(10);
+        
+        lblEchoAddress = new JLabel("Echo IP address");
+        
+        textField = new JTextField();
+        textField.setEditable(false);
+        textField.setColumns(10);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3Layout.setHorizontalGroup(
-        	jPanel3Layout.createParallelGroup(Alignment.LEADING)
-        		.addGroup(Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+        	jPanel3Layout.createParallelGroup(Alignment.TRAILING)
+        		.addGroup(jPanel3Layout.createSequentialGroup()
         			.addContainerGap()
-        			.addGroup(jPanel3Layout.createParallelGroup(Alignment.TRAILING)
-        				.addComponent(jTextField5, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
-        				.addComponent(jTextField1, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
-        				.addComponent(lblOperationMode, Alignment.LEADING)
-        				.addComponent(jLabel1, Alignment.LEADING)
-        				.addComponent(txtOpMode, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
-        				.addGroup(Alignment.LEADING, jPanel3Layout.createSequentialGroup()
+        			.addGroup(jPanel3Layout.createParallelGroup(Alignment.LEADING)
+        				.addComponent(jTextField1, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(lblOperationMode)
+        				.addComponent(jLabel1)
+        				.addComponent(txtOpMode, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(lblEchoAddress)
+        				.addComponent(textField, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(jTextField5, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addGroup(jPanel3Layout.createSequentialGroup()
         					.addComponent(jLabel2)
         					.addGap(46))
-        				.addComponent(jTextField2, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
-        				.addComponent(jLabel4, Alignment.LEADING)
-        				.addComponent(jLabel5, Alignment.LEADING)
-        				.addComponent(jTextField4, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE))
+        				.addComponent(jTextField2, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(jLabel4, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        				.addComponent(jLabel5)
+        				.addComponent(jTextField4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE))
         			.addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -250,6 +256,10 @@ public class MainWindow extends javax.swing.JFrame {
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jTextField1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         			.addGap(18)
+        			.addComponent(lblEchoAddress)
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        			.addGap(18)
         			.addComponent(jLabel2)
         			.addGap(8)
         			.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -261,7 +271,7 @@ public class MainWindow extends javax.swing.JFrame {
         			.addComponent(jLabel4)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jTextField4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addContainerGap(145, Short.MAX_VALUE))
+        			.addContainerGap(92, Short.MAX_VALUE))
         );
         jPanel3.setLayout(jPanel3Layout);
 
@@ -570,7 +580,7 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
         
-        JButton btnAddRemote = new JButton("Lookup Remote Red Node");
+        JButton btnAddRemote = new JButton("Tracker Lookup Remote Red Node");
         btnAddRemote.setBackground(new Color(204, 51, 0));
         btnAddRemote.addActionListener(new ActionListener() {
         	public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -584,18 +594,18 @@ public class MainWindow extends javax.swing.JFrame {
         		.addGroup(jPanel9Layout.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(jPanel9Layout.createParallelGroup(Alignment.LEADING)
-        				.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 812, Short.MAX_VALUE)
-        				.addComponent(btnAddRemote, GroupLayout.PREFERRED_SIZE, 190, GroupLayout.PREFERRED_SIZE)
-        				.addComponent(jButton5, GroupLayout.PREFERRED_SIZE, 132, GroupLayout.PREFERRED_SIZE))
+        				.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 814, Short.MAX_VALUE)
+        				.addComponent(jButton5, GroupLayout.PREFERRED_SIZE, 132, GroupLayout.PREFERRED_SIZE)
+        				.addComponent(btnAddRemote))
         			.addContainerGap())
         );
         jPanel9Layout.setVerticalGroup(
-        	jPanel9Layout.createParallelGroup(Alignment.TRAILING)
-        		.addGroup(Alignment.LEADING, jPanel9Layout.createSequentialGroup()
+        	jPanel9Layout.createParallelGroup(Alignment.LEADING)
+        		.addGroup(jPanel9Layout.createSequentialGroup()
         			.addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 402, GroupLayout.PREFERRED_SIZE)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jButton5)
-        			.addPreferredGap(ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
+        			.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         			.addComponent(btnAddRemote))
         );
         jPanel9.setLayout(jPanel9Layout);
@@ -618,13 +628,6 @@ public class MainWindow extends javax.swing.JFrame {
             	openNewBnWindow();
             }
         });
-
-        jButton13.setText("Open Status Window");
-        jButton13.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                openBlueStatus();
-            }
-        });
         
         btnOpenBlueNode = new JButton("Open Associated Blue Node Client Funtions");
         btnOpenBlueNode.addActionListener(new ActionListener() {
@@ -640,54 +643,49 @@ public class MainWindow extends javax.swing.JFrame {
         		.addGroup(jPanel10Layout.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(jPanel10Layout.createParallelGroup(Alignment.LEADING)
-        				.addComponent(jScrollPane3, GroupLayout.DEFAULT_SIZE, 566, Short.MAX_VALUE)
+        				.addComponent(jScrollPane3, GroupLayout.DEFAULT_SIZE, 605, Short.MAX_VALUE)
         				.addComponent(jButton7, GroupLayout.PREFERRED_SIZE, 146, GroupLayout.PREFERRED_SIZE)
         				.addGroup(jPanel10Layout.createSequentialGroup()
-        					.addComponent(jButton13)
+        					.addComponent(jButton10, GroupLayout.PREFERRED_SIZE, 270, GroupLayout.PREFERRED_SIZE)
         					.addPreferredGap(ComponentPlacement.UNRELATED)
-        					.addComponent(jButton10, GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE)
-        					.addPreferredGap(ComponentPlacement.UNRELATED)
-        					.addComponent(btnOpenBlueNode, GroupLayout.PREFERRED_SIZE, 247, GroupLayout.PREFERRED_SIZE)))
+        					.addComponent(btnOpenBlueNode, GroupLayout.PREFERRED_SIZE, 339, GroupLayout.PREFERRED_SIZE)))
         			.addContainerGap())
         );
         jPanel10Layout.setVerticalGroup(
         	jPanel10Layout.createParallelGroup(Alignment.LEADING)
         		.addGroup(jPanel10Layout.createSequentialGroup()
-        			.addComponent(jScrollPane3, GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
+        			.addComponent(jScrollPane3, GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jButton7)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addGroup(jPanel10Layout.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(jButton13)
         				.addComponent(jButton10)
         				.addComponent(btnOpenBlueNode)))
         );
         jPanel10.setLayout(jPanel10Layout);
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
-        jPanel7.setLayout(jPanel7Layout);
         jPanel7Layout.setHorizontalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel7Layout.createSequentialGroup()
-                        .addComponent(jPanel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(614, 614, 614))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())))
+        	jPanel7Layout.createParallelGroup(Alignment.LEADING)
+        		.addGroup(Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+        			.addContainerGap(652, Short.MAX_VALUE)
+        			.addComponent(jPanel10, GroupLayout.PREFERRED_SIZE, 812, GroupLayout.PREFERRED_SIZE)
+        			.addContainerGap())
+        		.addGroup(jPanel7Layout.createSequentialGroup()
+        			.addContainerGap()
+        			.addComponent(jPanel9, GroupLayout.PREFERRED_SIZE, 624, GroupLayout.PREFERRED_SIZE)
+        			.addContainerGap(840, Short.MAX_VALUE))
         );
         jPanel7Layout.setVerticalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+        	jPanel7Layout.createParallelGroup(Alignment.LEADING)
+        		.addGroup(Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+        			.addContainerGap()
+        			.addGroup(jPanel7Layout.createParallelGroup(Alignment.TRAILING)
+        				.addComponent(jPanel9, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 491, Short.MAX_VALUE)
+        				.addComponent(jPanel10, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 491, Short.MAX_VALUE))
+        			.addContainerGap())
         );
+        jPanel7.setLayout(jPanel7Layout);
 
         jTabbedPane1.addTab("Remote Red Nodes", jPanel7);
 
@@ -712,24 +710,19 @@ public class MainWindow extends javax.swing.JFrame {
     }
     
     protected void openAssosiatedWindow() {
-		int row = jTable3.getSelectedRow();
-		System.out.println(row+(String) jTable3.getValueAt(row, 0));
-		if (row >= 0) {
-			try {
-				new AssociatedBlueNodeClientGUI((String) jTable3.getValueAt(row, 0)).setVisible();
-			} catch (Exception e1) {
-				e1.printStackTrace();
+		try {
+			int row = jTable3.getSelectedRow();
+			if (row >= 0) {
+				try {
+					new AssociatedBlueNodeClientGUI((String) jTable3.getValueAt(row, 0)).setVisible();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
 			}
+		} catch (ArrayIndexOutOfBoundsException ex){
+			
 		}
 	}
-
-	private void openBlueStatus() {
-        int row = jTable3.getSelectedRow();
-    	if (row >= 0) {
-        	String name = (String) jTable3.getValueAt(row, 0);
-            new BlueNodeStatusGUI(name).setVisible(true);
-        }
-    }
 	
 	protected void trackerRNLookup(ActionEvent evt) {
 		new TrackerLookupGUI().setVisible(true);
@@ -802,7 +795,6 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
-    private javax.swing.JButton jButton13;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton5;
@@ -857,6 +849,8 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JToggleButton jToggleButton1;
     private JTextField txtOpMode;
     private JButton btnOpenBlueNode;
+    private JLabel lblEchoAddress;
+    private JTextField textField;
     
     public void setBlueNodeInfo() {    
         jTextField1.setText(App.bn.name);
@@ -870,6 +864,10 @@ public class MainWindow extends javax.swing.JFrame {
         } else {
         	txtOpMode.setText("Standalone/Plain");
         }
+    }
+    
+    public void setEchoIpAddress(String addr) {
+    	textField.setText(addr);
     }
 
 	public void updateLocalRns() {

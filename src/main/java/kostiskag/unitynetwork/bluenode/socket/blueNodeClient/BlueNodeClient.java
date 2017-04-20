@@ -77,57 +77,59 @@ public class BlueNodeClient {
 	}
 	
 	public boolean checkBlueNode() {
-		String[] args = TCPSocketFunctions.sendData("CHECK", socketWriter, socketReader);
-		closeConnection();
-		if (args[0].equals("OK")) {			
-			return true;
-		}		
+		if (connected) {
+			String[] args = TCPSocketFunctions.sendData("CHECK", socketWriter, socketReader);
+			closeConnection();
+			if (args[0].equals("OK")) {			
+				return true;
+			}		
+			return false;
+			}
 		return false;
 	}
 	
 	public void associateClient() throws Exception {
-		System.out.println(connected);
-		//ports
-		int remoteAuthPort = 0;
-		int downport = 0;
-		int upport = 0;
-		
-		//lease
-        String[] args = TCPSocketFunctions.sendData("ASSOCIATE", socketWriter, socketReader);
-        if (!args[0].equals("BLUE_NODE_ALLREADY_IN_LIST")) {
-            remoteAuthPort = Integer.parseInt(args[1]);
-        	downport = Integer.parseInt(args[2]);
-            upport = Integer.parseInt(args[3]);
-            TCPSocketFunctions.sendFinalData(App.bn.authPort+" ",socketWriter);
-            App.bn.ConsolePrint(pre + "remote authport "+remoteAuthPort+" upport " + upport + " downport " + downport);
-        } else {            	
-            App.bn.ConsolePrint(pre + "BLUE_NODE_ALLREADY_IN_LIST");
-            closeConnection();
-            throw new Exception(pre+"BLUE_NODE_ALLREADY_IN_LIST");                
-        }
-        
-        //build the object
-    	BlueNodeInstance node;
-		try {
-			node = new BlueNodeInstance(name, phAddressStr, authPort, upport, downport);	        
-		} catch (Exception e) {
-			e.printStackTrace();
-			bn.killtasks();
+		if (connected) {
+			//ports
+			int downport = 0;
+			int upport = 0;
+			
+			//lease
+	        String[] args = TCPSocketFunctions.sendData("ASSOCIATE", socketWriter, socketReader);
+	        if (args[0].equals("ERROR")) {
+	        	App.bn.ConsolePrint(pre + "Connection error");
+	            closeConnection();
+	            throw new Exception(pre+"ERROR");  
+	        } 
+	        
+	        downport = Integer.parseInt(args[1]);
+            upport = Integer.parseInt(args[2]);
+            App.bn.ConsolePrint(pre + " upport " + upport + " downport " + downport);
+	        
+	        //build the object
+	    	BlueNodeInstance node;
+			try {
+				node = new BlueNodeInstance(name, phAddressStr, authPort, upport, downport);	        
+			} catch (Exception e) {
+				e.printStackTrace();
+				bn.killtasks();
+				closeConnection();
+				return;
+			}       
+			
+			//lease to local bn table
+			App.bn.blueNodesTable.leaseBn(node);
 			closeConnection();
-			return;
-		}       
-		
-		//lease to local bn table
-		App.bn.blueNodesTable.leaseBn(node);
-		closeConnection();
-		App.bn.ConsolePrint(pre + "LEASED REMOTE BN "+name);
+			App.bn.ConsolePrint(pre + "LEASED REMOTE BN "+name);
+		}
     }		
 		
-	public int UPing() {
-		if (bn != null) {
+	public boolean uPing() {
+		if (connected && bn != null) {
 			TCPSocketFunctions.sendFinalData("UPING", socketWriter);
 	        byte[] payload = ("00002 " + App.bn.name + " [UPING PACKET]").getBytes();
 	        byte[] data = IpPacket.MakeUPacket(payload, null, null, true);
+	        bn.getQueueMan().offer(data);
 	        bn.getQueueMan().offer(data);
 	        
 	        try {
@@ -140,18 +142,18 @@ public class BlueNodeClient {
 	
 	        closeConnection();
 	        if (args[1].equals("OK")) {
-	            return 1;
+	            return true;
 	        } else {
-	            return 0;
+	            return false;
 	        }
 		}
 		closeConnection();
-		return -1;
+		return false;
 	}
 	
-	public int DPing() {
-		if (bn != null) {
-			App.bn.dping = false;
+	public boolean dPing() {
+		if (connected && bn != null) {
+		    bn.setDping(false);
 	        TCPSocketFunctions.sendData("DPING", socketWriter, socketReader);
 	        TCPSocketFunctions.connectionClose(sessionSocket);
 	        
@@ -162,93 +164,98 @@ public class BlueNodeClient {
 	        }
 	        
 	        closeConnection();
-	        if (App.bn.dping) {
-	            return 1;
+	        if (bn.getDPing()) {
+	            return true;
 	        } else {
-	            return 0;
+	            return false;
 	        }
 		}
 		closeConnection();
-		return -1;
+		return false;
 	}
 	
 	public void removeThisBlueNodesProjection() {
-		TCPSocketFunctions.sendFinalData("RELEASE", socketWriter);        
-        closeConnection();
-	}
-	
-	public int getRemoteRedNodes() {
-		if (bn != null) {
-			String[] args = TCPSocketFunctions.sendData("GET_RED_NODES", socketWriter, socketReader);
-			int count = Integer.parseInt(args[1]);
-	        for (int i = 0; i < count; i++) {
-	            args = TCPSocketFunctions.readData(socketReader);
-	            if (App.bn.blueNodesTable.checkRemoteRedNodeByHostname(args[0])) {
-	                bn.table.lease(args[0], args[1]);
-	            } else {
-	                App.bn.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
-	            }
-	        }
+		if (connected && bn != null) {
+			TCPSocketFunctions.sendFinalData("RELEASE", socketWriter);        
 	        closeConnection();
-	        return 1;
 		}
 		closeConnection();
-		return -1;
 	}
 	
-	public int exchangeRedNodes() {
-		if (bn != null) {
-			String[] args = TCPSocketFunctions.sendData("EXCHANGE_RED_NODES", socketWriter, socketReader);
-	        int count = Integer.parseInt(args[1]);
-	        for (int i = 0; i < count; i++) {
-	            args = TCPSocketFunctions.readData(socketReader);
-	            if (App.bn.blueNodesTable.checkRemoteRedNodeByHostname(args[0])) {
-	                bn.table.lease(args[0], args[1]);
-	            } else {
-	                App.bn.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
-	            }
-	        }
-	        TCPSocketFunctions.readData(socketReader);
-	        GlobalSocketFunctions.sendLocalRedNodes(socketWriter);
-	        closeConnection();
-	        return 1;
+	public void getRemoteRedNodes() {
+		if (bn != null && connected) {
+			TCPSocketFunctions.sendFinalData("GET_RED_NODES", socketWriter);   
+			GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, socketWriter);
 		}
 		closeConnection();
-		return -1;
+	}
+	
+	public void giveLocalRedNodes() {
+		if (bn != null && connected) {
+			TCPSocketFunctions.sendFinalData("GIVE_RED_NODES", socketWriter);   
+			GlobalSocketFunctions.sendLocalRedNodes(socketWriter);
+		}
+		closeConnection();
+	}
+	
+	public void exchangeRedNodes() {
+		if (bn != null && connected) {
+			TCPSocketFunctions.sendFinalData("EXCHANGE_RED_NODES", socketWriter);
+	        GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, socketWriter);
+	        GlobalSocketFunctions.sendLocalRedNodes(socketWriter);	        
+		}
+		closeConnection();
 	}
 	
 	public String getRedNodeVaddressByHostname(String hostname) {
-		String[] args = TCPSocketFunctions.sendData("GET_RED_HOSTNAME" + hostname, socketWriter, socketReader);
-        closeConnection();
-		if (args[0].equals("ONLINE")) {
-            return args[1];
-        } else {
-            return null;
-        }
+		if (bn != null && connected) {
+			String[] args = TCPSocketFunctions.sendData("GET_RED_VADDRESS "+hostname, socketWriter, socketReader);
+	        closeConnection();
+			if (args[0].equals("OFFLINE")) {
+	            return null;
+	        } else {
+	            return args[0];
+	        }
+		}
+		closeConnection();
+		return null;
 	}
 
 	public String getRedNodeHostnameByVaddress(String vaddress) {
-		String[] args = TCPSocketFunctions.sendData("GET_RED_VADDRESS"+vaddress, socketWriter, socketReader);
-        closeConnection();
-		if (args[0].equals("ONLINE")) {
-            return args[1];
-        } else {
-            return null;
-        }
+		if (bn != null && connected) {
+			String[] args = TCPSocketFunctions.sendData("GET_RED_HOSTNAME "+vaddress, socketWriter, socketReader);
+	        closeConnection();
+			if (args[0].equals("OFFLINE")) {
+	            return null;
+	        } else {
+	            return args[0];
+	        }
+		}
+		closeConnection();
+		return null;
 	}
 	
 	public void removeRedNodeProjectionByHn(String hostname) {
-		TCPSocketFunctions.sendData("RELEASE_REMOTE_REDNODE_BY_HN"+hostname, socketWriter, socketReader);     
+		if (bn != null && connected) {
+			TCPSocketFunctions.sendData("RELEASE_REMOTE_REDNODE_BY_HN "+hostname, socketWriter, socketReader);     
+			closeConnection();
+		}
 		closeConnection();
 	}
 	
 	public void removeRedNodeProjectionByVaddr(String vaddress) {
-		TCPSocketFunctions.sendData("RELEASE_REMOTE_REDNODE_BY_VADDRESS"+vaddress, socketWriter, socketReader);     
+		if (bn != null && connected) {
+			TCPSocketFunctions.sendData("RELEASE_REMOTE_REDNODE_BY_VADDRESS "+vaddress, socketWriter, socketReader);     
+			closeConnection();
+		}
 		closeConnection();
 	}
 	
 	public void feedReturnRoute(String hostname, String vaddress) {
-		TCPSocketFunctions.sendData("LEASE_REMOTE_REDNODE "+hostname+" "+vaddress, socketWriter, socketReader);        
-		closeConnection();        
+		if (bn != null && connected) {
+			TCPSocketFunctions.sendData("LEASE_REMOTE_REDNODE "+hostname+" "+vaddress, socketWriter, socketReader);        
+			closeConnection();        
+		}
+		closeConnection();
 	}
 }

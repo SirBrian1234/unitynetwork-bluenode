@@ -32,7 +32,7 @@ public class BlueUpServiceClient extends Thread {
      */
     public BlueUpServiceClient(BlueNodeInstance blueNode, int upPort) {
         this.blueNode = blueNode;
-        this.pre = "^BlueUpServiceClient "+blueNode.getName();
+        this.pre = "^BlueUpServiceClient "+blueNode.getName()+" ";
         this.blueNodePhAddress = blueNode.getPhaddress();    	
     	this.upPort = upPort;        
     }
@@ -100,15 +100,15 @@ public class BlueUpServiceClient extends Thread {
                         String args[] = receivedMessage.split("\\s+");
                         if (args.length > 1) {                            
                             if (args[0].equals("00000")) {
-                                App.bn.TrafficPrint(pre + version + " " +"[KEEP ALIVE]",0,1);
+                                App.bn.TrafficPrint(pre +receivedMessage,0,1);
                             } else if (args[0].equals("00002")) {
-                                //le wild blue node uping!
+                                //blue node uping!
                                 blueNode.setUping(true);                                
-                                App.bn.TrafficPrint(pre + "RECEIVED UPING",1,1);
+                                App.bn.TrafficPrint(pre + "UPING RECEIVED",1,1);
                             } else if (args[0].equals("00003")) {
-                                //le wild blue node dping!
-                                App.bn.dping = true;                                
-                                App.bn.TrafficPrint(pre + "RECEIVED DPING",1,1);
+                                //blue node dping!
+                            	blueNode.setDping(true);                               
+                                App.bn.TrafficPrint(pre + "DPING RECEIVED",1,1);
                             } 
                         }
                     } else {

@@ -12,6 +12,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.JTextField;
 
 /**
  *
@@ -52,6 +53,12 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
         });
         
         label = new JLabel("Please fill in the respective fields for each option and press the button");
+        
+        textField = new JTextField();
+        textField.setEditable(false);
+        textField.setColumns(10);
+        
+        lblResponce = new JLabel("Responce");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         layout.setHorizontalGroup(
@@ -59,18 +66,25 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
         		.addGroup(layout.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(layout.createParallelGroup(Alignment.LEADING)
-        				.addGroup(layout.createParallelGroup(Alignment.LEADING, false)
-        					.addGroup(layout.createSequentialGroup()
-        						.addComponent(jButton1)
-        						.addPreferredGap(ComponentPlacement.UNRELATED)
-        						.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, 173, GroupLayout.PREFERRED_SIZE))
-        					.addGroup(layout.createSequentialGroup()
-        						.addComponent(btnNewButton)
-        						.addPreferredGap(ComponentPlacement.UNRELATED)
-        						.addComponent(jTextField1)))
-        				.addComponent(jLabel2)
-        				.addComponent(label, GroupLayout.PREFERRED_SIZE, 335, GroupLayout.PREFERRED_SIZE))
-        			.addContainerGap(51, Short.MAX_VALUE))
+        				.addGroup(layout.createSequentialGroup()
+        					.addGap(16)
+        					.addComponent(lblResponce)
+        					.addPreferredGap(ComponentPlacement.UNRELATED)
+        					.addComponent(textField, GroupLayout.PREFERRED_SIZE, 327, GroupLayout.PREFERRED_SIZE)
+        					.addContainerGap())
+        				.addGroup(layout.createSequentialGroup()
+        					.addGroup(layout.createParallelGroup(Alignment.LEADING)
+        						.addGroup(layout.createSequentialGroup()
+        							.addComponent(jButton1)
+        							.addPreferredGap(ComponentPlacement.UNRELATED)
+        							.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, 173, GroupLayout.PREFERRED_SIZE))
+        						.addGroup(layout.createSequentialGroup()
+        							.addComponent(btnNewButton)
+        							.addPreferredGap(ComponentPlacement.UNRELATED)
+        							.addComponent(jTextField1))
+        						.addComponent(jLabel2)
+        						.addComponent(label, GroupLayout.DEFAULT_SIZE, 448, Short.MAX_VALUE))
+        					.addGap(51))))
         );
         layout.setVerticalGroup(
         	layout.createParallelGroup(Alignment.LEADING)
@@ -85,7 +99,11 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
         			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
         				.addComponent(btnNewButton)
         				.addComponent(jTextField1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-        			.addPreferredGap(ComponentPlacement.RELATED, 48, Short.MAX_VALUE)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
+        			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
+        				.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        				.addComponent(lblResponce))
+        			.addPreferredGap(ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
         			.addComponent(label)
         			.addContainerGap())
         );
@@ -101,9 +119,9 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
         		TrackerClient tr = new TrackerClient();
         		String bluenode = tr.checkRnOnlineByHostname(rnhostname);
         		if (bluenode != null) {
-        			App.bn.ConsolePrint("Remote Red Node "+rnhostname+" is leased at Bluenode named "+bluenode);
+        			textField.setText("Remote Red Node "+rnhostname+" is leased at Bluenode named "+bluenode);
         		} else {
-        			App.bn.ConsolePrint("Remote Red Node "+rnhostname+" is offline");
+        			textField.setText("Remote Red Node "+rnhostname+" is offline");
         		}
         	}
 	    }
@@ -115,9 +133,9 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
     		TrackerClient tr = new TrackerClient();
     		String bluenode = tr.checkRnOnlineByVaddr(vaddress);	 
     		if (bluenode != null) {
-    			App.bn.ConsolePrint("Remote Red Node "+vaddress+" is leased at Bluenode named "+bluenode);
+    			textField.setText("Remote Red Node "+vaddress+" is leased at Bluenode named "+bluenode);
     		} else {
-    			App.bn.ConsolePrint("Remote Red Node "+vaddress+" is offline");
+    			textField.setText("Remote Red Node "+vaddress+" is offline");
     		}
     	}		
 	}
@@ -129,4 +147,6 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
     private final ButtonGroup buttonGroup = new ButtonGroup();
     private JButton btnNewButton;
     private JLabel label;
+    private JTextField textField;
+    private JLabel lblResponce;
 }

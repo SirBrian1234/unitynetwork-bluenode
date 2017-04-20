@@ -11,6 +11,8 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.JTextField;
+import javax.swing.JLabel;
 
 /**
  *
@@ -51,6 +53,12 @@ public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
         		jButton2ActionPerformed(arg0);
         	}
         });
+        
+        textField = new JTextField();
+        textField.setEditable(false);
+        textField.setColumns(10);
+        
+        lblResponce = new JLabel("Responce");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         layout.setHorizontalGroup(
@@ -59,15 +67,19 @@ public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
         			.addContainerGap()
         			.addGroup(layout.createParallelGroup(Alignment.LEADING)
         				.addGroup(layout.createSequentialGroup()
-        					.addGroup(layout.createParallelGroup(Alignment.LEADING)
-        						.addComponent(btnNewButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        						.addComponent(jButton1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        					.addGap(34))
-        				.addGroup(layout.createSequentialGroup()
         					.addComponent(jLabel4)
         					.addPreferredGap(ComponentPlacement.UNRELATED)
         					.addComponent(jTextField1, 111, 111, 111)
-        					.addContainerGap(156, Short.MAX_VALUE))))
+        					.addContainerGap(158, Short.MAX_VALUE))
+        				.addGroup(Alignment.TRAILING, layout.createSequentialGroup()
+        					.addGroup(layout.createParallelGroup(Alignment.TRAILING)
+        						.addGroup(Alignment.LEADING, layout.createSequentialGroup()
+        							.addComponent(lblResponce)
+        							.addPreferredGap(ComponentPlacement.UNRELATED)
+        							.addComponent(textField, GroupLayout.DEFAULT_SIZE, 274, Short.MAX_VALUE))
+        						.addComponent(btnNewButton, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        						.addComponent(jButton1, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        					.addGap(34))))
         );
         layout.setVerticalGroup(
         	layout.createParallelGroup(Alignment.LEADING)
@@ -80,7 +92,11 @@ public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
         			.addComponent(jButton1)
         			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(btnNewButton)
-        			.addContainerGap(112, Short.MAX_VALUE))
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
+        			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
+        				.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        				.addComponent(lblResponce))
+        			.addContainerGap(77, Short.MAX_VALUE))
         );
         getContentPane().setLayout(layout);
 
@@ -94,17 +110,16 @@ public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
 	    		TrackerClient tr = new TrackerClient();	
 	        	String[] args = tr.getPhysicalBn(jTextField1.getText());	        	
 	            if (args != null) {
-		        	App.bn.ConsolePrint("ADDING BLUE NODE "+jTextField1.getText()+" on address "+args[0]);
-		            BlueNodeClient cl = new BlueNodeClient(jTextField1.getText(), args[0], Integer.parseInt(args[1]));
+		        	BlueNodeClient cl = new BlueNodeClient(jTextField1.getText(), args[0], Integer.parseInt(args[1]));
 		            try {
 		            	boolean check = cl.checkBlueNode();
-		            	if (check) App.bn.ConsolePrint("BLUE NODE "+jTextField1.getText()+" ONLINE");
-						else App.bn.ConsolePrint("BLUE NODE "+jTextField1.getText()+" OFFLINE");
+		            	if (check) textField.setText("BLUE NODE "+jTextField1.getText()+" ONLINE");
+						else textField.setText("BLUE NODE "+jTextField1.getText()+" OFFLINE");
 					} catch (Exception e) {
 						e.printStackTrace();
 					}                  
 	            } else {
-	            	App.bn.ConsolePrint("BLUE NODE "+jTextField1.getText()+" OFFLINE");
+	            	textField.setText("BLUE NODE "+jTextField1.getText()+" OFFLINE");
 	            }
 	        }
         }
@@ -116,7 +131,7 @@ public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
 	    		TrackerClient tr = new TrackerClient();	
 	        	String[] args = tr.getPhysicalBn(jTextField1.getText());	        	
 	            if (args != null) {
-		        	App.bn.ConsolePrint("ADDING BLUE NODE "+jTextField1.getText()+" on address "+args[0]);
+	            	textField.setText("ADDING BLUE NODE "+jTextField1.getText()+" on address "+args[0]);
 		            BlueNodeClient cl = new BlueNodeClient(jTextField1.getText(), args[0], Integer.parseInt(args[1]));
 		            try {
 						cl.associateClient();						
@@ -124,7 +139,7 @@ public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
 						e.printStackTrace();
 					}                  
 	            } else {
-	            	App.bn.ConsolePrint("BLUE NODE "+jTextField1.getText()+" OFFLINE");
+	            	textField.setText("BLUE NODE "+jTextField1.getText()+" OFFLINE");
 	            }
 	        }
         }
@@ -133,4 +148,6 @@ public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JTextField jTextField1;
+    private JTextField textField;
+    private JLabel lblResponce;
 }

@@ -29,6 +29,7 @@ public class AssociatedBlueNodeClientGUI {
 	private final String name;
 	private final BlueNodeInstance bn;
 	private JLabel lblName;
+	private JTextField textField_6;
 
 	/**
 	 * Create the application.
@@ -43,37 +44,43 @@ public class AssociatedBlueNodeClientGUI {
 		JButton btnCheckbluenode = new JButton("checkBlueNode()");
 		btnCheckbluenode.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				try {
-		        	BlueNodeClient cl = new BlueNodeClient(bn);
-					if (cl.checkBlueNode()) {
-						App.bn.ConsolePrint(bn.getName()+"is active.");
-					}
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
+				check();
 			}
 		});
-		btnCheckbluenode.setBounds(10, 11, 119, 23);
+		btnCheckbluenode.setBounds(10, 11, 166, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnCheckbluenode);
 		
-		JButton btnNewButton_9 = new JButton("BlueNode Table Release BlueNode");
+		JButton btnNewButton_9 = new JButton("BlueNode Table release selected Blue Node");
 		btnNewButton_9.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				releaseBn();
 			}
 		});
-		btnNewButton_9.setBounds(10, 391, 215, 23);
+		btnNewButton_9.setBounds(10, 391, 292, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnNewButton_9);
+		
+		textField_6 = new JTextField();
+		textField_6.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		textField_6.setBounds(107, 446, 306, 22);
+		frmAssociatedBlueNode.getContentPane().add(textField_6);
+		textField_6.setColumns(10);
+		
+		JLabel lblResponce = new JLabel("Responce");
+		lblResponce.setForeground(Color.RED);
+		lblResponce.setFont(new Font("Tahoma", Font.BOLD, 14));
+		lblResponce.setBounds(24, 449, 71, 16);
+		frmAssociatedBlueNode.getContentPane().add(lblResponce);
+		
+		JButton btnGivelocalrednodes = new JButton("giveLocalRedNodes()");
+		btnGivelocalrednodes.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				giveLocalRNs();
+			}
+		});
+		btnGivelocalrednodes.setBounds(221, 141, 199, 23);
+		frmAssociatedBlueNode.getContentPane().add(btnGivelocalrednodes);
 	}
 
-	protected void releaseBn() {
-		try {
-			App.bn.blueNodesTable.releaseBn(name);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-	
 	public void setVisible() {
 		frmAssociatedBlueNode.setVisible(true);
 	}
@@ -84,15 +91,25 @@ public class AssociatedBlueNodeClientGUI {
 	private void initialize() {
 		frmAssociatedBlueNode = new JFrame();
 		frmAssociatedBlueNode.setTitle("Associated Blue Node Client Functions (Debug)");
-		frmAssociatedBlueNode.setBounds(100, 100, 668, 463);
+		frmAssociatedBlueNode.setBounds(100, 100, 668, 545);
 		frmAssociatedBlueNode.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frmAssociatedBlueNode.getContentPane().setLayout(null);
 		
-		JButton btnNewButton = new JButton(" UPing()");
+		JButton btnNewButton = new JButton(" uping()");
+		btnNewButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				uping();
+			}
+		});
 		btnNewButton.setBounds(10, 40, 89, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnNewButton);
 		
-		JButton btnNewButton_1 = new JButton("DPing()");
+		JButton btnNewButton_1 = new JButton("dping()");
+		btnNewButton_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dping();
+			}
+		});
 		btnNewButton_1.setBounds(10, 74, 89, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnNewButton_1);
 		
@@ -102,84 +119,99 @@ public class AssociatedBlueNodeClientGUI {
 				removeLocalProject();
 			}
 		});
-		btnNewButton_2.setBounds(10, 108, 199, 23);
+		btnNewButton_2.setBounds(10, 108, 225, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnNewButton_2);
 		
 		JButton btnNewButton_3 = new JButton("getRemoteRedNodes()");
 		btnNewButton_3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				try {
-					BlueNodeClient cl = new BlueNodeClient(bn);
-					cl.getRemoteRedNodes();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
+				getRemoteRNs();
 			}
 		});
-		btnNewButton_3.setBounds(10, 142, 143, 23);
+		btnNewButton_3.setBounds(10, 142, 199, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnNewButton_3);
 		
 		JButton btnNewButton_4 = new JButton("exchangeRedNodes()");
 		btnNewButton_4.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				try {
-					BlueNodeClient cl = new BlueNodeClient(bn);
-					cl.exchangeRedNodes();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
+				exchangeRns();
 			}
 		});
-		btnNewButton_4.setBounds(10, 176, 143, 23);
+		btnNewButton_4.setBounds(10, 176, 199, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnNewButton_4);
 		
 		JButton btnNewButton_5 = new JButton("getRedNodeVaddressByHostname(String hostname)");
-		btnNewButton_5.setBounds(10, 210, 283, 23);
+		btnNewButton_5.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				getRNVaddr();
+			}
+		});
+		btnNewButton_5.setBounds(10, 210, 335, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnNewButton_5);
 		
 		JButton btnNewButton_6 = new JButton("getRedNodeHostnameByVaddress(String vaddress)");
-		btnNewButton_6.setBounds(10, 244, 283, 23);
+		btnNewButton_6.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				getRNHostname();
+			}
+		});
+		btnNewButton_6.setBounds(10, 244, 335, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnNewButton_6);
 		
 		textField = new JTextField();
-		textField.setBounds(303, 211, 215, 20);
+		textField.setBounds(357, 211, 215, 20);
 		frmAssociatedBlueNode.getContentPane().add(textField);
 		textField.setColumns(10);
 		
 		textField_1 = new JTextField();
-		textField_1.setBounds(303, 245, 215, 20);
+		textField_1.setBounds(357, 245, 215, 20);
 		frmAssociatedBlueNode.getContentPane().add(textField_1);
 		textField_1.setColumns(10);
 		
 		JButton btnNewButton_7 = new JButton("removeRedNodeProjectionByHn(String hostname)");
-		btnNewButton_7.setBounds(10, 278, 283, 23);
+		btnNewButton_7.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				removeRNprojectByHn();
+			}
+		});
+		btnNewButton_7.setBounds(10, 278, 335, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnNewButton_7);
 		
 		textField_2 = new JTextField();
-		textField_2.setBounds(303, 279, 215, 20);
+		textField_2.setBounds(357, 279, 215, 20);
 		frmAssociatedBlueNode.getContentPane().add(textField_2);
 		textField_2.setColumns(10);
 		
 		JButton btnRemoverednodeprojectionbyvaddrstringVaddress = new JButton("removeRedNodeProjectionByVaddr(String vaddress)");
-		btnRemoverednodeprojectionbyvaddrstringVaddress.setBounds(10, 312, 283, 23);
+		btnRemoverednodeprojectionbyvaddrstringVaddress.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				removeRNprojectByVaddr();
+			}
+		});
+		btnRemoverednodeprojectionbyvaddrstringVaddress.setBounds(10, 312, 335, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnRemoverednodeprojectionbyvaddrstringVaddress);
 		
 		textField_3 = new JTextField();
-		textField_3.setBounds(303, 313, 215, 20);
+		textField_3.setBounds(357, 313, 215, 20);
 		frmAssociatedBlueNode.getContentPane().add(textField_3);
 		textField_3.setColumns(10);
 		
 		JButton btnNewButton_8 = new JButton("feedReturnRoute(String hostname, String vaddress)");
-		btnNewButton_8.setBounds(10, 346, 323, 23);
+		btnNewButton_8.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				feedRetrunRoute();
+			}
+		});
+		btnNewButton_8.setBounds(10, 346, 335, 23);
 		frmAssociatedBlueNode.getContentPane().add(btnNewButton_8);
 		
 		textField_4 = new JTextField();
-		textField_4.setBounds(343, 347, 156, 20);
+		textField_4.setBounds(357, 347, 119, 20);
 		frmAssociatedBlueNode.getContentPane().add(textField_4);
 		textField_4.setColumns(10);
 		
 		textField_5 = new JTextField();
-		textField_5.setBounds(509, 347, 119, 20);
+		textField_5.setBounds(488, 346, 119, 20);
 		frmAssociatedBlueNode.getContentPane().add(textField_5);
 		textField_5.setColumns(10);
 		
@@ -193,8 +225,140 @@ public class AssociatedBlueNodeClientGUI {
 		lblName.setBounds(293, 13, 335, 14);
 		frmAssociatedBlueNode.getContentPane().add(lblName);
 	}
+
+	protected void check() {
+		try {
+        	BlueNodeClient cl = new BlueNodeClient(bn);
+			if (cl.checkBlueNode()) {
+				textField_6.setText(bn.getName()+"is active.");
+			} else {
+				textField_6.setText(bn.getName()+"is offline.");
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}		
+	}
 	
+	protected void uping() {
+		try {
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			cl.uPing();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+	
+	protected void dping() {
+		try {
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			cl.dPing();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
 	protected void removeLocalProject() {		
-    	
+		try {
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			cl.removeThisBlueNodesProjection();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	protected void getRemoteRNs() {
+		try {
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			cl.getRemoteRedNodes();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+	
+
+	protected void giveLocalRNs() {
+		try {
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			cl.giveLocalRedNodes();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	
+	protected void exchangeRns() {
+		try {
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			cl.exchangeRedNodes();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}		
+	}
+
+	protected void feedRetrunRoute() {
+		String hostname = textField_4.getText();
+		String vaddress = textField_5.getText();
+		
+		try {
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			cl.feedReturnRoute(hostname, vaddress);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	protected void removeRNprojectByHn() {
+		String hostname = textField_2.getText();
+		
+		try {
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			cl.removeRedNodeProjectionByHn(hostname);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	protected void removeRNprojectByVaddr() {
+		String vaddr = textField_3.getText();
+		
+		try {
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			cl.removeRedNodeProjectionByVaddr(vaddr);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	protected void getRNHostname() {
+		String vaddress = textField_1.getText();
+		
+		try {
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			textField_6.setText(cl.getRedNodeHostnameByVaddress(vaddress));
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	protected void getRNVaddr() {
+		String hostname = textField.getText();
+		
+		try {
+			BlueNodeClient cl = new BlueNodeClient(bn);
+			String answer = cl.getRedNodeVaddressByHostname(hostname);
+			System.out.println(answer);
+			textField_6.setText(answer);
+			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	protected void releaseBn() {
+		try {
+			App.bn.blueNodesTable.releaseBn(name);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 	}
 }

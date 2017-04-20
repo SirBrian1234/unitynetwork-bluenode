@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
@@ -16,6 +17,7 @@ import kostiskag.unitynetwork.bluenode.blueThreads.BlueDownServiceServer;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueKeepAlive;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueUpServiceClient;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueUpServiceServer;
+import kostiskag.unitynetwork.bluenode.functions.GetTime;
 import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
@@ -29,8 +31,11 @@ public class BlueNodeInstance {
     private final String name;
     private final String phAddressStr;
     private final InetAddress phAddress;
+    private final int remoteAuthPort;
     private final boolean isServer;
-    private int remoteAuthPort;
+    
+    //time
+    private String timestamp;
     //threads, objects
     public final RemoteRedNodeTable table;
     private final BlueKeepAlive ka;
@@ -41,7 +46,9 @@ public class BlueNodeInstance {
     private BlueUpServiceClient upcl;
     //triggers
     private int state = 0;
-    private boolean uPing = false;
+    private AtomicBoolean uPing = new AtomicBoolean(false);
+    private AtomicBoolean dPing = new AtomicBoolean(false);
+    
     
     /**
      * This object constructor is mainly used for testing.
@@ -64,9 +71,10 @@ public class BlueNodeInstance {
     /**
      * This is the server constructor.
      */
-    public BlueNodeInstance(String name, String phAddressStr) throws Exception {
+    public BlueNodeInstance(String name, String phAddressStr, int authPort) throws Exception {
     	this.isServer = true;
     	this.name = name;
+    	this.remoteAuthPort = authPort;
     	this.pre = "^BLUENODE "+name+" ";
     	this.phAddressStr = phAddressStr;
     	this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
@@ -102,6 +110,7 @@ public class BlueNodeInstance {
         this.pre = "^BLUENODE "+name+" ";
         this.phAddressStr = phAddress;
         this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
+        this.remoteAuthPort = authPort;
         this.table = new RemoteRedNodeTable(this);
         this.ka = new BlueKeepAlive(this);
         this.man = new QueueManager(20);        
@@ -123,15 +132,7 @@ public class BlueNodeInstance {
     public String getName() {
 		return name;
 	}
-
-    public InetAddress getPhaddress() {
-        return phAddress;
-    }   
-
-    public String getPhAddressStr() {
-        return phAddressStr;
-    }
-
+    
     /**
      * get status 
      * 1 means fully connected 
@@ -143,17 +144,34 @@ public class BlueNodeInstance {
         return state;
     }
 
-    public boolean isServer() {
-        return isServer;
-    }        
+    public InetAddress getPhaddress() {
+        return phAddress;
+    }   
 
-    public QueueManager getQueueMan() {
-        return man;
+    public String getPhAddressStr() {
+        return phAddressStr;
     }
     
     public int getRemoteAuthPort() {
 		return remoteAuthPort;
 	}
+
+    public String getTime() {
+        return timestamp;
+    }
+    
+    public boolean getUPing() {
+        return uPing.get();
+    }
+    
+    public boolean getDPing() {
+        return dPing.get();
+    }
+    
+    public QueueManager getQueueMan() {
+        return man;
+    }
+    
     
     public int getDownport() {
         if (isServer){
@@ -171,10 +189,6 @@ public class BlueNodeInstance {
         }        
     }    
     
-    public boolean getUPing() {
-        return uPing;
-    }
-    
     public String getDownStr() {
         if (isServer) {
             return down.toString();
@@ -191,13 +205,29 @@ public class BlueNodeInstance {
         }
     }  
     
-    public void setRemoteAuthPort(int remoteAuthPort) {
-		this.remoteAuthPort = remoteAuthPort;
-	}
-
-    public void setUping(boolean uping) {
-        this.uPing = uping;
+    public boolean isServer() {
+        return isServer;
     }
+    
+    public String isTheRemoteAServer() {
+        if (isServer) {
+        	return "NO";
+        } else {
+        	return "YES";
+        }
+    }
+    
+    public void setUping(boolean uping) {
+        this.uPing.set(uping);
+    }
+    
+    public void setDping(boolean dping) {
+        this.dPing.set(dping);
+    }
+    
+    public void updateTime() {
+        this.timestamp = GetTime.getSmallTimestamp();
+    } 
 
     public void killtasks() { 
         ka.kill();
