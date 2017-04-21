@@ -1,53 +1,64 @@
 package kostiskag.unitynetwork.bluenode.redThreads;
 
 import java.net.InetAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 
-/*
- *
+/**
+ * Some NAT tables drop idle entries. This is why
+ * we have to send packets periodically to keep alive our host's DOWNLINKS
+ * 
  * @author kostis
- *
- * As we go further and further to this maze more problems appear in the
- * Internet a NAT may forget the registered ports if they are not being used so
- * we have to use a timer for keeping alive our host's DOWNLINKS
  */
 public class RedKeepAlive extends Thread {
 
-    private static String pre = "^KEEP ALIVE ";
-    private boolean kill = false;
-    private int time;
-    private String vaddress;    
-    InetAddress address;
-    byte[] payload = ("00000 [KEEP ALIVE]").getBytes();
-    byte[] data;
+    private final String pre;    
+    private final LocalRedNodeInstance rn;
+    //data
+    private final int keepAliveTime;
+    private final int numOfPacketsToSend = 3;
+    private final byte[] payload = ("00000 [KEEP ALIVE]").getBytes();
+    private final byte[] data;
+    //triggers
+    private AtomicBoolean kill = new AtomicBoolean(false);
 
-    public RedKeepAlive(String vaddress) {
-        this.vaddress = vaddress;
-        time = kostiskag.unitynetwork.bluenode.App.bn.keepAliveTime;              
-        data = kostiskag.unitynetwork.bluenode.Routing.IpPacket.MakeUPacket(payload, null, null, true);
+    public RedKeepAlive(LocalRedNodeInstance rn) {
+        this.rn = rn;
+        this.pre = "^RedKeepAlive "+rn.getHostname()+" ";
+        this.keepAliveTime = kostiskag.unitynetwork.bluenode.App.bn.trackerMaxIdleTime;              
+        this.data = kostiskag.unitynetwork.bluenode.Routing.IpPacket.MakeUPacket(payload, null, null, true);
+    }
+    
+    public LocalRedNodeInstance getRn() {
+		return rn;
+	}
+    
+    public boolean getIsKilled() {
+    	return kill.get();
     }
 
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName());
+        App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName());
       
-        while (!kill) {            
-            for (int i = 0; i < 3; i++) {
-                App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getQueueMan().offer(data);                
+        while (!kill.get()) {            
+            for (int i = 0; i < numOfPacketsToSend; i++) {
+                rn.getQueueMan().offer(data);                
             }
 
             try {
-                sleep(time * 1000);
+                sleep(keepAliveTime * 1000);
             } catch (InterruptedException ex) {
-                Logger.getLogger(RedKeepAlive.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
         }
-        App.bn.ConsolePrint(pre + " ENDED FOR " + vaddress);
+        App.bn.ConsolePrint(pre+"ENDED");
     }
 
     public void kill() {
-        kill = true;        
+        kill.set(true);       
     }
 }

@@ -5,9 +5,9 @@ import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.blueNodeClient.RemoteHandle;
-import kostiskag.unitynetwork.bluenode.trackClient.TrackingBlueNodeFunctions;
-import kostiskag.unitynetwork.bluenode.trackClient.TrackingRedNodeFunctions;
+import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 
 /**
  *
@@ -51,35 +51,66 @@ public class FlyRegister extends Thread {
             
             App.bn.ConsolePrint(pre + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
 
-            //maybe it associated one loop back
-            if (App.bn.remoteRedNodesTable.checkAssociated(destvaddress) == true) {
+            if (App.bn.blueNodesTable.checkRemoteRedNodeByVaddress(destvaddress)) {
+            	//check if it was associated one loop back
                 App.bn.ConsolePrint(pre + "Allready associated entry");
                 continue;
-            } else {                
-                String BNHostname = TrackingRedNodeFunctions.checkOnlineByAddr(destvaddress);                
-                if (BNHostname != null) {
-                    //we might have him associated but we may not have his rrd
-                    if (!App.bn.blueNodesTable.checkBlueNode(BNHostname)) {
-                        String phaddress = TrackingBlueNodeFunctions.getPhysical(BNHostname);
-                        String[] args = phaddress.split(":");
+            } else {
+            	//make stuff
+            	TrackerClient tr = new TrackerClient();
+                String BNHostname = tr.checkRnOnlineByVaddr(destvaddress);                
+                if (BNHostname != null) {                    
+                    if (App.bn.blueNodesTable.checkBlueNode(BNHostname)) {
+                    	//we might have him associated but we may not have his rrd
+                    	BlueNodeInstance bn;
+						try {
+							bn = App.bn.blueNodesTable.getBlueNodeInstanceByName(BNHostname);
+							BlueNodeClient cl = new BlueNodeClient(bn);
+							String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
+	                    	if (!remoteHostname.equals("OFFLINE")) {
+	                    		App.bn.blueNodesTable.leaseRRn(bn, remoteHostname, destvaddress);
+	                    	}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}   
+					} else {
+						//if he is not associated at all, then associate
+                    	tr = new TrackerClient();
+                        String[] args = tr.getPhysicalBn(BNHostname);
                         String address = args[0];
-                        int port;
+                        int port = Integer.parseInt(args[1]);
                         
-                        if (args.length > 1) {
-                            port = Integer.parseInt(args[1]);
-                        } else {
-                            port = 7000;
-                        }
-                        
-                        RemoteHandle.addBlueNodeWithExchange(BNHostname, address, port, sourcevaddress, destvaddress);
-                    } else {
-                        RemoteHandle.BlueNodeExchange(BNHostname, sourcevaddress, destvaddress);
-                    }
-                    if (App.bn.blueNodesTable.checkBlueNode(BNHostname)) {                        
+                        BlueNodeClient cl = new BlueNodeClient(BNHostname, address, port);
+                        try {
+							cl.associateClient();
+						} catch (Exception e) {
+							 App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, 3, 1);  
+							 continue;
+						} 
                         App.bn.TrafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", 3, 1);
-                    } else {
-                        App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, 3, 1);                                                
-                    }
+                        
+                        //we were associated now it's time to feed return route
+                        BlueNodeInstance bn;
+						try {
+							bn = App.bn.blueNodesTable.getBlueNodeInstanceByName(BNHostname);
+							cl = new BlueNodeClient(bn);
+							cl.feedReturnRoute(App.bn.localRedNodesTable.getRedNodeInstanceByAddr(sourcevaddress).getHostname(), sourcevaddress);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+                        //and then request the dest rn hotsname
+                        try {
+							bn = App.bn.blueNodesTable.getBlueNodeInstanceByName(BNHostname);
+							cl = new BlueNodeClient(bn);
+	                    	String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
+	                    	if (!remoteHostname.equals("OFFLINE")) {
+	                    		App.bn.blueNodesTable.leaseRRn(bn, remoteHostname, destvaddress);
+	                    	}
+						} catch (Exception e) {
+							e.printStackTrace();
+						} 						
+                    }                    
                 } else {
                    App.bn.ConsolePrint(pre + "NOT FOUND "+destvaddress+" ON NETWORK");                     
                 }

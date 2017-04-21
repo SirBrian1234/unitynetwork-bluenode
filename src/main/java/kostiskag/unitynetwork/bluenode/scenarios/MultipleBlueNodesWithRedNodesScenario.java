@@ -2,7 +2,7 @@ package kostiskag.unitynetwork.bluenode.scenarios;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.BlueNode;
-import kostiskag.unitynetwork.bluenode.RunData.instances.RedNodeInstance;
+import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 
 public class MultipleBlueNodesWithRedNodesScenario {
@@ -46,12 +46,15 @@ public class MultipleBlueNodesWithRedNodesScenario {
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
-		RedNodeInstance rn = new RedNodeInstance("ouiou1", "ouiou", "1234","10.0.0.1","1.2.3.4");
-		bn.localRedNodesTable.lease(rn);
+		LocalRedNodeInstance rn = new LocalRedNodeInstance("ouiou1", "10.0.0.1");
+		try {
+			bn.localRedNodesTable.lease(rn);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		for (int i=2; i<10; i++) {
 			name = "Pakis"+i;
@@ -76,7 +79,6 @@ public class MultipleBlueNodesWithRedNodesScenario {
 			try {
 				Thread.sleep(1);
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}			

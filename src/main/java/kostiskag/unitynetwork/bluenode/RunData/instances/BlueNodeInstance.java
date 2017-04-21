@@ -1,315 +1,179 @@
 package kostiskag.unitynetwork.bluenode.RunData.instances;
 
-import static kostiskag.unitynetwork.bluenode.blueNodeClient.BlueNodeClientFunctions.isSameHostname;
-
-import java.io.*;
 import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
+import kostiskag.unitynetwork.bluenode.RunData.tables.RemoteRedNodeTable;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueDownServiceClient;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueDownServiceServer;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueKeepAlive;
+import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueUpServiceClient;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueUpServiceServer;
-import kostiskag.unitynetwork.bluenode.functions.TCPSocketFunctions;
+import kostiskag.unitynetwork.bluenode.functions.GetTime;
+import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
 /**
  *
  * @author kostis
  */
-public class BlueNodeInstance extends Thread {
+public class BlueNodeInstance {
 
-    private String pre = "^BLUE AUTH ";
-    //data
-    private String Hostname = null;
-    private String PhaddressStr = null;
-    private InetAddress Phaddress = null;    
-    private boolean uping = false;
-    private boolean isServer = true;
-    private int state = 0;
-    //threads
+    private final String pre;
+    private final String name;
+    private final String phAddressStr;
+    private final InetAddress phAddress;
+    private final int remoteAuthPort;
+    private final boolean isServer;    
+    //time
+    private String timestamp;
+    public AtomicInteger idleTime = new AtomicInteger(0);
+    //threads, objects
+    public RemoteRedNodeTable table;    
+    private final BlueKeepAlive ka;
+    private final QueueManager man;
+    private BlueNodeTimeBuilder timeBuilder;
     private BlueDownServiceServer down;
     private BlueUpServiceServer up;
     private BlueDownServiceClient downcl;
     private BlueUpServiceClient upcl;
-    private BlueKeepAlive ka;
-    private QueueManager man;
+    //triggers
+    private int state = 0;    
+    private AtomicBoolean uPing = new AtomicBoolean(false);
+    private AtomicBoolean dPing = new AtomicBoolean(false);
     
-    //get status
-    /* 0 means idle
-     * 1 means fully connected 
-     *-1 means error 
-     * the caller of this object after construction must getStatus in order to save or discard the instance
+    /**
+     * This object constructor is mainly used for testing.
+     * 
+     * @throws Exception 
      */
-
-    public BlueNodeInstance() {
-        state = 0;
+    public BlueNodeInstance(String name) {
+    	this.name = name;    
+    	this.isServer = false;
+    	this.phAddressStr = "1.1.1.1";
+    	this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
+    	this.remoteAuthPort = 7000;
+    	this.pre = "^BLUENODE "+name+" ";
+    	this.state = 0;                  
+        this.ka = new BlueKeepAlive(this);
+        this.man = new QueueManager(20);
+        this.table = new RemoteRedNodeTable(this);    
+        this.timestamp = GetTime.getSmallTimestamp();
     }
 
-    //server constructor
-    public BlueNodeInstance(String hostname, boolean FullAssociation, Socket connectionSocket) {
-        App.bn.ConsolePrint(pre + "STARTING A BLUE AUTH AT " + Thread.currentThread().getName());
-        this.Hostname = hostname;
-        isServer = true;
-        String[] args;
+    /**
+     * This is the server constructor.
+     */
+    public BlueNodeInstance(String name, String phAddressStr, int authPort) throws Exception {
+    	this.isServer = true;
+    	this.name = name;
+    	this.remoteAuthPort = authPort;
+    	this.pre = "^BLUENODE "+name+" ";
+    	this.phAddressStr = phAddressStr;
+    	this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
+        this.table = new RemoteRedNodeTable(this);
+        this.ka = new BlueKeepAlive(this);
+        this.man = new QueueManager(20);   
+        this.timestamp = GetTime.getSmallTimestamp();
+        
+        //setting down as server
+        down = new BlueDownServiceServer(this);
+        //a=setting up as server
+        up = new BlueUpServiceServer(this);
 
-        try {
-            BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-            PrintWriter outputWriter = new PrintWriter(connectionSocket.getOutputStream(), true);
-            String clientSentence = null;
+        //starting all threads
+        down.start();
+        up.start();
+        ka.start();
 
-            if (App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname) != null) {
-                App.bn.blueNodesTable.removeSingle(hostname);
-                try {
-                    sleep(1000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(BlueNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+        //hold the thread a bit to catch up the started threads
+        Thread.sleep(100);
 
-
-            if (FullAssociation) {
-                int size = App.bn.localRedNodesTable.getSize();
-                outputWriter.println("SENDING_LOCAL_RED_NODES " + size);
-                for (int i = 0; i < size; i++) {
-                    String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-                    hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
-                    outputWriter.println(vaddress+" "+hostname);
-                }
-                outputWriter.println(" ");
-
-                clientSentence = inFromClient.readLine();
-                App.bn.ConsolePrint(pre + clientSentence);
-                args = clientSentence.split("\\s+");
-
-                int count = Integer.parseInt(args[1]);
-                for (int i = 0; i < count; i++) {
-                    clientSentence = inFromClient.readLine();
-                    App.bn.ConsolePrint(pre + clientSentence);
-                    args = clientSentence.split("\\s+");
-
-                    if (App.bn.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
-                        App.bn.remoteRedNodesTable.lease(args[0], args[1], hostname);
-                    } else {
-                        App.bn.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
-                    }
-                }
-                clientSentence = inFromClient.readLine();
-                App.bn.ConsolePrint(pre + clientSentence);
-            }
-
-            Phaddress = connectionSocket.getInetAddress();
-            PhaddressStr = Phaddress.getHostAddress();                        
-
-            //keep alive
-            ka = new BlueKeepAlive(hostname);
-            //starting managers
-            man = new QueueManager(20);
-            //starting down
-            down = new BlueDownServiceServer(hostname);
-            //starting up
-            up = new BlueUpServiceServer(hostname);
-
-            down.start();
-            up.start();
-            ka.start();
-
-            try {
-                sleep(100);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(BlueNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            outputWriter.println("ASSOSIATING "+up.getUpport()+" "+ down.getDownport());
-            clientSentence = inFromClient.readLine();
-            App.bn.ConsolePrint(pre + clientSentence);
-            App.bn.ConsolePrint(pre + "upport " + up.getUpport() + " downport " + down.getDownport());
-
-            state = 1;
-        } catch (IOException ex) {
-            Logger.getLogger(BlueNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        state = 1;
+        //remember!, don't close the socket here, let the method return and it will be closed from the caller       
     }
 
-    //client constructor
-    public BlueNodeInstance(String PhAddress, int authPort, String AuthHostname, boolean exclusive, boolean FullAssociation) {
-        App.bn.ConsolePrint(pre + "Assosiating a New Blue Node with address " + PhAddress + ":" + authPort);
-        this.PhaddressStr = PhAddress;
-        try {
-            this.Phaddress = InetAddress.getByName(PhaddressStr);
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(BlueNodeInstance.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        isServer = false;              
-        int upport;
-        int downport;
-
-        InetAddress IPaddress = TCPSocketFunctions.getAddress(PhAddress);
-        if (IPaddress == null) {
-            state = -1;
-            return;
-        }
-        Socket socket = TCPSocketFunctions.absoluteConnect(IPaddress, authPort);
-        if (socket == null) {
-            state = -1;
-            return;
-        }
-        BufferedReader inputReader = TCPSocketFunctions.makeReadWriter(socket);
-        PrintWriter outputWriter = TCPSocketFunctions.makeWriteWriter(socket);
-        String[] args = null;
-        args = TCPSocketFunctions.readData(inputReader);                     
-        String RemoteHostname = null;  
-        RemoteHostname = args[1];
+    /**
+     * This is the client constructor.
+     * 
+     * @throws Exception 
+     */
+    public BlueNodeInstance(String name, String phAddress, int authPort, int upPort, int downPort) throws Exception {
+    	this.isServer = false;
+    	this.name = name;
+        this.pre = "^BLUENODE "+name+" ";
+        this.phAddressStr = phAddress;
+        this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
+        this.remoteAuthPort = authPort;
+        this.table = new RemoteRedNodeTable(this);
+        this.ka = new BlueKeepAlive(this);
+        this.man = new QueueManager(20);   
+        this.timestamp = GetTime.getSmallTimestamp();
         
-        if (isSameHostname(RemoteHostname)) {
-            TCPSocketFunctions.sendFinalData("NOTHING_TO_DO_HERE ", outputWriter);            
-            TCPSocketFunctions.connectionClose(socket);
-            state = -1;
-            return;
-        }                 
+        //setting down as client
+        downcl = new BlueDownServiceClient(this, upPort);
+        //setting up as client
+        upcl = new BlueUpServiceClient(this, downPort);
+        //clients have also a timeBuilder
+        timeBuilder = new BlueNodeTimeBuilder(this, App.bn.blueNodeTimeStepSec, App.bn.blueNodeMaxIdleTimeSec);
         
-        if (exclusive) {
-            if (RemoteHostname.equals(AuthHostname)) {
-                TCPSocketFunctions.sendData("BLUENODE " +App.bn.name, outputWriter, inputReader);
-            } else {
-                TCPSocketFunctions.sendFinalData("NOTHING_TO_DO_HERE ", outputWriter);
-                TCPSocketFunctions.connectionClose(socket);
-                App.bn.ConsolePrint(pre + "TARGET BLUE NODE NAME ERROR");
-                state = -1;
-                return;
-            }
-        } else {
-            TCPSocketFunctions.sendData("BLUENODE " + App.bn.name, outputWriter, inputReader);
-        }
-        Hostname = RemoteHostname;
-
-        if (FullAssociation) {                        
-            args = TCPSocketFunctions.sendData("FULL_ASSOCIATE", outputWriter, inputReader);    
-            System.out.println(args[0]+args[1]);
-            if (!args[0].equals("BLUE_NODE_ALLREADY_IN_LIST")) {
-                
-                int count = Integer.parseInt(args[1]);
-                for (int i = 0; i < count; i++) {
-                    args = TCPSocketFunctions.readData(inputReader);
-                    if (App.bn.remoteRedNodesTable.getRedRemoteAddress(args[0]) == null) {
-                        App.bn.remoteRedNodesTable.lease(args[0], args[1], RemoteHostname);
-                    } else {
-                        App.bn.ConsolePrint(pre + "ALLREADY REGISTERED REMOTE RED NODE");
-                    }
-                }
-                TCPSocketFunctions.readData(inputReader);
-                                
-                int size = App.bn.localRedNodesTable.getSize();
-                outputWriter.println("SENDING_LOCAL_RED_NODES " + size);
-                for (int i = 0; i < size; i++) {
-                    String vaddress = App.bn.localRedNodesTable.getRedNodeInstance(i).getVaddress();
-                    String hostname = App.bn.localRedNodesTable.getRedNodeInstance(i).getHostname();
-                    outputWriter.println(vaddress + " " + hostname);
-                }
-                outputWriter.println();
-
-                args = TCPSocketFunctions.readData(inputReader);
-                downport = Integer.parseInt(args[1]);
-                upport = Integer.parseInt(args[2]);
-                TCPSocketFunctions.sendFinalData("OK", outputWriter);
-                App.bn.ConsolePrint(pre + "upport " + upport + " downport " + downport);
-            } else {
-                state = -1;
-                return;
-            }
-        } else {
-            args = TCPSocketFunctions.sendData("ASSOCIATE", outputWriter, inputReader);
-            if (!args[0].equals("BLUE_NODE_ALLREADY_IN_LIST")) {
-                downport = Integer.parseInt(args[1]);
-                upport = Integer.parseInt(args[2]);
-                TCPSocketFunctions.sendFinalData("OK ", outputWriter);
-                App.bn.ConsolePrint(pre + "upport " + upport + " downport " + downport);
-            } else {
-                state = -1;
-                return;
-            }
-        }
-
-        //starting keep alive
-        ka = new BlueKeepAlive(RemoteHostname);
-        //starting man
-        man = new QueueManager(20);
-        //starting down
-        downcl = new BlueDownServiceClient(RemoteHostname, upport, PhAddress);
-        //starting up
-        upcl = new BlueUpServiceClient(RemoteHostname, downport, PhAddress);
-
+        //starting all threads
         downcl.start();
         upcl.start();
         ka.start();
+        timeBuilder.start(); 
 
-        TCPSocketFunctions.connectionClose(socket);
         state = 1;
+        //remember!, don't close the socket here, let the method return and it will be closed from the caller
     }
 
-    public String getHostname() {
-        return Hostname;
-    }
-
-    public InetAddress getRealPhaddress() {
-        return Phaddress;
-    }   
-
-    public String getPhaddress() {
-        return PhaddressStr;
-    }
-
+    public String getName() {
+		return name;
+	}
+    
+    /**
+     * get status 
+     * 1 means fully connected 
+     * 0 means idle
+     * -1 or lower, means not connected 
+     * the caller of this object must getStatus in order to save or discard the instance
+     */
     public int getStatus() {
         return state;
     }
 
-    public boolean isIsServer() {
-        return isServer;
-    }        
+    public InetAddress getPhaddress() {
+        return phAddress;
+    }   
 
+    public String getPhAddressStr() {
+        return phAddressStr;
+    }
+    
+    public int getRemoteAuthPort() {
+		return remoteAuthPort;
+	}
+
+    public String getTime() {
+        return timestamp;
+    }
+    
+    public boolean getUPing() {
+        return uPing.get();
+    }
+    
+    public boolean getDPing() {
+        return dPing.get();
+    }
+    
     public QueueManager getQueueMan() {
         return man;
     }
-
-    public void killtasks() {
-        ka.kill();
-        if (isServer) {
-            up.kill();
-            down.kill();
-        } else {
-            upcl.kill();
-            downcl.kill();
-        }
-    }
-
-    public boolean getUPing() {
-        return uping;
-    }
-
-    public void setUping(boolean uping) {
-        this.uping = uping;
-    }
-
-    public String getDownStr() {
-        if (isServer) {
-            return down.toString();
-        } else {
-            return downcl.toString();
-        }
-    }
-
-    public String getUpStr() {
-        if (isServer) {
-            return up.toString();
-        } else {
-            return upcl.toString();
-        }
-    }        
-
+    
+    
     public int getDownport() {
         if (isServer){
             return down.getDownport();
@@ -325,5 +189,62 @@ public class BlueNodeInstance extends Thread {
             return upcl.getUpport();
         }        
     }    
-   
+    
+    public String getDownStr() {
+        if (isServer) {
+            return down.toString();
+        } else {
+            return downcl.toString();
+        }
+    }
+    
+    public String getUpStr() {
+        if (isServer) {
+            return up.toString();
+        } else {
+            return upcl.toString();
+        }
+    }  
+    
+    public boolean isServer() {
+        return isServer;
+    }
+    
+    public String isTheRemoteAServer() {
+        if (isServer) {
+        	return "NO";
+        } else {
+        	return "YES";
+        }
+    }
+    
+    public void setUping(boolean uping) {
+        this.uPing.set(uping);
+    }
+    
+    public void setDping(boolean dping) {
+        this.dPing.set(dping);
+    }
+    
+    public void updateTime() {
+        this.timestamp = GetTime.getSmallTimestamp();
+    }
+    
+    public void resetIdleTime() {
+		idleTime.set(0);
+	}
+
+    public void killtasks() { 
+        ka.kill();
+        if (isServer) {
+            up.kill();
+            down.kill();
+        } else {
+            upcl.kill();
+            downcl.kill();
+            timeBuilder.Kill();
+        }
+        man.clear();
+        state = -1;
+    }
 }

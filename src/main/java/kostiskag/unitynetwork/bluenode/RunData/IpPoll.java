@@ -4,11 +4,11 @@ package kostiskag.unitynetwork.bluenode.RunData;
  *
  * @author kostis
  */
-public class IPpoll {
+public class IpPoll {
     
     int count;
     
-    public IPpoll() {
+    public IpPoll() {
         count = 0;
     }
     

@@ -2,62 +2,81 @@ package kostiskag.unitynetwork.bluenode.redThreads;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
+import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 
-/*
+/**
  * down service listens for virtual packets then sends them to the target
  * specified by viewing the table if it fails to find the target the packet is
  * discarded
  *
- * down service runs differently for every rednode and every assosiated blue
+ * down service runs differently for every rednode and every associated blue
  * node
+ * 
+ * @author kostis
  */
 public class RedDownService extends Thread {
 
-    private String pre = "^DownService ";
-    private Boolean kill = false;
-    private static Boolean didTrigger = false;
-    private byte[] data;
-    private DatagramSocket serverSocket = null;
-    private DatagramPacket receivePacket;
-    private int portToUse;
-    private String vaddress;
-    private int destPort;    
+    private final String pre;
+    private final LocalRedNodeInstance rn;
+    //socket
+    private DatagramSocket serverSocket;
+    private int sourcePort;
+    private int destPort;
+    //triggers
+    private Boolean didTrigger = false;
+    private AtomicBoolean kill = new AtomicBoolean(false);
 
-    public RedDownService(String vaddress) {
-        this.vaddress = vaddress;
-        destPort = App.bn.UDPports.requestPort();
-        pre = pre + vaddress + " ";
+    public RedDownService(LocalRedNodeInstance rn ) {
+        this.rn = rn;
+    	pre =  "^RedDownService "+rn.getHostname()+" ";
+    	destPort = App.bn.UDPports.requestPort();        
+    }
+
+    public int getDestPort() {
+        return destPort;
+    }        
+    
+    public int getSourcePort() {
+		return sourcePort;
+	}
+    
+    public LocalRedNodeInstance getRn() {
+		return rn;
+	}
+    
+    public boolean getIsKilled() {
+    	return kill.get();
     }
 
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre + "STARTED FOR " + vaddress + " AT " + Thread.currentThread().getName() + " ON PORT " + destPort);
+        App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + destPort);
      
         try {
             serverSocket = new DatagramSocket(destPort);
         } catch (java.net.BindException ex) {
             App.bn.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
-        } catch (SocketException ex) {
-            Logger.getLogger(RedDownService.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(RedDownService.class.getName()).log(Level.SEVERE, null, ex);
+            return;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return;
         }
 
         byte[] receiveData = new byte[2048];
-        receivePacket = new DatagramPacket(receiveData, receiveData.length);
-        while (!kill) {
+        byte[] data = null;
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        while (!kill.get()) {
             try {
                 serverSocket.receive(receivePacket);
                 int len = receivePacket.getLength();
                 if (len > 0 && len <= 1500) {
                     data = new byte[len];
                     System.arraycopy(receivePacket.getData(), 0, data, 0, len);
-                    if (App.bn.gui && didTrigger == false) {
+                    if (App.bn.gui && !didTrigger) {
                         MainWindow.jCheckBox3.setSelected(true);
                         didTrigger = true;
                     }
@@ -68,15 +87,15 @@ public class RedDownService extends Thread {
                         String args[] = receivedMessage.split("\\s+");
                         if (args.length > 1) {                            
                             if (args[0].equals("00000")){
-                                //keep alive
-                                App.bn.TrafficPrint(pre + version+" "+"[KEEP ALIVE]" ,0,0);
+                                //keep alive packet received
+                                App.bn.TrafficPrint(pre + version+" [KEEP ALIVE]" ,0,0);
                             }  else if (args[0].equals("00001")) {
-                                //le wild rednode ping!                                               
-                                App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).setUPing(true);
-                                App.bn.TrafficPrint(pre + "LE WILD RN UPING APPEARS",1,0);
+                                //rednode uping packet received                                              
+                                rn.setUPing(true);
+                                App.bn.TrafficPrint(pre + "REDNODE UPING RECEIVED",1,0);
                             } 
                         } else {
-                            System.out.println(pre + "wrong length");
+                        	App.bn.TrafficPrint(pre + "WRONG LENGTH",1,0);
                         }
                     } else if (version.equals("1")) {                        
                         byte[] payload = IpPacket.getPayloadU(data);
@@ -89,7 +108,7 @@ public class RedDownService extends Thread {
                                 App.bn.manager.offer(data); 
                             }  
                         } else {
-                            System.out.println(pre + "wrong length");
+                        	App.bn.TrafficPrint(pre + "WRONG LENGTH",2,0);
                         }
                     } else {             
                         App.bn.TrafficPrint(pre + "IPv4",3,0);
@@ -97,23 +116,19 @@ public class RedDownService extends Thread {
                     }
                 }
             } catch (java.net.SocketException ex1) {
-                App.bn.ConsolePrint(pre + "SOCKET DIED FOR " + vaddress);
+                break;
             } catch (IOException ex) {
-                Logger.getLogger(RedDownService.class.getName()).log(Level.SEVERE, null, ex);
+            	App.bn.ConsolePrint(pre + "IO ERROR");
+                ex.printStackTrace();
+                break;
             }
-        }
-        App.bn.ConsolePrint(pre + " ENDED FOR " + vaddress);        
-        App.bn.UDPports.releasePort(portToUse);
-        destPort = -1;
-        portToUse = -1;
+        }               
+        App.bn.UDPports.releasePort(sourcePort);        
+        App.bn.ConsolePrint(pre + "ENDED");
     }
 
     public void kill() {
-        kill = true;        
+        kill.set(true);
         serverSocket.close();
     }
-
-    public int getDownport() {
-        return destPort;
-    }        
 }

@@ -1,21 +1,24 @@
 package kostiskag.unitynetwork.bluenode.GUI;
 
-import javax.swing.table.DefaultTableModel;
-import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.blueNodeClient.RemoteHandle;
-
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout;
-import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
-import java.awt.Color;
-import java.awt.Font;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableModel;
+
+import kostiskag.unitynetwork.bluenode.App;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 /**
  * This is the main bluenode window. 
@@ -25,17 +28,28 @@ import java.awt.Font;
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    public static final DefaultTableModel hostable = new DefaultTableModel(new String[][]{}, new String[]{"Virtual Address", "Hostname", "Username", "Physical Address", "Uplink Port", "Downlink Port"});;
-    public static final DefaultTableModel remotetable = new DefaultTableModel(new String[][]{}, new String[]{"Virtual Address", "Hostname", "Blue Node Hostname", "Checked"});;
-    public static final DefaultTableModel remotebtable = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Address", "Uplink Port", "Downlink Port"});
-    public static int messageCount = 0;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 5505085647328297106L;
+	private final Object lockLocal = new Object();
+    private final Object lockBn = new Object();
+    private final Object lockRRn = new Object();
+	private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port"});
+    private final DefaultTableModel remoteRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Blue Node Name", "Last Checked"});
+    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Is a Server", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port", "Last Checked"});
+    public int messageCount = 0;
 
     public MainWindow() {
     	setTitle("Blue Node");
     	initComponents(); 
         if (!App.bn.network) {
-    		jTabbedPane1.remove(2);
-    	}	
+    		jTabbedPane1.remove(2);    		
+    	}
+        
+        jTable1.setDefaultEditor(Object.class, null);
+        jTable2.setDefaultEditor(Object.class, null);
+        jTable3.setDefaultEditor(Object.class, null);
     }   
 
     private void initComponents() {
@@ -86,25 +100,24 @@ public class MainWindow extends javax.swing.JFrame {
         jPanel6 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
+        jTable1.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jButton3 = new javax.swing.JButton();
         jButton3.setToolTipText("Refresh the GUI representation to match the inner data.");
         jPanel7 = new javax.swing.JPanel();
         jPanel9 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable2 = new javax.swing.JTable();
+        jTable2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jButton5 = new javax.swing.JButton();
         jButton5.setToolTipText("Refresh the GUI representation to match the inner data.");
         jPanel10 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTable3 = new javax.swing.JTable();
-        jButton12 = new javax.swing.JButton();
+        jTable3.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jButton7 = new javax.swing.JButton();
         jButton7.setToolTipText("Refresh the GUI representation to match the inner data.");
         jButton10 = new javax.swing.JButton();
-        jButton8 = new javax.swing.JButton();
-        jButton13 = new javax.swing.JButton();
-        jButton14 = new javax.swing.JButton();
-        jButton15 = new javax.swing.JButton();
+        jButton10.setBackground(new Color(204, 51, 0));
 
         jMenuItem1.setText("jMenuItem1");
 
@@ -122,7 +135,7 @@ public class MainWindow extends javax.swing.JFrame {
                 int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you wish to terminate this Blue Node?\nThis may result in a partial network termination.\nIf you decide to close the BLue Node, it will send the appropriate kill signals to the connected Red Nodes.","",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
                 if(PromptResult==JOptionPane.YES_OPTION)
                 {
-                    App.bn.localRedNodesTable.releaseAll();
+                    App.bn.localRedNodesTable.exitAll();
                     if (App.bn.joined) {
             			try {
             				App.bn.leaveNetworkAndDie();
@@ -202,25 +215,33 @@ public class MainWindow extends javax.swing.JFrame {
         txtOpMode.setText("Network");
         txtOpMode.setEditable(false);
         txtOpMode.setColumns(10);
+        
+        lblEchoAddress = new JLabel("Echo IP address");
+        
+        textField = new JTextField();
+        textField.setEditable(false);
+        textField.setColumns(10);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3Layout.setHorizontalGroup(
-        	jPanel3Layout.createParallelGroup(Alignment.LEADING)
-        		.addGroup(Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+        	jPanel3Layout.createParallelGroup(Alignment.TRAILING)
+        		.addGroup(jPanel3Layout.createSequentialGroup()
         			.addContainerGap()
-        			.addGroup(jPanel3Layout.createParallelGroup(Alignment.TRAILING)
-        				.addComponent(jTextField5, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
-        				.addComponent(jTextField1, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
-        				.addComponent(lblOperationMode, Alignment.LEADING)
-        				.addComponent(jLabel1, Alignment.LEADING)
-        				.addComponent(txtOpMode, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
-        				.addGroup(Alignment.LEADING, jPanel3Layout.createSequentialGroup()
+        			.addGroup(jPanel3Layout.createParallelGroup(Alignment.LEADING)
+        				.addComponent(jTextField1, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(lblOperationMode)
+        				.addComponent(jLabel1)
+        				.addComponent(txtOpMode, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(lblEchoAddress)
+        				.addComponent(textField, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(jTextField5, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addGroup(jPanel3Layout.createSequentialGroup()
         					.addComponent(jLabel2)
         					.addGap(46))
-        				.addComponent(jTextField2, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
-        				.addComponent(jLabel4, Alignment.LEADING)
-        				.addComponent(jLabel5, Alignment.LEADING)
-        				.addComponent(jTextField4, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE))
+        				.addComponent(jTextField2, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(jLabel4, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        				.addComponent(jLabel5)
+        				.addComponent(jTextField4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE))
         			.addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -235,6 +256,10 @@ public class MainWindow extends javax.swing.JFrame {
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jTextField1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         			.addGap(18)
+        			.addComponent(lblEchoAddress)
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        			.addGap(18)
         			.addComponent(jLabel2)
         			.addGap(8)
         			.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -246,7 +271,7 @@ public class MainWindow extends javax.swing.JFrame {
         			.addComponent(jLabel4)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jTextField4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addContainerGap(145, Short.MAX_VALUE))
+        			.addContainerGap(92, Short.MAX_VALUE))
         );
         jPanel3.setLayout(jPanel3Layout);
 
@@ -495,13 +520,13 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("Local Red Nodes"));
 
-        jTable1.setModel(hostable);
+        jTable1.setModel(localRedNodeTableModel);
         jScrollPane2.setViewportView(jTable1);
 
         jButton3.setText("Refresh Table");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+            	updateLocalRns();
             }
         });
 
@@ -511,14 +536,14 @@ public class MainWindow extends javax.swing.JFrame {
         		.addGroup(jPanel6Layout.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(jPanel6Layout.createParallelGroup(Alignment.LEADING)
-        				.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 1356, Short.MAX_VALUE)
+        				.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 1416, Short.MAX_VALUE)
         				.addComponent(jButton3))
         			.addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
         	jPanel6Layout.createParallelGroup(Alignment.LEADING)
         		.addGroup(jPanel6Layout.createSequentialGroup()
-        			.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 424, Short.MAX_VALUE)
+        			.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 435, Short.MAX_VALUE)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jButton3))
         );
@@ -545,13 +570,21 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel9.setBorder(javax.swing.BorderFactory.createTitledBorder("Remote Red Nodes"));
 
-        jTable2.setModel(remotetable);
+        jTable2.setModel(remoteRedNodeTableModel);
         jScrollPane1.setViewportView(jTable2);
 
         jButton5.setText("Refresh Table");
         jButton5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton5ActionPerformed(evt);
+            }
+        });
+        
+        JButton btnAddRemote = new JButton("Tracker Lookup Remote Red Node");
+        btnAddRemote.setBackground(new Color(204, 51, 0));
+        btnAddRemote.addActionListener(new ActionListener() {
+        	public void actionPerformed(java.awt.event.ActionEvent evt) {
+        		trackerRNLookup(evt);
             }
         });
 
@@ -561,33 +594,26 @@ public class MainWindow extends javax.swing.JFrame {
         		.addGroup(jPanel9Layout.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(jPanel9Layout.createParallelGroup(Alignment.LEADING)
-        				.addGroup(jPanel9Layout.createSequentialGroup()
-        					.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 808, Short.MAX_VALUE)
-        					.addContainerGap())
-        				.addGroup(jPanel9Layout.createSequentialGroup()
-        					.addComponent(jButton5, GroupLayout.PREFERRED_SIZE, 132, GroupLayout.PREFERRED_SIZE)
-        					.addGap(688))))
+        				.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 814, Short.MAX_VALUE)
+        				.addComponent(jButton5, GroupLayout.PREFERRED_SIZE, 132, GroupLayout.PREFERRED_SIZE)
+        				.addComponent(btnAddRemote))
+        			.addContainerGap())
         );
         jPanel9Layout.setVerticalGroup(
         	jPanel9Layout.createParallelGroup(Alignment.LEADING)
-        		.addGroup(Alignment.TRAILING, jPanel9Layout.createSequentialGroup()
-        			.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 424, Short.MAX_VALUE)
+        		.addGroup(jPanel9Layout.createSequentialGroup()
+        			.addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 402, GroupLayout.PREFERRED_SIZE)
         			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addComponent(jButton5))
+        			.addComponent(jButton5)
+        			.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        			.addComponent(btnAddRemote))
         );
         jPanel9.setLayout(jPanel9Layout);
 
         jPanel10.setBorder(javax.swing.BorderFactory.createTitledBorder("Remote Assosiated BlueNodes"));
 
-        jTable3.setModel(remotebtable);
+        jTable3.setModel(remoteBlueNodeTableModel);
         jScrollPane3.setViewportView(jTable3);
-
-        jButton12.setText("Check Online");
-        jButton12.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton12ActionPerformed(evt);
-            }
-        });
 
         jButton7.setText("Refresh Table");
         jButton7.addActionListener(new java.awt.event.ActionListener() {
@@ -596,106 +622,70 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        jButton10.setText("Add Static Entry");
+        jButton10.setText("New BN Associate / Check");
         jButton10.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton10ActionPerformed(evt);
+            	openNewBnWindow();
             }
         });
-
-        jButton8.setText("Remove Selected");
-        jButton8.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton8ActionPerformed(evt);
-            }
+        
+        btnOpenBlueNode = new JButton("Open Associated Blue Node Client Funtions");
+        btnOpenBlueNode.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		openAssosiatedWindow();
+        	}
         });
-
-        jButton13.setText("Status");
-        jButton13.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton13ActionPerformed(evt);
-            }
-        });
-
-        jButton14.setText("Get Remote Red Nodes");
-        jButton14.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton14ActionPerformed(evt);
-            }
-        });
-
-        jButton15.setText("Exchange Red Nodes");
-        jButton15.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton15ActionPerformed(evt);
-            }
-        });
+        btnOpenBlueNode.setBackground(new Color(153, 153, 0));
 
         javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
-        jPanel10.setLayout(jPanel10Layout);
         jPanel10Layout.setHorizontalGroup(
-            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel10Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 566, Short.MAX_VALUE)
-                    .addGroup(jPanel10Layout.createSequentialGroup()
-                        .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton10, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton8, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(jPanel10Layout.createSequentialGroup()
-                        .addComponent(jButton14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton15, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton13, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+        	jPanel10Layout.createParallelGroup(Alignment.LEADING)
+        		.addGroup(jPanel10Layout.createSequentialGroup()
+        			.addContainerGap()
+        			.addGroup(jPanel10Layout.createParallelGroup(Alignment.LEADING)
+        				.addComponent(jScrollPane3, GroupLayout.DEFAULT_SIZE, 605, Short.MAX_VALUE)
+        				.addComponent(jButton7, GroupLayout.PREFERRED_SIZE, 146, GroupLayout.PREFERRED_SIZE)
+        				.addGroup(jPanel10Layout.createSequentialGroup()
+        					.addComponent(jButton10, GroupLayout.PREFERRED_SIZE, 270, GroupLayout.PREFERRED_SIZE)
+        					.addPreferredGap(ComponentPlacement.UNRELATED)
+        					.addComponent(btnOpenBlueNode, GroupLayout.PREFERRED_SIZE, 339, GroupLayout.PREFERRED_SIZE)))
+        			.addContainerGap())
         );
         jPanel10Layout.setVerticalGroup(
-            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel10Layout.createSequentialGroup()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton7)
-                    .addComponent(jButton10)
-                    .addComponent(jButton8)
-                    .addComponent(jButton12))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton13)
-                    .addComponent(jButton14)
-                    .addComponent(jButton15)))
+        	jPanel10Layout.createParallelGroup(Alignment.LEADING)
+        		.addGroup(jPanel10Layout.createSequentialGroup()
+        			.addComponent(jScrollPane3, GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE)
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addComponent(jButton7)
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addGroup(jPanel10Layout.createParallelGroup(Alignment.BASELINE)
+        				.addComponent(jButton10)
+        				.addComponent(btnOpenBlueNode)))
         );
+        jPanel10.setLayout(jPanel10Layout);
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
-        jPanel7.setLayout(jPanel7Layout);
         jPanel7Layout.setHorizontalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel7Layout.createSequentialGroup()
-                        .addComponent(jPanel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(614, 614, 614))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())))
+        	jPanel7Layout.createParallelGroup(Alignment.TRAILING)
+        		.addGroup(Alignment.LEADING, jPanel7Layout.createSequentialGroup()
+        			.addContainerGap()
+        			.addComponent(jPanel9, GroupLayout.PREFERRED_SIZE, 511, GroupLayout.PREFERRED_SIZE)
+        			.addContainerGap(953, Short.MAX_VALUE))
+        		.addGroup(jPanel7Layout.createSequentialGroup()
+        			.addContainerGap(527, Short.MAX_VALUE)
+        			.addComponent(jPanel10, GroupLayout.PREFERRED_SIZE, 937, GroupLayout.PREFERRED_SIZE)
+        			.addContainerGap())
         );
         jPanel7Layout.setVerticalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+        	jPanel7Layout.createParallelGroup(Alignment.TRAILING)
+        		.addGroup(jPanel7Layout.createSequentialGroup()
+        			.addContainerGap()
+        			.addGroup(jPanel7Layout.createParallelGroup(Alignment.TRAILING)
+        				.addComponent(jPanel10, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 487, Short.MAX_VALUE)
+        				.addComponent(jPanel9, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 487, Short.MAX_VALUE))
+        			.addContainerGap())
         );
+        jPanel7.setLayout(jPanel7Layout);
 
         jTabbedPane1.addTab("Remote Red Nodes", jPanel7);
 
@@ -715,8 +705,31 @@ public class MainWindow extends javax.swing.JFrame {
         pack();
     }
 
-    private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (jToggleButton1.isSelected() == true) {
+    private void openNewBnWindow() {
+        new NonAssociatedBlueNodeClientGUI().setVisible(true);     
+    }
+    
+    protected void openAssosiatedWindow() {
+		try {
+			int row = jTable3.getSelectedRow();
+			if (row >= 0) {
+				try {
+					new AssociatedBlueNodeClientGUI((String) jTable3.getValueAt(row, 0)).setVisible();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		} catch (ArrayIndexOutOfBoundsException ex){
+			
+		}
+	}
+	
+	protected void trackerRNLookup(ActionEvent evt) {
+		new TrackerLookupGUI().setVisible(true);
+	}
+
+	private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+        if (jToggleButton1.isSelected()) {
             App.bn.viewTraffic = true;
         } else {
             App.bn.viewTraffic = false;
@@ -732,49 +745,11 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {
-        App.bn.remoteRedNodesTable.updateTable();
-    }
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
-        App.bn.localRedNodesTable.updateTable();
+    	updateRemoteRns();
     }
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {
-        App.bn.blueNodesTable.updateTable();
-    }
-
-    private void jButton10ActionPerformed(java.awt.event.ActionEvent evt) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Thread(new AddBlueNode()).run();
-            }
-        });
-    }
-
-    private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {
-        int[] table = jTable3.getSelectedRows();
-        RemoteHandle.removeBlueNodes(table);
-    }
-
-    private void jButton12ActionPerformed(java.awt.event.ActionEvent evt) {
-        int[] table = jTable3.getSelectedRows();
-        RemoteHandle.upingBlueNodes(table);
-    }
-
-    private void jButton13ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (jTable3.getSelectedRow() != -1) {
-            new BlueStatus(App.bn.blueNodesTable.getBlueNodeInstance(jTable3.getSelectedRow()).getHostname()).setVisible(true);
-        }
-    }
-
-    private void jButton14ActionPerformed(java.awt.event.ActionEvent evt) {
-        int[] table = jTable3.getSelectedRows();
-        RemoteHandle.GetRemoteRedNodes(table);
-    }
-
-    private void jButton15ActionPerformed(java.awt.event.ActionEvent evt) {
-        int[] table = jTable3.getSelectedRows();
-        RemoteHandle.ExchangeRedNodes(table);
+    	updateBNs();
     }
 
     private void jCheckBox5ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -817,33 +792,13 @@ public class MainWindow extends javax.swing.JFrame {
     private void jCheckBox12ActionPerformed(java.awt.event.ActionEvent evt) {
         App.bn.autoScrollDown = jCheckBox12.isSelected();
     }
-    
-    public void setBlueNodeInfo() {    
-        jTextField1.setText(App.bn.name);
-        jTextField2.setText("" + App.bn.authPort);
-        jTextField4.setText("" + App.bn.maxRednodeEntries);
-        jTextField5.setText("" + App.bn.startPort + "-" + App.bn.endPort);
-        if (App.bn.network) {
-        	txtOpMode.setText("Network");
-        } else if (App.bn.useList){
-        	txtOpMode.setText("Standalone/List");
-        } else {
-        	txtOpMode.setText("Standalone/Plain");
-        }
-    }
-
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
-    private javax.swing.JButton jButton12;
-    private javax.swing.JButton jButton13;
-    private javax.swing.JButton jButton14;
-    private javax.swing.JButton jButton15;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton7;
-    private javax.swing.JButton jButton8;
     private javax.swing.JCheckBox jCheckBox10;
     private javax.swing.JCheckBox jCheckBox11;
     private javax.swing.JCheckBox jCheckBox12;
@@ -893,4 +848,71 @@ public class MainWindow extends javax.swing.JFrame {
     public static javax.swing.JTextField jTextField5;
     private javax.swing.JToggleButton jToggleButton1;
     private JTextField txtOpMode;
-   }
+    private JButton btnOpenBlueNode;
+    private JLabel lblEchoAddress;
+    private JTextField textField;
+    
+    public void setBlueNodeInfo() {    
+        jTextField1.setText(App.bn.name);
+        jTextField2.setText("" + App.bn.authPort);
+        jTextField4.setText("" + App.bn.maxRednodeEntries);
+        jTextField5.setText("" + App.bn.startPort + "-" + App.bn.endPort);
+        if (App.bn.network) {
+        	txtOpMode.setText("Network");
+        } else if (App.bn.useList){
+        	txtOpMode.setText("Standalone/List");
+        } else {
+        	txtOpMode.setText("Standalone/Plain");
+        }
+    }
+    
+    public void setEchoIpAddress(String addr) {
+    	textField.setText(addr);
+    }
+
+	public void updateLocalRns() {
+		synchronized (lockLocal) {
+			String[][] obj = App.bn.localRedNodesTable.buildGUIObj();
+			int rows = localRedNodeTableModel.getRowCount();
+	        for (int i = 0; i < rows; i++) {
+	            localRedNodeTableModel.removeRow(0);
+	        }
+	        for (int i = 0; i < obj.length; i++) {
+	            localRedNodeTableModel.addRow(obj[i]);
+	        }
+	        
+	        jTable1.setModel(localRedNodeTableModel);
+	        repaint();
+		}		
+	}
+
+	public void updateRemoteRns() {
+		synchronized (lockRRn) {
+			String[][] obj = App.bn.blueNodesTable.buildRRNGUIObj();
+			int rows = remoteRedNodeTableModel.getRowCount();
+	        for (int i = 0; i < rows; i++) {
+	        	remoteRedNodeTableModel.removeRow(0);
+	        }
+	        for (int i = 0; i < obj.length; i++) {
+	        	remoteRedNodeTableModel.addRow(obj[i]);
+	        }		
+	        jTable2.setModel(remoteRedNodeTableModel);
+	        repaint();
+		}		
+	}
+	
+	public void updateBNs() {
+		synchronized (lockBn) {
+			String[][] obj = App.bn.blueNodesTable.buildBNGUIObj();
+			int rows = remoteBlueNodeTableModel.getRowCount();
+	        for (int i = 0; i < rows; i++) {
+	        	remoteBlueNodeTableModel.removeRow(0);
+	        }
+	        for (int i = 0; i < obj.length; i++) {
+	        	remoteBlueNodeTableModel.addRow(obj[i]);
+	        }	
+	        jTable3.setModel(remoteBlueNodeTableModel);
+	        repaint();
+		}
+	}
+}

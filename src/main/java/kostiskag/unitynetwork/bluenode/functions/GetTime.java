@@ -4,7 +4,7 @@ package kostiskag.unitynetwork.bluenode.functions;
  *
  * @author kostis
  */
-public class getTime {
+public class GetTime {
     public static String getFullTimestamp(){
         String date = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new java.util.Date());
         return date;

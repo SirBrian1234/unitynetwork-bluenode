@@ -5,11 +5,13 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.GUI.*;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
+import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.redThreads.RedlUpService;
 
 /**
@@ -18,60 +20,67 @@ import kostiskag.unitynetwork.bluenode.redThreads.RedlUpService;
  */
 public class BlueUpServiceServer extends Thread {
 
-    private String pre = "^UpService  (UP) ";
-    private boolean kill = false;
-    private static Boolean trigger = false;
-    private int upPort;
-    private int sourcePort;
-    private String hostname;
-    private DatagramPacket sendUDPPacket;
-    private DatagramSocket serverSocket = null;
-    private InetAddress BlueNodeAddress;
-    private byte[] data;
-    private DatagramPacket receivedUDPPacket;
+    private final String pre;
+    private final BlueNodeInstance blueNode;
+    private final int upPort;
     private int destPort;
-    private boolean isServer =false;
+    private InetAddress blueNodePhAddress;
+    private DatagramSocket serverSocket;    
+    private boolean didTrigger = false;
+    private AtomicBoolean kill = new AtomicBoolean(false);  
 
-    /*
+    /**
      * First the class must find all the valuable information to open the socket
      * we do this on the constructor so that the running time will be charged on
      * the AuthService Thread
      */
-    public BlueUpServiceServer(String hostname) {
-        this.hostname = hostname;
-        upPort = App.bn.UDPports.requestPort();
-        pre = pre + hostname + " ";
-        isServer = true;
+    public BlueUpServiceServer(BlueNodeInstance blueNode) {    	
+    	this.blueNode = blueNode;
+    	this.pre = "^BlueUpServiceServer "+blueNode.getName()+" ";
+        this.blueNodePhAddress = blueNode.getPhaddress();
+        this.upPort = App.bn.UDPports.requestPort();
     }
     
-    public BlueUpServiceServer(String hostname, int downport, String PhAddress) {
-        this.hostname = hostname;        
-        pre = pre + hostname + " ";
-        isServer = false;
+    public int getUpport() {
+        return upPort;
+    }    
+    
+    public int getDestPort() {
+		return destPort;
+	}
+    
+    public BlueNodeInstance getBlueNode() {
+		return blueNode;
+	}
+    
+    public boolean getIsKilled() {
+    	return kill.get();
     }
 
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre + "STARTED FOR " + hostname + " AT " + Thread.currentThread().getName() + " ON PORT " + upPort);
+        App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + upPort);
         App.bn.ConsolePrint("up service server " + upPort);
 
         try {
             serverSocket = new DatagramSocket(upPort);
         } catch (SocketException ex) {
-            Logger.getLogger(RedlUpService.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            return;
         }
         try {
             serverSocket.setSoTimeout(10000);
         } catch (SocketException ex) {
-            Logger.getLogger(BlueUpServiceServer.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            return;
         }
 
-        byte[] buffer = new byte[2048];
-        receivedUDPPacket = new DatagramPacket(buffer, buffer.length);
+        byte[] data = new byte[2048];
+        DatagramPacket receivedUDPPacket = new DatagramPacket(data, data.length);
         try {
             serverSocket.receive(receivedUDPPacket);
         } catch (java.net.SocketTimeoutException ex) {
-            App.bn.ConsolePrint(pre + "FISH SOCKET TIMEOUT");
+            App.bn.ConsolePrint(pre +"FISH SOCKET TIMEOUT");
             return;
         } catch (java.net.SocketException ex) {
             App.bn.ConsolePrint(pre + "FISH SOCKET CLOSED, EXITING");
@@ -82,63 +91,60 @@ public class BlueUpServiceServer extends Thread {
         }
 
         destPort = receivedUDPPacket.getPort();
-        BlueNodeAddress = receivedUDPPacket.getAddress();
+        blueNodePhAddress = receivedUDPPacket.getAddress();
 
-        while (!kill) {
-
+        while (!kill.get()) {
+        	
             try {
-                data = App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().poll();
+                data = blueNode.getQueueMan().poll();
             } catch (java.lang.NullPointerException ex1) {
                 continue;
             } catch (java.util.NoSuchElementException ex) {
                 continue;
+            } catch (Exception e) {
+            	e.printStackTrace();
+            	break;
             }
 
-            sendUDPPacket = new DatagramPacket(data, data.length, BlueNodeAddress, destPort);
-            //BlueNode.lvl3BlueNode.BlueNodesTable.getBlueNodeAddress(hostname).getTrafficMan().clearToSend();
+            DatagramPacket sendUDPPacket = new DatagramPacket(data, data.length, blueNodePhAddress, destPort);
             try {
                 serverSocket.send(sendUDPPacket);
                 String version = IpPacket.getVersion(data);
                 if (version.equals("0")) {
                     byte[] payload = IpPacket.getPayloadU(data);
-                    String receivedMessage = new String(payload);
-                    String args[] = receivedMessage.split("\\s+");
+                    String sentMessage = new String(payload);
+                    String args[] = sentMessage.split("\\s+");
                     if (args.length > 1) {
                         if (args[0].equals("00000")) {
                             //keep alive
-                            App.bn.TrafficPrint(pre + version + " " + "[KEEP ALIVE]", 0, 1);
+                            App.bn.TrafficPrint(pre+sentMessage, 0, 1);
                         } else if (args[0].equals("00002")) {
-                            //le wild blue node uping!
-                            App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).setUping(true);
-                            App.bn.TrafficPrint(pre + "LE WILD RN UPING LEAVES", 1, 1);
+                            //blue node uping!
+                            App.bn.TrafficPrint(pre + "UPING SENT", 1, 1);
                         } else if (args[0].equals("00003")) {
-                            //le wild blue node dping!
-                            App.bn.dping = true;
-                            App.bn.TrafficPrint(pre + "LE WILD RN DPING LEAVES", 1, 1);
-                        } 
+                            //blue node uping!
+                            App.bn.TrafficPrint(pre + "DPING SENT", 1, 1);
+                        }
                     }
                 }
-                if (App.bn.gui && trigger == false) {
-                    MainWindow.jCheckBox6.setSelected(true);
-                    trigger = true;
+                if (App.bn.gui && !didTrigger) {
+                	didTrigger = true;
+                	MainWindow.jCheckBox6.setSelected(true);                    
                 }
             } catch (java.net.SocketException ex1) {
-                App.bn.ConsolePrint(pre + " SOCKET DIED FOR " + hostname);
+                App.bn.ConsolePrint(pre + " SOCKET ERROR");
+                break;
             } catch (IOException ex) {
-                App.bn.ConsolePrint(pre + "SOCKET ERROR FOR " + hostname);
+                App.bn.ConsolePrint(pre + "IO ERROR");
+                break;
             }
         }
-        App.bn.blueNodesTable.getBlueNodeInstanceByHn(hostname).getQueueMan().clear();
-        App.bn.UDPports.releasePort(sourcePort);
-        App.bn.ConsolePrint(pre + "ENDED FOR " + hostname);
+        App.bn.UDPports.releasePort(upPort);
+        App.bn.ConsolePrint(pre + "ENDED");
     }
 
     public void kill() {
-        kill = true;
+        kill.set(true);
         serverSocket.close();
-    }
-
-    public int getUpport() {
-        return upPort;
-    }          
+    }         
 }
