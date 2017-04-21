@@ -36,7 +36,6 @@ public class BlueNodeTimeBuilder extends Thread {
             }
             if (kill.get()) break;
             int passedTime = bn.idleTime.addAndGet(buildStepSec*1000);
-            App.bn.ConsolePrint(pre+"BUILDING TIME "+passedTime);
             
             if (bn.idleTime.get() > maxWaitTimeSec*1000) {
             	App.bn.ConsolePrint(pre+"BlueNode is not responding releasing from the local bn table");
@@ -47,7 +46,7 @@ public class BlueNodeTimeBuilder extends Thread {
 				}
             }
         }
-        App.bn.ConsolePrint(pre+"DIED");
+        App.bn.ConsolePrint(pre+"ENDED");
     }
 
     public void Kill() {

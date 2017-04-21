@@ -36,7 +36,7 @@ public class TrackerTimeBuilder extends Thread {
                 ex.printStackTrace();
             }
             if (kill.get()) break;
-            int passedTime = App.bn.trackerRespond.getAndAdd(App.bn.trackerCheckSec*1000);
+            int passedTime = App.bn.trackerRespond.addAndGet(App.bn.trackerCheckSec*1000);
             App.bn.ConsolePrint(pre+" BUILDING TIME "+passedTime);
             
             if (passedTime > App.bn.trackerMaxIdleTimeMin*1000*60) {

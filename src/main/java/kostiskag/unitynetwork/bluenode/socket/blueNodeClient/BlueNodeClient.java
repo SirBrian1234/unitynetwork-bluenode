@@ -128,21 +128,25 @@ public class BlueNodeClient {
 	public boolean uPing() {
 		if (bn != null) {
 			if (connected) {
-				TCPSocketFunctions.sendFinalData("UPING", socketWriter);
-		        byte[] payload = ("00002 " + App.bn.name + " [UPING PACKET]").getBytes();
+				byte[] payload = ("00002 " + App.bn.name + " [UPING PACKET]").getBytes();
 		        byte[] data = IpPacket.MakeUPacket(payload, null, null, true);
-		        bn.getQueueMan().offer(data);
-		        bn.getQueueMan().offer(data);
 		        
-		        try {
-		            sleep(1700);
-		        } catch (InterruptedException ex) {
-		            ex.printStackTrace();
-		        }	        
+				TCPSocketFunctions.sendData("UPING", socketWriter, socketReader);
+				//wait to get set
+		        for (int i=0; i<3; i++) {
+		        	bn.getQueueMan().offer(data);
+		        	try {
+						sleep(200);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		        }
+		        
 		        String[] args = TCPSocketFunctions.readData(socketReader);	
 		        closeConnection();
 		        
-		        if (args[1].equals("OK")) {
+		        if (args[0].equals("OK")) {
 		            return true;
 		        } else {
 		            return false;
@@ -152,19 +156,23 @@ public class BlueNodeClient {
 		return false;
 	}
 	
+	/**
+	 * I am telling YOU to send ME some packets to check if I can get them 
+	 * 
+	 * @return
+	 */
 	public boolean dPing() {
 		if (bn != null) {
 			if (connected) {
 			    bn.setDping(false);
-		        TCPSocketFunctions.sendData("DPING", socketWriter, socketReader);
-		        TCPSocketFunctions.connectionClose(sessionSocket);
+		        TCPSocketFunctions.sendFinalData("DPING", socketWriter);
+		        closeConnection();
 		        
 		        try {
 		            sleep(2000);
 		        } catch (InterruptedException ex) {
 		            ex.printStackTrace();
-		        }		        
-		        closeConnection();
+		        }
 		        
 		        if (bn.getDPing()) {
 		            return true;

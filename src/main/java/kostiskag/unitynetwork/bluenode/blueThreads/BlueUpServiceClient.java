@@ -106,10 +106,10 @@ public class BlueUpServiceClient extends Thread {
                                 blueNode.setUping(true);                                
                                 App.bn.TrafficPrint(pre + "UPING RECEIVED",1,1);
                             } else if (args[0].equals("00003")) {
-                                //blue node dping!
-                            	blueNode.setDping(true);                               
+                                //blue node uping!
+                                blueNode.setDping(true);                                
                                 App.bn.TrafficPrint(pre + "DPING RECEIVED",1,1);
-                            } 
+                            }
                         }
                     } else {
                         App.bn.manager.offer(packet);                        

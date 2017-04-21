@@ -80,7 +80,7 @@ public class BlueUpServiceServer extends Thread {
         try {
             serverSocket.receive(receivedUDPPacket);
         } catch (java.net.SocketTimeoutException ex) {
-            App.bn.ConsolePrint(pre + "FISH SOCKET TIMEOUT");
+            App.bn.ConsolePrint(pre +"FISH SOCKET TIMEOUT");
             return;
         } catch (java.net.SocketException ex) {
             App.bn.ConsolePrint(pre + "FISH SOCKET CLOSED, EXITING");
@@ -120,13 +120,11 @@ public class BlueUpServiceServer extends Thread {
                             App.bn.TrafficPrint(pre+sentMessage, 0, 1);
                         } else if (args[0].equals("00002")) {
                             //blue node uping!
-                            blueNode.setUping(true);
                             App.bn.TrafficPrint(pre + "UPING SENT", 1, 1);
                         } else if (args[0].equals("00003")) {
-                            //blue node dping!
-                        	blueNode.setDping(true);   
+                            //blue node uping!
                             App.bn.TrafficPrint(pre + "DPING SENT", 1, 1);
-                        } 
+                        }
                     }
                 }
                 if (App.bn.gui && !didTrigger) {

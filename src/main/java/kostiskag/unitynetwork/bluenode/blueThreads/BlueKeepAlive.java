@@ -60,7 +60,7 @@ public class BlueKeepAlive extends Thread {
                 ex.printStackTrace();
             }
         }
-        App.bn.ConsolePrint(pre+" ENDED");    
+        App.bn.ConsolePrint(pre+"ENDED");    
     }
     
     public void kill() {

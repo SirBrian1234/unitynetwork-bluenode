@@ -77,9 +77,9 @@ public class BlueDownServiceServer extends Thread {
                                 //keep alive
                                 App.bn.TrafficPrint(pre + receivedMessage,0,1);
                             } else if (args[0].equals("00002")) {
-                                //blue node uping!
-                                blueNode.setUping(true);                                
-                                App.bn.TrafficPrint(pre + "UPING RECEIVED",1,1);                                
+                                //blue node dping!
+                            	blueNode.setUping(true);                            
+                                App.bn.TrafficPrint(pre + "UPING RECEIVED",1,1);
                             } else if (args[0].equals("00003")) {
                                 //blue node dping!
                             	blueNode.setDping(true);                            
@@ -87,7 +87,6 @@ public class BlueDownServiceServer extends Thread {
                             } else if (args[0].equals("00004")) {
                                 //ack
                                 App.bn.TrafficPrint(pre + version + " " + receivedMessage,2,1);
-                                //BlueNode.lvl3BlueNode.BlueNodesTable.getBlueNodeAddress(hostname).getTrafficMan().gotACK();                               
                             }
                         }                        
                     } else {

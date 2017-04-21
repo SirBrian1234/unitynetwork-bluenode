@@ -77,27 +77,37 @@ public class BlueNodeFunctions {
 		}            	        	    		     	       
     }
 
+    /**
+     * A Bn has requested to tell him if we can receive his packets
+     */
     static void Uping(BlueNodeInstance bn, PrintWriter outputWriter) {
-    	bn.setUping(false);        
-        try {
+    	bn.setUping(false);
+    	outputWriter.println("SET");
+    	
+    	try {
             sleep(2000);
         } catch (InterruptedException ex) {
             ex.printStackTrace();
-        }        
+        }
+    	
         if (bn.getUPing()) {
-            outputWriter.println("UPING OK");
+            outputWriter.println("OK");
         } else {
-            outputWriter.println("UPING FAILED");
+            outputWriter.println("FAILED");
         }
     }
 
+    /**
+     * A Bn has requested to get some packets. That's all!
+     */
     static void Dping(BlueNodeInstance bn, PrintWriter outputWriter) {
-        outputWriter.println("DPING SENDING");
         byte[] payload = ("00003 "+App.bn.name+" [DPING PACKET]").getBytes();
         byte[] data = IpPacket.MakeUPacket(payload, null, null, true);
         try {
-			bn.getQueueMan().offer(data);
-			bn.getQueueMan().offer(data);
+        	for (int i=0; i<3; i++) {
+        		bn.getQueueMan().offer(data);
+        		sleep(200);
+        	}			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

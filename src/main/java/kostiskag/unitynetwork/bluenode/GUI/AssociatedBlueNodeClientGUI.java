@@ -1,21 +1,17 @@
 package kostiskag.unitynetwork.bluenode.GUI;
 
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
-import javax.swing.JRadioButton;
 import javax.swing.JButton;
 import javax.swing.JTextField;
-
-import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
-import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
-
 import javax.swing.JLabel;
 import java.awt.Font;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+
+import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
 
 public class AssociatedBlueNodeClientGUI {
 
@@ -242,7 +238,7 @@ public class AssociatedBlueNodeClientGUI {
 	protected void uping() {
 		try {
 			BlueNodeClient cl = new BlueNodeClient(bn);
-			cl.uPing();
+			textField_6.setText(cl.uPing()+"");
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -251,7 +247,7 @@ public class AssociatedBlueNodeClientGUI {
 	protected void dping() {
 		try {
 			BlueNodeClient cl = new BlueNodeClient(bn);
-			cl.dPing();
+			textField_6.setText(cl.dPing()+"");
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
