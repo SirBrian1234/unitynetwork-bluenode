@@ -166,4 +166,18 @@ public class BlueNodeFunctions {
 		}
 		socketWriter.println("OK");  
 	}
+
+	public static void check(String blueNodeName, PrintWriter socketWriter) {
+		//if associated reset idleTime and update timestamp as well
+		if (App.bn.blueNodesTable.checkBlueNode(blueNodeName)) {
+			try {
+				BlueNodeInstance bn = App.bn.blueNodesTable.getBlueNodeInstanceByName(blueNodeName);
+				bn.resetIdleTime();
+				bn.updateTime();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		socketWriter.println("OK");
+	}
 }	

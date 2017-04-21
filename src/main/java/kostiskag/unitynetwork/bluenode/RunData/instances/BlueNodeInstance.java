@@ -1,24 +1,19 @@
 package kostiskag.unitynetwork.bluenode.RunData.instances;
 
-import java.io.*;
 import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.RunData.tables.RemoteRedNodeTable;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueDownServiceClient;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueDownServiceServer;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueKeepAlive;
+import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueUpServiceClient;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueUpServiceServer;
 import kostiskag.unitynetwork.bluenode.functions.GetTime;
-import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
 /**
@@ -32,23 +27,23 @@ public class BlueNodeInstance {
     private final String phAddressStr;
     private final InetAddress phAddress;
     private final int remoteAuthPort;
-    private final boolean isServer;
-    
+    private final boolean isServer;    
     //time
     private String timestamp;
+    public AtomicInteger idleTime = new AtomicInteger(0);
     //threads, objects
-    public RemoteRedNodeTable table;
+    public RemoteRedNodeTable table;    
     private final BlueKeepAlive ka;
     private final QueueManager man;
+    private BlueNodeTimeBuilder timeBuilder;
     private BlueDownServiceServer down;
     private BlueUpServiceServer up;
     private BlueDownServiceClient downcl;
     private BlueUpServiceClient upcl;
     //triggers
-    private int state = 0;
+    private int state = 0;    
     private AtomicBoolean uPing = new AtomicBoolean(false);
     private AtomicBoolean dPing = new AtomicBoolean(false);
-    
     
     /**
      * This object constructor is mainly used for testing.
@@ -65,7 +60,8 @@ public class BlueNodeInstance {
     	this.state = 0;                  
         this.ka = new BlueKeepAlive(this);
         this.man = new QueueManager(20);
-        this.table = new RemoteRedNodeTable(this);        
+        this.table = new RemoteRedNodeTable(this);    
+        this.timestamp = GetTime.getSmallTimestamp();
     }
 
     /**
@@ -80,7 +76,8 @@ public class BlueNodeInstance {
     	this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
         this.table = new RemoteRedNodeTable(this);
         this.ka = new BlueKeepAlive(this);
-        this.man = new QueueManager(20);                
+        this.man = new QueueManager(20);   
+        this.timestamp = GetTime.getSmallTimestamp();
         
         //setting down as server
         down = new BlueDownServiceServer(this);
@@ -113,17 +110,21 @@ public class BlueNodeInstance {
         this.remoteAuthPort = authPort;
         this.table = new RemoteRedNodeTable(this);
         this.ka = new BlueKeepAlive(this);
-        this.man = new QueueManager(20);        
+        this.man = new QueueManager(20);   
+        this.timestamp = GetTime.getSmallTimestamp();
         
         //setting down as client
         downcl = new BlueDownServiceClient(this, upPort);
         //setting up as client
         upcl = new BlueUpServiceClient(this, downPort);
-
+        //clients have also a timeBuilder
+        timeBuilder = new BlueNodeTimeBuilder(this, App.bn.blueNodeTimeStepSec, App.bn.blueNodeMaxIdleTimeSec);
+        
         //starting all threads
         downcl.start();
         upcl.start();
         ka.start();
+        timeBuilder.start(); 
 
         state = 1;
         //remember!, don't close the socket here, let the method return and it will be closed from the caller
@@ -227,7 +228,11 @@ public class BlueNodeInstance {
     
     public void updateTime() {
         this.timestamp = GetTime.getSmallTimestamp();
-    } 
+    }
+    
+    public void resetIdleTime() {
+		idleTime.set(0);
+	}
 
     public void killtasks() { 
         ka.kill();
@@ -237,6 +242,7 @@ public class BlueNodeInstance {
         } else {
             upcl.kill();
             downcl.kill();
+            timeBuilder.Kill();
         }
         man.clear();
         state = -1;

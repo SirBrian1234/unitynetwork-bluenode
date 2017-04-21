@@ -37,7 +37,7 @@ public class MainWindow extends javax.swing.JFrame {
     private final Object lockRRn = new Object();
 	private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port"});
     private final DefaultTableModel remoteRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Blue Node Name", "Last Checked"});
-    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Is a Server", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port"});
+    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Is a Server", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port", "Last Checked"});
     public int messageCount = 0;
 
     public MainWindow() {
@@ -666,23 +666,23 @@ public class MainWindow extends javax.swing.JFrame {
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7Layout.setHorizontalGroup(
-        	jPanel7Layout.createParallelGroup(Alignment.LEADING)
-        		.addGroup(Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
-        			.addContainerGap(652, Short.MAX_VALUE)
-        			.addComponent(jPanel10, GroupLayout.PREFERRED_SIZE, 812, GroupLayout.PREFERRED_SIZE)
-        			.addContainerGap())
-        		.addGroup(jPanel7Layout.createSequentialGroup()
+        	jPanel7Layout.createParallelGroup(Alignment.TRAILING)
+        		.addGroup(Alignment.LEADING, jPanel7Layout.createSequentialGroup()
         			.addContainerGap()
-        			.addComponent(jPanel9, GroupLayout.PREFERRED_SIZE, 624, GroupLayout.PREFERRED_SIZE)
-        			.addContainerGap(840, Short.MAX_VALUE))
+        			.addComponent(jPanel9, GroupLayout.PREFERRED_SIZE, 511, GroupLayout.PREFERRED_SIZE)
+        			.addContainerGap(953, Short.MAX_VALUE))
+        		.addGroup(jPanel7Layout.createSequentialGroup()
+        			.addContainerGap(527, Short.MAX_VALUE)
+        			.addComponent(jPanel10, GroupLayout.PREFERRED_SIZE, 937, GroupLayout.PREFERRED_SIZE)
+        			.addContainerGap())
         );
         jPanel7Layout.setVerticalGroup(
-        	jPanel7Layout.createParallelGroup(Alignment.LEADING)
-        		.addGroup(Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+        	jPanel7Layout.createParallelGroup(Alignment.TRAILING)
+        		.addGroup(jPanel7Layout.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(jPanel7Layout.createParallelGroup(Alignment.TRAILING)
-        				.addComponent(jPanel9, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 491, Short.MAX_VALUE)
-        				.addComponent(jPanel10, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 491, Short.MAX_VALUE))
+        				.addComponent(jPanel10, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 487, Short.MAX_VALUE)
+        				.addComponent(jPanel9, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 487, Short.MAX_VALUE))
         			.addContainerGap())
         );
         jPanel7.setLayout(jPanel7Layout);

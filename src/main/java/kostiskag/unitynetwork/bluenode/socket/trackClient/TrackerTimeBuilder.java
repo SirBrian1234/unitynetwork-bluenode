@@ -8,12 +8,12 @@ import kostiskag.unitynetwork.bluenode.App;
  *
  * @author kostis
  */
-public class TrackingTracker extends Thread {
+public class TrackerTimeBuilder extends Thread {
 
     private final String pre = "^Tracker sonar ";
     private AtomicBoolean kill = new AtomicBoolean(false);
     
-    public TrackingTracker() {
+    public TrackerTimeBuilder() {
     }
     
     @Override

@@ -11,14 +11,16 @@ import kostiskag.unitynetwork.bluenode.RunData.IpPoll;
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.LocalRedNodeTable;
+import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
 import kostiskag.unitynetwork.bluenode.functions.PortHandle;
+import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeSonarService;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeService.BlueNodeServer;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
-import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackingTracker;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerTimeBuilder;
 
 public class BlueNode extends Thread{
 	private static final String pre = "^BlueNode ";
-	// init settings
+	// Initial settings
 	public final boolean network;
 	public final String trackerAddress;
 	public final int trackerPort;	
@@ -33,34 +35,40 @@ public class BlueNode extends Thread{
 	public final boolean soutTraffic;	
 	public final boolean log;
 	public final AccountsTable accounts;
-	// gui
-	public boolean[] viewType = new boolean[] { true, true, true, true };
-	public boolean[] viewhostType = new boolean[] { true, true };
-	public boolean autoScrollDown = true;
-	// run data
-	public boolean joined = false;
-	public int keepAliveTime = 5;
-	public PortHandle UDPports;
-	public TrackingTracker addr;
-	// our most important tables
-	public LocalRedNodeTable localRedNodesTable;
-	public BlueNodesTable blueNodesTable;
-	// tracker data
-	public String echoAddress;
-	public final int trackerCheckSec = 20;
 	// gui data
 	public boolean viewTraffic = true;
 	private int messageCount = 0;	
 	public IpPoll bucket;
 	public PrintWriter prt;
+	public boolean[] viewType = new boolean[] { true, true, true, true };
+	public boolean[] viewhostType = new boolean[] { true, true };
+	public boolean autoScrollDown = true;
+	// tracker data
+	public String echoAddress;
+	// run data
+	public boolean joined = false;	
+	public PortHandle UDPports;	
+	// timings
+	// tracker
+	public final int trackerCheckSec = 20;
+	public final int trackerMaxIdleTime = 5;
+	// bluenodes
+	public final int blueNodeTimeStepSec = 20;
+	public final int blueNodeCheckTimeSec = 120;
+	public final int blueNodeMaxIdleTimeSec = 2*blueNodeCheckTimeSec;	
+	// our most important tables
+	public LocalRedNodeTable localRedNodesTable;
+	public BlueNodesTable blueNodesTable;
 	// objects
-	public BlueNodeServer auth;
-	public Router router;
 	public MainWindow window;
+	public BlueNodeServer auth;
+	public Router router;	
 	public FlyRegister flyreg;
 	public QueueManager manager;
-	public QueueManager flyman;
-	//
+	public BlueNodeSonarService bnSornar;
+	public BlueNodeTimeBuilder bnTimeBuilder;
+	public TrackerTimeBuilder trackerTimeBuilder;
+	// triggers
 	public AtomicInteger trackerRespond = new AtomicInteger(0);
 
 	/**
@@ -120,45 +128,83 @@ public class BlueNode extends Thread{
 	public void run() {
 		super.run();
 		System.out.println(pre + "started BlueNode at thread " + Thread.currentThread().getName());
-		// 1. gui goes first to verbose init on print
+		
+		/*
+		 *  1. gui goes first to verbose the following on console
+		 */
 		if (gui) {
 			window = new MainWindow();
 			window.setVisible(true);
 			window.setBlueNodeInfo();
 		}
 		
-		// 2. initializing bluenodes data
+		/*
+		 *  2. Initialize tables
+		 */
 		UDPports = new PortHandle(startPort, endPort);
 		localRedNodesTable = new LocalRedNodeTable(maxRednodeEntries);
-		blueNodesTable = new BlueNodesTable();
+		if (network) {
+			blueNodesTable = new BlueNodesTable();
+		}
 
-		// 3. init packet queues
+		/*
+		 *  3. Initialize packet queues
+		 */
 		manager = new QueueManager(200);
-		flyman = new QueueManager(1000);
-
-		// 3. init auth server ~ the service that authenticates clients
+		
+		/*
+		 *  3. Initialize auth server 
+		 *  
+		 *  The service to receive responses from RBNs RNs Tracker
+		 */
 		auth = new BlueNodeServer(authPort);
 		auth.start();
 
-		// 5. init router ~ basically blue node's router
+		/*
+		 *  5. Initialize a router object 
+		 *  
+		 *  basically a blue node's router
+		 */
 		router = new Router();
 		router.start();
+		
+		/* 
+		 * 6. Initialize sonar
+		 * 
+		 * sonarService periodically checks the remote BNs associated as clients
+		 * whereas the timeBuilder keeps track of the remote BNs associated as servers
+		 * 
+		 */
+		if (network) {
+			bnSornar = new BlueNodeSonarService(blueNodeCheckTimeSec);
+			bnSornar.start();
+		}
 
-		// 6. init urouter ~ unknown router the one that manages new hosts new
-		// packets and stuff
-		// flyreg is pointless to work unless in a network
+		/* 
+		 * 7. Initialize Register On The Fly
+		 * 
+		 *  when a packet heading to an unknown destination is received
+		 *  the FlyReg may do all the tasks in order to dynamically build 
+		 *  the path from this BN to a remote BN where the target RN exists,
+		 *  unknown router the one that manages new hosts new
+		 *  FlyReg is meaningful to work only in a network.
+		 *  
+		 */
 		if (network) {
 			flyreg = new FlyRegister();
 			flyreg.start();
 		}
 
-		// 7. lease with the network or use predefined users
+		/*
+		 *  8. lease with the network, use a predefined user's list or dynamically allocate
+		 *  virtual addresses to connected RNs
+		 */
 		if (network) {
 			try {
 				if (joinNetwork()) {
 					joined = true;
-					addr = new TrackingTracker();
-					addr.start();
+					trackerTimeBuilder = new TrackerTimeBuilder();
+					trackerTimeBuilder.start();
 				} else {
 					die();
 				}
@@ -241,10 +287,10 @@ public class BlueNode extends Thread{
 			//release from bns
 			blueNodesTable.sendKillSigsAndReleaseForAll();
 			joined = false;
-			addr.Kill();
+			trackerTimeBuilder.Kill();
 			die();
 		} else {
-			throw new Exception("called leaveNetwork whithout being joined.");
+			throw new Exception("called leaveNetwork whithout join first.");
 		}
 	}
 

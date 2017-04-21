@@ -28,7 +28,7 @@ public class RedKeepAlive extends Thread {
     public RedKeepAlive(LocalRedNodeInstance rn) {
         this.rn = rn;
         this.pre = "^RedKeepAlive "+rn.getHostname()+" ";
-        this.keepAliveTime = kostiskag.unitynetwork.bluenode.App.bn.keepAliveTime;              
+        this.keepAliveTime = kostiskag.unitynetwork.bluenode.App.bn.trackerMaxIdleTime;              
         this.data = kostiskag.unitynetwork.bluenode.Routing.IpPacket.MakeUPacket(payload, null, null, true);
     }
     

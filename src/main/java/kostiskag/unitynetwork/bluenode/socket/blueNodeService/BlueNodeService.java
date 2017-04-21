@@ -64,7 +64,7 @@ public class BlueNodeService extends Thread {
             String[] args = clientSentence.split("\\s+");
 
             if (args.length == 1 && args[0].equals("CHECK")) {
-            	socketWriter.println("OK");
+            	BlueNodeFunctions.check(blueNodeName,socketWriter);
             } else if (args.length == 1 && args[0].equals("ASSOCIATE")) {
                 BlueNodeFunctions.associate(blueNodeName,sessionSocket,socketReader,socketWriter);
             } else if (App.bn.blueNodesTable.checkBlueNode(blueNodeName)) {            	

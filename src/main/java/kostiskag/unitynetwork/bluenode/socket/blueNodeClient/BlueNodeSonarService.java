@@ -1,34 +1,33 @@
 package kostiskag.unitynetwork.bluenode.socket.blueNodeClient;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import kostiskag.unitynetwork.bluenode.App;
 
 /**
- * Works like the java garbage collector but for killed bluenodes and redonodes. The sonar
- * connects to the leased bluenodes and requests to get their respective rednodes back
+ * Works like the java garbage collector but for killed bluenodes and remote redonodes. The sonar
+ * connects to the associated bluenodes where the calling bluenode is a server
+ * and requests to get their status and remote rednodes back
  * When a dead bn is found, it, and its rns are removed from this bluenode
  * 
  * @author Konstantinos Kagiampakis
  */
-public class SonarService extends Thread {
+public class BlueNodeSonarService extends Thread {
 
-    private final String pre = "^SonarService ";
-    private final int time;
+    private final String pre = "^BlueNodeSonarService ";
+    private final int timeInSec;
     private AtomicBoolean kill = new AtomicBoolean(false);
     
-    public SonarService(int time) {
-        this.time = time;
+    public BlueNodeSonarService(int timeInSec) {
+        this.timeInSec = timeInSec;
     }
 
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre+"started in thread "+Thread.currentThread()+" with time "+time+" sec");
+        App.bn.ConsolePrint(pre+"started in thread "+Thread.currentThread()+" with time pulse "+timeInSec+" sec");
         while (!kill.get()) {
             try {
-                sleep(time*1000);
+                sleep(timeInSec*1000);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -38,7 +37,7 @@ public class SonarService extends Thread {
         }
     }
     
-    public synchronized void kill(){
+    public synchronized void kill() {
         kill.set(true);
     }
 }

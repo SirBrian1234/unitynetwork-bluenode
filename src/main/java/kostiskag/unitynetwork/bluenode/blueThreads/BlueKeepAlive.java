@@ -26,7 +26,7 @@ public class BlueKeepAlive extends Thread {
     public BlueKeepAlive(BlueNodeInstance blueNode) {        
     	this.blueNode = blueNode;
         this.pre = "^KEEP ALIVE "+blueNode.getName()+" ";
-    	this.timeInSec = App.bn.keepAliveTime;
+    	this.timeInSec = App.bn.trackerMaxIdleTime;
     	this.numOfPacketsToSend = 3;        
         this.packet = IpPacket.MakeUPacket(("00000 "+App.bn.name+" [KEEP ALIVE]  ").getBytes(), null, null, true);                
     }

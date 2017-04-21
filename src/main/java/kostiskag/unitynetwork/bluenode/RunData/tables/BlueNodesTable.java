@@ -131,13 +131,18 @@ public class BlueNodesTable {
         return false;
     }
     
+    /**
+     * This is triggered when a BN needs to exit the network.
+     * In this case and since the bn may exit bn.killtasks(); 
+     * is not required.
+     */
     public synchronized void sendKillSigsAndReleaseForAll() {
     	Iterator<BlueNodeInstance> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNodeInstance bn = it.next();
     		BlueNodeClient cl = new BlueNodeClient(bn);
     		cl.removeThisBlueNodesProjection();
-    		bn.killtasks();  	
+    		//bn.killtasks();  	
     		if (verbose) {
 				App.bn.ConsolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
 			}
@@ -194,7 +199,7 @@ public class BlueNodesTable {
         int i=0;
     	while(it.hasNext()) {
         	BlueNodeInstance bn = it.next();
-        	object[i] = new String[]{bn.getName(), bn.isTheRemoteAServer(), bn.getPhAddressStr(), ""+bn.getRemoteAuthPort(),""+bn.getUpport(), ""+bn.getDownport()};
+        	object[i] = new String[]{bn.getName(), bn.isTheRemoteAServer(), bn.getPhAddressStr(), ""+bn.getRemoteAuthPort(),""+bn.getUpport(), ""+bn.getDownport(), bn.getTime()};
         	i++;
         }
     	return object;
@@ -224,24 +229,13 @@ public class BlueNodesTable {
         }
         return object;
     }
-    
-    private void notifyGUI() {
-    	if (notifyGui) {
-    		App.bn.window.updateBNs();
-    	}
-    }
-    
-    private void notifyRGUI () {
-    	if (notifyGui) {
-    		App.bn.window.updateRemoteRns();
-    	}
-    }
-
-    /*
-     * for all the associated blue nodes where the calling bn is
-     * a server...
+       
+    /**
+     * This is triggered by the sonarService 
+     * for all the associated blue nodes inside the table where the calling bn is
+     * a server this has to be called in order to detect dead entries and disconnected rrns
      */
-	public void rebuildTableViaAuthClient() {
+	public synchronized void rebuildTableViaAuthClient() {
 		Iterator<BlueNodeInstance> iterator = list.listIterator();
     	while (iterator.hasNext()) {
     		BlueNodeInstance element = iterator.next();   
@@ -249,7 +243,9 @@ public class BlueNodesTable {
 	            try {
 	            	BlueNodeClient cl = new BlueNodeClient(element);
 					if (cl.checkBlueNode()) {
-						System.out.println(pre+"Fetching RNs from BN "+element.getName());
+						if (verbose) {
+							App.bn.ConsolePrint(pre+"Fetching RNs from BN "+element.getName());
+						}
 					    element.updateTime();
 					    cl = new BlueNodeClient(element);
 					    LinkedList<RemoteRedNodeInstance> rns = cl.getRemoteRedNodesObj(); 
@@ -268,15 +264,33 @@ public class BlueNodesTable {
 				    		}
 					    }				    
 					    element.table = new RemoteRedNodeTable(element, valid);
-					} else {                
-						iterator.remove();               
+					} else { 
+						element.killtasks();
+						iterator.remove();      
+						if (verbose) {
+							App.bn.ConsolePrint(pre +"RELEASED NON RESPONDING BLUE NODE " + element.getName());
+						}
 					}
 				} catch (Exception e) {
+					element.killtasks();
 					iterator.remove();  
 				}
     		}
     	}
     	System.out.println(pre+" BN Table rebuilt");
     	notifyGUI();    	
+    	notifyRGUI();
 	}
+	
+	private void notifyGUI() {
+    	if (notifyGui) {
+    		App.bn.window.updateBNs();
+    	}
+    }
+    
+    private void notifyRGUI () {
+    	if (notifyGui) {
+    		App.bn.window.updateRemoteRns();
+    	}
+    }
 }
