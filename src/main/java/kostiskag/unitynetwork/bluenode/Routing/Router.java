@@ -52,12 +52,13 @@ public class Router extends Thread {
                     App.bn.TrafficPrint(pre + version + " " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
                 }
 
-                if (App.bn.blueNodesTable.checkRemoteRedNodeByVaddress(destvaddress)) {
-                    //load the packet data to target users lifo
+                if (App.bn.localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
+                    //load the packet data to local red node's queue
                     App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offer(data);
                     App.bn.TrafficPrint(pre+"LOCAL DESTINATION", 3, 0);
                 } else if (App.bn.joined) {
                     if (App.bn.blueNodesTable.checkRemoteRedNodeByVaddress(destvaddress)) {
+                    	//load the packet to remote blue node's queue
                         BlueNodeInstance bn;
 						try {
 							bn = App.bn.blueNodesTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
@@ -67,6 +68,7 @@ public class Router extends Thread {
 							e.printStackTrace();
 						}                        
                     } else {
+                    	//lookup via tracker fro a bluenode with this rrd
                         App.bn.TrafficPrint(pre +"NOT KNOWN RRN WITH "+destvaddress+" SEEKING TARGET BN", 3, 1);
                         App.bn.flyreg.seekDest(sourcevaddress, destvaddress);
                     }

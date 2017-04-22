@@ -1,18 +1,12 @@
 package kostiskag.unitynetwork.bluenode.RunData.instances;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
-import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
-import kostiskag.unitynetwork.bluenode.functions.IpAddrFunctions;
+import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.redThreads.RedDownService;
 import kostiskag.unitynetwork.bluenode.redThreads.RedKeepAlive;
 import kostiskag.unitynetwork.bluenode.redThreads.RedlUpService;

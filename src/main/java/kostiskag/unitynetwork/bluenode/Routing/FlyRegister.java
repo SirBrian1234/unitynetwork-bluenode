@@ -1,9 +1,7 @@
 package kostiskag.unitynetwork.bluenode.Routing;
 
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
@@ -15,37 +13,28 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
  */
 public class FlyRegister extends Thread {
 
-    private String pre = "^FLY REG ";
-    Queue<SourceDestPair> hotAddresses;
-    private boolean kill = false;
+    private String pre = "^FlyRegister ";
+    QueuePair queue = new QueuePair(100);
+    private AtomicBoolean kill = new AtomicBoolean(false);
 
     public FlyRegister() {    
-        hotAddresses = new LinkedList<SourceDestPair>();
+    	
     }
 
     @Override
-    public void run() {
-        seek();
-    }
-
-    public synchronized void seek() {
-
-        while (!kill) {
-
-            try {
-                wait();
-            } catch (InterruptedException ex) {
-                Logger.getLogger(FlyRegister.class.getName()).log(Level.SEVERE, null, ex);
+    public void run() {    	
+        while (!kill.get()) {                    	
+        	
+        	//waits...
+        	SourceDestPair pair =  queue.poll();
+        	//This obj makes the thread to wait when empty
+        	
+            if (kill.get()) {
+                break;
+            } else if (pair == null) {
+            	continue;
             }
-
-            if (kill) {
-                continue;
-            }
-            if (hotAddresses.isEmpty()) {
-                continue;
-            }
-                                                
-            SourceDestPair pair =  hotAddresses.poll();
+           
             String sourcevaddress = pair.sourcevaddress;
             String destvaddress = pair.destvaddress;
             
@@ -116,16 +105,16 @@ public class FlyRegister extends Thread {
                 }
             }
         }
+        App.bn.ConsolePrint(pre+"ENDED");
     }
 
-    public synchronized void seekDest(String sourcevaddress, String destvaddress) {
+    public void seekDest(String sourcevaddress, String destvaddress) {
         SourceDestPair pair = new SourceDestPair(sourcevaddress, destvaddress);        
-        hotAddresses.offer(pair);
-        notify();
+        queue.offer(pair);        
     }
-
-    public synchronized void kill() {
-        kill = true;
-        notify();
+    
+    public void kill() {
+        kill.set(true);
+        queue.exit();
     }
 }
