@@ -1,6 +1,8 @@
 package kostiskag.unitynetwork.bluenode.Routing;
 
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import kostiskag.unitynetwork.bluenode.App;
@@ -82,6 +84,7 @@ public class DnsServer extends Thread {
 					System.out.println("qType is... "+qType);
 					System.out.println("qClass is... "+qClass);
 					
+					/*
 					if (qType.equals("0001") || qType.equals("001c")) {
 						
 						//resolve it
@@ -99,12 +102,29 @@ public class DnsServer extends Thread {
 						//build a non allowed service responce
 						
 					}
+					*/
 					
 					//include responce to udp
 					//include udp to ip
-					//
+					byte[] reply = "hiii :P".getBytes();
 					
-					//App.bn.manager.offer(data);
+					//make datagramm and include reply
+					byte[] datagrammToSend = IpPacket.MakeUDPDatagramm(reply, destPort, sourcePort);
+					
+					//make ip packet and include datagramm
+					byte[] protocolType = HashFunctions.hexStrToBytes(type);
+					byte[] sourceIp = null;
+					byte[] destIp = null;
+					try {
+						sourceIp = InetAddress.getByName("10.0.0.1").getAddress();
+						destIp = InetAddress.getByName(sourcevaddress).getAddress();
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+					}
+					byte[] packet = IpPacket.MakeIpPacket(datagrammToSend, sourceIp, destIp, protocolType);
+					
+					//offer the packet for routing
+					App.bn.manager.offer(packet);
 				}
 			}
 		

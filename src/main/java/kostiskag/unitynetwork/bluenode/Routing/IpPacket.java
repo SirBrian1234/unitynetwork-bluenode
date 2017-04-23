@@ -2,10 +2,11 @@ package kostiskag.unitynetwork.bluenode.Routing;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
+import java.security.SecureRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import kostiskag.unitynetwork.bluenode.Routing.packets.CalculateChecksum;
 import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
 
 /**
@@ -15,33 +16,102 @@ import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
 public class IpPacket {
     
 	public static byte[] MakeIpPacket(byte[] payload, byte[] sourceIp, byte[] destIp, byte[] protocolType) {
-		return null;
+		//calculate length in two bytes
+		int pLen = payload.length+20;
+		byte[] len = HashFunctions.UnsignedIntTo2Bytes(pLen);
+		
+		//make the new packet
+		byte[] packet = new byte[pLen];
+		
+		//copy the payload
+		System.arraycopy(payload, 0, packet, 20, payload.length);
+		
+		//build header
+		byte[] header = new byte[20];
+		
+		//1 byte version
+		byte[] version = new byte[] {(byte) 0x45};
+		System.arraycopy(version, 0, header, 0, version.length);
+		
+		//1 byte diferentiated services
+		byte[] diffServ = new byte[] {(byte) 0x00};
+		System.arraycopy(diffServ, 0, header, 1, diffServ.length);
+		
+		//2 byte len
+		System.arraycopy(len, 0, header, 2, len.length);
+		
+		//2 bytes identification
+		byte[] ident = new byte[2];
+		SecureRandom ranGen = new SecureRandom();
+		ranGen.nextBytes(ident);
+		System.arraycopy(ident, 0, header, 4, ident.length);
+		
+		//1 byte flags
+		byte[] flags = {(byte) 0x00};
+		System.arraycopy(flags, 0, header, 6, flags.length);
+		
+		//1 byte offset
+		byte[] offset = {(byte) 0x00};
+		System.arraycopy(offset, 0, header, 7, offset.length);
+		
+		//1 byte ttl = 128
+		byte[] ttl = {(byte) 0x80};
+		System.arraycopy(ttl, 0, header, 8, ttl.length);
+						
+		//copy inner protocol type
+		System.arraycopy(protocolType, 0, header, 9, protocolType.length);
+		
+		//copy source to header
+		System.arraycopy(sourceIp, 0, header, 12, sourceIp.length);
+		
+		//copy destination to header
+		System.arraycopy(destIp, 0, header, 12+4, destIp.length);
+		
+		//include header to packet
+		System.arraycopy(header, 0, packet, 0, header.length);
+		
+		//calculate checksum for the whole packet
+		long checksum = CalculateChecksum.calculateChecksum(packet);
+		byte[] crc = HashFunctions.UnsignedIntTo2Bytes((int)checksum);
+		
+		//include checksum to the packet
+		System.arraycopy(crc, 0, packet, 10, crc.length);
+						
+		return packet;
 	}
+	
 	
 	public static byte[] MakeUDPDatagramm(byte[] payload, int sourcePort, int destPort) {
 		//make the new datagramm
 		byte[] datagramm = new byte[payload.length+8];
+		
 		//copy the payload
 		System.arraycopy(payload, 0, datagramm, 8, payload.length);
 		
-		//calculate header
-		//header is 8 bytes
+		//calculate header - header is 8 bytes
 		byte[] header = new byte[8];
+		
 		//2 bytes source
 		byte[] source = HashFunctions.UnsignedIntTo2Bytes(sourcePort);
 		System.arraycopy(source, 0, header, 0, 2);
-		//2 btes destination
+		
+		//2 bytes destination
 		byte[] dest = HashFunctions.UnsignedIntTo2Bytes(destPort);
 		System.arraycopy(dest, 0, header, 2, 2);
+		
 		//2 bytes len
 		byte len[] = HashFunctions.UnsignedIntTo2Bytes(datagramm.length);
-		System.arraycopy(dest, 0, header, 4, 2);
+		System.arraycopy(len, 0, header, 4, 2);
 		
 		//copy header to datagramm
 		System.arraycopy(header, 0, datagramm, 0, header.length);
 		
-		//calculate checksum
-		//leave it unsigned for now
+		//calculate 2 byte checksum
+		long crc = CalculateChecksum.calculateChecksum(datagramm);
+		byte[] checksum = HashFunctions.UnsignedIntTo2Bytes((int) crc);
+		
+		//include checksum
+		System.arraycopy(checksum, 0, datagramm, 6, checksum.length);
 		
 		return datagramm;
 	}
