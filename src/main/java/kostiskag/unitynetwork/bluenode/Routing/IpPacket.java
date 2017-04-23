@@ -2,8 +2,11 @@ package kostiskag.unitynetwork.bluenode.Routing;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
 
 /**
  *
@@ -11,16 +14,38 @@ import java.util.logging.Logger;
  */
 public class IpPacket {
     
-    public static byte[] GetPacket(byte[] frame) {
-        byte[] packet = new byte[frame.length];
-        int j=14;
-        for (int i=0; i<frame.length-14; i++){
-            packet[i] = frame[j];
-            j++;
-        }
-        return packet;
-    }       
-    
+	public static byte[] MakeIpPacket(byte[] payload, byte[] sourceIp, byte[] destIp, byte[] protocolType) {
+		return null;
+	}
+	
+	public static byte[] MakeUDPDatagramm(byte[] payload, int sourcePort, int destPort) {
+		//make the new datagramm
+		byte[] datagramm = new byte[payload.length+8];
+		//copy the payload
+		System.arraycopy(payload, 0, datagramm, 8, payload.length);
+		
+		//calculate header
+		//header is 8 bytes
+		byte[] header = new byte[8];
+		//2 bytes source
+		byte[] source = HashFunctions.UnsignedIntTo2Bytes(sourcePort);
+		System.arraycopy(source, 0, header, 0, 2);
+		//2 btes destination
+		byte[] dest = HashFunctions.UnsignedIntTo2Bytes(destPort);
+		System.arraycopy(dest, 0, header, 2, 2);
+		//2 bytes len
+		byte len[] = HashFunctions.UnsignedIntTo2Bytes(datagramm.length);
+		System.arraycopy(dest, 0, header, 4, 2);
+		
+		//copy header to datagramm
+		System.arraycopy(header, 0, datagramm, 0, header.length);
+		
+		//calculate checksum
+		//leave it unsigned for now
+		
+		return datagramm;
+	}
+	
     public static byte[] MakeUPacket(byte[] payload, InetAddress source, InetAddress dest,boolean type) {        
         byte[] version=null;
         
@@ -120,6 +145,41 @@ public class IpPacket {
         byte[] payload = new byte[packet.length-9];
         System.arraycopy(packet, 9, payload, 0, packet.length-9);
         return payload;        
-    }  
+    }
+    
+    //TCP, UDP, etc.
+    public static String getIpPacketPayloadType(byte[] packet) {
+    	byte[] type = new byte[1];
+    	System.arraycopy(packet, 9, type, 0, 1);
+    	return HashFunctions.bytesToHexStr(type);
+    }
+    
+    //what's inside the ip packet
+    public static byte[] getIpPacketPayload(byte[] packet) {
+        byte[] payload = new byte[packet.length-20];
+        System.arraycopy(packet, 20, payload, 0, packet.length-20);
+        return payload;        
+    }    
+    
+    public static int getUDPsourcePort(byte[] datagramm) {
+    	byte[] port = new byte[2];
+    	port[0] = datagramm[0];
+    	port[1] = datagramm[1];
+    	return HashFunctions.bytesToUnsignedInt(port);
+    }
+    
+    public static int getUDPdestPort(byte[] datagramm) {
+    	byte[] port = new byte[2];
+    	port[0] = datagramm[2];
+    	port[1] = datagramm[3];
+    	return HashFunctions.bytesToUnsignedInt(port);
+    }
+    
+    //what's inside a udp packet
+    public static byte[] getUDPpayload(byte[] datagramm) {
+    	byte[] payload = new byte[datagramm.length-8];
+        System.arraycopy(datagramm, 8, payload, 0, datagramm.length-8);
+        return payload;
+    }    
 }
 

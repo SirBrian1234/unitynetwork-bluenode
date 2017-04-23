@@ -51,8 +51,12 @@ public class Router extends Thread {
                     sourcevaddress = IpPacket.getUSourceAddress(data).getHostAddress();
                     App.bn.TrafficPrint(pre + version + " " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
                 }
-
-                if (App.bn.localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
+                
+                if (destvaddress.equals("10.0.0.1")) {
+                	//probably a dns request, forward to internal dns host
+                	App.bn.dns.offer(data);
+                	App.bn.TrafficPrint(pre+"DNS Request", 3, 0);
+                } else if (App.bn.localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
                     //load the packet data to local red node's queue
                     App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offer(data);
                     App.bn.TrafficPrint(pre+"LOCAL DESTINATION", 3, 0);

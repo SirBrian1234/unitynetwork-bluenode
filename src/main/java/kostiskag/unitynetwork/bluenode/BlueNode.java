@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
+import kostiskag.unitynetwork.bluenode.Routing.DnsServer;
 import kostiskag.unitynetwork.bluenode.Routing.FlyRegister;
 import kostiskag.unitynetwork.bluenode.Routing.Router;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
@@ -63,6 +64,7 @@ public class BlueNode extends Thread{
 	public MainWindow window;
 	public BlueNodeServer auth;
 	public Router router;	
+	public DnsServer dns;
 	public FlyRegister flyreg;
 	public QueueManager manager;
 	public BlueNodeSonarService bnSornar;
@@ -168,8 +170,17 @@ public class BlueNode extends Thread{
 		router = new Router();
 		router.start();
 		
+		/*
+		 * 6. Init DNS
+		 * 
+		 * DNS is essential for the internal platform's rooting
+		 * 
+		 */
+		dns = new DnsServer();
+		dns.start();
+		
 		/* 
-		 * 6. Initialize sonar
+		 * 7. Initialize sonar
 		 * 
 		 * sonarService periodically checks the remote BNs associated as clients
 		 * whereas the timeBuilder keeps track of the remote BNs associated as servers
@@ -181,7 +192,7 @@ public class BlueNode extends Thread{
 		}
 
 		/* 
-		 * 7. Initialize Register On The Fly
+		 * 8. Initialize Register On The Fly
 		 * 
 		 *  when a packet heading to an unknown destination is received
 		 *  the FlyReg may do all the tasks in order to dynamically build 
@@ -196,7 +207,7 @@ public class BlueNode extends Thread{
 		}
 
 		/*
-		 *  8. lease with the network, use a predefined user's list or dynamically allocate
+		 *  9. lease with the network, use a predefined user's list or dynamically allocate
 		 *  virtual addresses to connected RNs
 		 */
 		if (network) {
