@@ -11,7 +11,12 @@ import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 
 /**
- * This is the internal dns system 
+ * This is the internal dns system. The whole class behaves like a virtual host.
+ * It may receive IP packets. It may only respond to packets sent towards port
+ * 53 the default dns port. If a request is correct but there are no results, it
+ * may sent a not found responce otherwise it may either send back a hostname or
+ * a virtual address. When a dns request is valid the dns will inform the flyregister
+ * to build the path towards the retrieved result.  
  * 
  * @author Konstantinos Kagiampakis
  */
@@ -73,12 +78,10 @@ public class DnsServer extends Thread {
 							byte[] query = getQueryInBytes(updPayload);
 							
 							char[] nameArray = null;
-							byte[] nameArrayInBytes = null;
 							String name = null;
 							
 							try {
 								nameArray = getQueryNameInCharArray(query);
-								nameArrayInBytes = getQueryNameInByteArray(query);
 								name = new String(nameArray);
 							} catch (UnsupportedEncodingException e1) {						
 								e1.printStackTrace();
@@ -88,6 +91,7 @@ public class DnsServer extends Thread {
 							String qType = getQueryTypeInHex(query);
 							String qClass = getQueryClassInHex(query);
 							
+							/*
 							//START OF VERBOSE STUFF FOR HUMANS
 							System.out.println("session id is..........:"+sessionId);
 							System.out.println("flags are..............:"+flags);
@@ -101,6 +105,7 @@ public class DnsServer extends Thread {
 							System.out.println("qClass is..............:"+qClass);
 							System.out.println("I have ["+nameList.size()+"] domain parts");
 							//END OF VERBOSE HUMAN STUFF
+							 */
 							
 							byte[] flagsToSend = zeroIn2Bytes;
 							byte[] answer = zeroIn2Bytes;
@@ -110,7 +115,6 @@ public class DnsServer extends Thread {
 								//first lets check for a given hostname to provide a virtual address
 								String vaddress = null;
 								String hostname = nameList.get(0);
-								System.out.println(hostname);
 								if (hostname.length() <= App.max_str_len_large_size) {
 									App.bn.ConsolePrint(pre+"hostname lookup "+hostname);
 								
@@ -146,6 +150,7 @@ public class DnsServer extends Thread {
 											denied = true;
 										}
 									} else {
+										App.bn.ConsolePrint(pre+"hostname query "+hostname+" was not found on the bluenode.");
 										denied = true;
 									}									
 								} else {
@@ -153,8 +158,7 @@ public class DnsServer extends Thread {
 								}
 								
 								if (!denied) {
-									System.out.println("building answer with "+vaddress);
-									//build answer
+									//building answer to return the vaddress
 									flagsToSend = flagsSetToFound;
 									ans = oneIn2Bytes;
 									
@@ -181,7 +185,7 @@ public class DnsServer extends Thread {
 									byte[] lenToSend = HashFunctions.UnsignedIntTo2Bytes(4);
 									System.arraycopy(lenToSend, 0, answer, 10, 2);
 									
-									//address
+									//address 4 bytes
 									byte[] addressToSend = new byte[4];
 									try {
 										addressToSend = InetAddress.getByName(vaddress).getAddress();
@@ -193,15 +197,17 @@ public class DnsServer extends Thread {
 								
 							} else if (qType.equals("000c") && nameList.size() == 6 && nameList.get(5).equals("arpa") && nameList.get(4).equals("in-addr") && nameList.get(3).equals("10")) {
 								// then look for a given ip address to provide a hostname
-								// do not forget to answer for yourself! hi! I am a dns
 								String hostname = null;
 								String vaddress= nameList.get(3)+"."+nameList.get(2)+"."+nameList.get(1)+"."+nameList.get(0);
-								System.out.println(vaddress);
 								
 								if (vaddress.length() <= App.max_str_addr_len) {		
 									App.bn.ConsolePrint(pre+"vaddress lookup "+vaddress);
 									
-									if (App.bn.localRedNodesTable.checkOnlineByVaddress(vaddress)) {
+									if (vaddress.equals("10.0.0.1") || vaddress.equals("10.0.0.0") || vaddress.equals("10.255.255.255")) {
+										//we may not lookup this dns or special purpose ips
+										denied = true;
+									
+									} else if (App.bn.localRedNodesTable.checkOnlineByVaddress(vaddress)) {
 										App.bn.ConsolePrint(pre+"vaddress nslookup is local.");
 										hostname = App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getHostname();
 										
@@ -231,24 +237,59 @@ public class DnsServer extends Thread {
 										}
 										
 									} else {
+										App.bn.ConsolePrint(pre+"vaddress query "+vaddress+" was not found on the bluenode.");
 										denied = true;									
 									}
 									
 									if (!denied) {
-										//build answer
-										System.out.println("building answer with "+hostname);
+										//building answer to return the hostname
+										flagsToSend = flagsSetToFound;
+										ans = oneIn2Bytes;
 										
+										//name set to a dot 2 bytes
+										byte[] nameToSend = new byte[] {(byte) 0xc0, (byte) 0x0c};
+
+										//type set to PTR 2 bytes
+										byte[] typeToSend = new byte[] {(byte) 0x00, (byte) 0x0c};;
+																				
+										//class set to IN 2 bytes
+										byte[] classToSend = oneIn2Bytes;										
+										
+										//ttl set to 128 4 bytes
+										byte[] ttl = HashFunctions.UnsignedIntTo4Bytes(128);
+										
+										//hostname N bytes + 1 byte head len + 1 byte zero at the end										
+										byte[] hostnamePlain = hostname.getBytes();
+										byte[] hostnameToSend = new byte[hostnamePlain.length+2];
+										System.arraycopy( HashFunctions.UnsignedIntToByte(hostnamePlain.length), 0, hostnameToSend, 0, 1);
+										System.arraycopy( hostnamePlain, 0, hostnameToSend, 1, hostnamePlain.length);
+										
+										//len 2 bytes set to hostname's length
+										byte[] lenToSend = HashFunctions.UnsignedIntTo2Bytes(hostnameToSend.length);
+										
+										//init the answer with the proper size
+										answer = new byte[12+hostnameToSend.length];
+										
+										//fill it up
+										System.arraycopy(nameToSend, 0, answer, 0, 2);
+										System.arraycopy(typeToSend, 0, answer, 2, 2);
+										System.arraycopy(classToSend, 0, answer, 4, 2);
+										System.arraycopy(ttl, 0, answer, 6, 4);
+										System.arraycopy(lenToSend, 0, answer, 10, 2);
+										System.arraycopy(hostnameToSend, 0, answer, 12, hostnameToSend.length);												
 									}
 									
 								} else {
 									denied = true;
 								}
+								
 							}  else {
 								denied = true;
 							}
 							
 							if (denied) {
-								//not what we were expecting at least let's reply with not found
+								//not what we were expecting, at least let's be a kind service
+								//and reply with a not found response
 								//flags set to not found
 								flagsToSend = flagsSetToNotFound;
 								//number answers set to zero
@@ -257,21 +298,21 @@ public class DnsServer extends Thread {
 								answer = new byte[] {};
 							}
 							
-							//headder
+							//building header
 							byte[] header = new byte[12];
 							
-							//session
+							//include session
 							byte[] sessionToSend = HashFunctions.hexStrToBytes(sessionId);
 							System.arraycopy(sessionToSend, 0, header, 0, 2);
 							
-							//flags set to standard query response 0x8180 0x8183 for does not exist
+							//transfer flags
 							System.arraycopy(flagsToSend, 0, header, 2, 2);
 							
 							//questions set to one
 							byte[] qts =  oneIn2Bytes;
 							System.arraycopy(qts, 0, header, 4, 2);
 							
-							//answer number
+							//transfer the answer number
 							System.arraycopy(ans, 0, header, 6, 2);
 							
 							//authorities set to zero
@@ -282,7 +323,7 @@ public class DnsServer extends Thread {
 							byte[] add =  zeroIn2Bytes;
 							System.arraycopy(add, 0, header, 10, 2);
 							
-							//compile reply
+							//compile the reply
 							byte[] dnsReply = new byte[header.length+query.length+answer.length];
 							System.arraycopy(header, 0, dnsReply, 0, header.length);
 							System.arraycopy(query, 0, dnsReply, header.length, query.length);
@@ -303,7 +344,7 @@ public class DnsServer extends Thread {
 							}
 							byte[] packet = IpPacket.MakeIpPacket(datagrammToSend, sourceIp, destIp, protocolType);
 							
-							//offer the packet for routing
+							//offer the compiled packet for routing
 							App.bn.manager.offer(packet);
 							
 						}
@@ -322,56 +363,97 @@ public class DnsServer extends Thread {
 		queue.offer(data);
 	}
 	
-	//first 2 bytes is session (transaction)
+	/**
+	 * Collects the first 2 bytes which is session (transaction) from a sent dns packet.
+	 * 
+	 * @param dnsQuery
+	 * @return
+	 */
 	public static String getSessionIdInHex(byte[] dnsQuery) {
 		byte[] id = new byte[2];
         System.arraycopy(dnsQuery, 0, id, 0, 2);
         return HashFunctions.bytesToHexStr(id);
 	}
 	
-	//next 2 bytes are flags
+	/**
+	 * Collects the next 2 bytes which are flags from a sent dns packet.
+	 * 
+	 * @param dnsQuery
+	 * @return
+	 */
 	public static String getFlagsInHex(byte[] dnsQuery) {
 		byte[] flags = new byte[2];
         System.arraycopy(dnsQuery, 2, flags, 0, 2);
         return HashFunctions.bytesToHexStr(flags);
 	}
 	
-	//next 2 bytes are num of questions
+	/**
+	 * Collects the next 2 bytes which are the number of questions sent questions.
+	 * 
+	 * @param dnsQuery
+	 * @return
+	 */
 	public static int getQuestionNum(byte[] dnsQuery) {
 		byte[] q = new byte[2];
         System.arraycopy(dnsQuery, 4, q, 0, 2);
         return HashFunctions.bytesToUnsignedInt(q);
 	}
 	
-	//next 2 bytes are num of answers
+	/**
+	 * Collects the next 2 bytes which are the number of answers.
+	 * 
+	 * @param dnsQuery
+	 * @return
+	 */
 	public static int getAnswerNum(byte[] dnsQuery) {
 		byte[] a = new byte[2];
         System.arraycopy(dnsQuery, 6, a, 0, 2);
         return HashFunctions.bytesToUnsignedInt(a);
 	}
 	
-	//next 2 bytes are num of authority
+	/**
+	 * Collects the next 2 bytes which are the number of authority.
+	 * 
+	 * @param dnsQuery
+	 * @return
+	 */
 	public static int getAuthorityNum(byte[] dnsQuery) {
 		byte[] a = new byte[2];
         System.arraycopy(dnsQuery, 8, a, 0, 2);
         return HashFunctions.bytesToUnsignedInt(a);
 	}
 	
-	//next 2 bytes are num of additional
+	/**
+	 * Collects the next 2 bytes which are the number of additional.
+	 * 
+	 * @param dnsQuery
+	 * @return
+	 */
 	public static int getAdditionalNum(byte[] dnsQuery) {
 		byte[] a = new byte[2];
         System.arraycopy(dnsQuery, 10, a, 0, 2);
         return HashFunctions.bytesToUnsignedInt(a);
 	}
 	
-	//next the queries follow
+	/**
+	 * Collects the query from a sent dns packet.
+	 * 
+	 * @param udpPayload
+	 * @return
+	 */
 	public static byte[] getQueryInBytes(byte[] udpPayload) {
 		byte[] query = new byte[udpPayload.length-12];
         System.arraycopy(udpPayload, 12, query, 0, udpPayload.length-12);
         return query;
 	}
 	
-	//get the name of a query in a char array
+	/**
+	 * Collects the name of a query in a char array from a given dns query in a byte array.
+	 * 
+	 * @param query a dns query in bytes
+	 * @return a char array with the name characters
+	 * @throws UnsupportedEncodingException
+	 */
 	public static char[] getQueryNameInCharArray(byte[] query) throws UnsupportedEncodingException {
 		char[] name = new char[query.length-2-2];
         for(int i=0; i<query.length-2-2; i++) {
@@ -380,15 +462,12 @@ public class DnsServer extends Thread {
         return name;
 	}
 	
-	//get the name of a query in byte array
-	public static byte[] getQueryNameInByteArray(byte[] query) throws UnsupportedEncodingException {
-		byte[] name = new byte[query.length-2-2];
-        for(int i=0; i<query.length-2-2; i++) {
-        	name[i] = (byte) query[i];
-        }
-        return name;
-	}
-	
+	/**
+	 * Splits a given name to a list of domain parts.
+	 * 
+	 * @param nameArray the query name field in a char array
+	 * @return a list with the domain parts
+	 */
 	private LinkedList<String> getLogicalDomainRepresentationAsAList(char[] nameArray) {
 		LinkedList<String> list = new LinkedList<>();
 		
@@ -418,14 +497,24 @@ public class DnsServer extends Thread {
 		return list;
 	}
 	
-	//get the type of a query
+	/**
+	 * Collects the type of a query from a given dns query in bytes.
+	 * 
+	 * @param query
+	 * @return dns question type in hex
+	 */
 	public static String getQueryTypeInHex(byte[] query) {
 		byte[] type = new byte[2];
         System.arraycopy(query, query.length-2-2, type, 0, 2);
         return HashFunctions.bytesToHexStr(type);
 	}
 	
-	//get the class of a query
+	/**
+	 * Collects the class of a query from a given dns query in bytes.
+	 * 
+	 * @param query
+	 * @return dns question class in hex
+	 */
 	public static String getQueryClassInHex(byte[] query) {
 		byte[] classType = new byte[2];
         System.arraycopy(query, query.length-2, classType, 0, 2);
