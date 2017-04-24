@@ -203,10 +203,14 @@ public class DnsServer extends Thread {
 								if (vaddress.length() <= App.max_str_addr_len) {		
 									App.bn.ConsolePrint(pre+"vaddress lookup "+vaddress);
 									
-									if (vaddress.equals("10.0.0.1") || vaddress.equals("10.0.0.0") || vaddress.equals("10.255.255.255")) {
-										//we may not lookup this dns or special purpose ips
+									if (vaddress.equals("10.0.0.0") || vaddress.equals("10.255.255.255")) {
+										//we may not lookup special purpose ips
 										denied = true;
 									
+									} else if (vaddress.equals("10.0.0.1")) {
+										//this dns should return dns
+										denied = true;
+										
 									} else if (App.bn.localRedNodesTable.checkOnlineByVaddress(vaddress)) {
 										App.bn.ConsolePrint(pre+"vaddress nslookup is local.");
 										hostname = App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getHostname();
@@ -344,8 +348,8 @@ public class DnsServer extends Thread {
 							}
 							byte[] packet = IpPacket.MakeIpPacket(datagrammToSend, sourceIp, destIp, protocolType);
 							
-							//offer the compiled packet for routing
-							App.bn.manager.offer(packet);
+							//offer the compiled packet for routing to the local destination
+							App.bn.localRedNodesTable.getRedNodeInstanceByAddr(sourcevaddress).getQueueMan().offer(packet);
 							
 						}
 					}

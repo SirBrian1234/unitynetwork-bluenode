@@ -66,6 +66,14 @@ public class HashFunctions {
     	}
     	return bytes;
     }
+    
+    public static byte buildByteFromBits(String flags) {
+    	byte b = (byte) 0x00;
+    	if (flags.length() == 8) {
+    		b = Byte.parseByte(flags, 2);
+    	}
+    	return b;
+    }
  
     public static String MD5(String text) 
     throws NoSuchAlgorithmException, UnsupportedEncodingException  { 

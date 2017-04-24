@@ -52,32 +52,42 @@ public class Router extends Thread {
                     App.bn.TrafficPrint(pre + version + " " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
                 }
                 
-                if (destvaddress.equals("10.0.0.1")) {
-                	//probably a dns request, forward to internal dns host
-                	App.bn.dns.offer(data);
-                	App.bn.TrafficPrint(pre+"DNS Request", 3, 0);
-                } else if (App.bn.localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
-                    //load the packet data to local red node's queue
-                    App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offer(data);
-                    App.bn.TrafficPrint(pre+"LOCAL DESTINATION", 3, 0);
-                } else if (App.bn.joined) {
-                    if (App.bn.blueNodesTable.checkRemoteRedNodeByVaddress(destvaddress)) {
-                    	//load the packet to remote blue node's queue
-                        BlueNodeInstance bn;
-						try {
-							bn = App.bn.blueNodesTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
-							bn.getQueueMan().offer(data);
-	                        App.bn.TrafficPrint(pre +"REMOTE DESTINATION -> " + bn.getName(), 3, 1);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}                        
-                    } else {
-                    	//lookup via tracker fro a bluenode with this rrd
-                        App.bn.TrafficPrint(pre +"NOT KNOWN RRN WITH "+destvaddress+" SEEKING TARGET BN", 3, 1);
-                        App.bn.flyreg.seekDest(sourcevaddress, destvaddress);
-                    }
+                if (sourcevaddress.startsWith("10.") && 
+                		destvaddress.startsWith("10.") && 
+                		!sourcevaddress.equals("10.0.0.0") && 
+                		!destvaddress.equals("10.0.0.0") && 
+                		!sourcevaddress.equals("10.255.255.255") && 
+                		!destvaddress.equals("10.255.255.255")) {                
+	                
+                	if (destvaddress.equals("10.0.0.1")) {
+	                	//probably a dns request, forward to internal dns host
+	                	App.bn.dns.offer(data);
+	                	App.bn.TrafficPrint(pre+"DNS Request", 3, 0);
+	                } else if (App.bn.localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
+	                    //load the packet data to local red node's queue
+	                    App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offer(data);
+	                    App.bn.TrafficPrint(pre+"LOCAL DESTINATION", 3, 0);
+	                } else if (App.bn.joined) {
+	                    if (App.bn.blueNodesTable.checkRemoteRedNodeByVaddress(destvaddress)) {
+	                    	//load the packet to remote blue node's queue
+	                        BlueNodeInstance bn;
+							try {
+								bn = App.bn.blueNodesTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
+								bn.getQueueMan().offer(data);
+		                        App.bn.TrafficPrint(pre +"REMOTE DESTINATION -> " + bn.getName(), 3, 1);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}                        
+	                    } else {
+	                    	//lookup via tracker fro a bluenode with this rrd
+	                        App.bn.TrafficPrint(pre +"NOT KNOWN RRN WITH "+destvaddress+" SEEKING TARGET BN", 3, 1);
+	                        App.bn.flyreg.seekDest(sourcevaddress, destvaddress);
+	                    }
+	                } else {
+	                    App.bn.TrafficPrint(pre +"NOT IN THIS BN " + destvaddress, 3, 1);
+	                }
                 } else {
-                    App.bn.TrafficPrint(pre +"NOT IN THIS BN " + destvaddress, 3, 1);
+                	App.bn.TrafficPrint(pre +"source or dest ip special or not in network " + destvaddress, 3, 1);
                 }
             } else {
                 System.err.println(pre+"wrong header packet detected in router " + Thread.currentThread());

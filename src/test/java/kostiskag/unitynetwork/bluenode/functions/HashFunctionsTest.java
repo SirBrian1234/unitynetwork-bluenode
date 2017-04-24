@@ -46,6 +46,9 @@ public class HashFunctionsTest {
 		bnum =  new byte[] {0x00, 0x35};
 		assertEquals(HashFunctions.bytesToUnsignedInt(bnum), 53);
 		System.out.println(HashFunctions.bytesToHexStr(bnum)+" is "+HashFunctions.bytesToUnsignedInt(bnum)+"");		
+		
+		bnum = new byte[] {(byte) 0x0e};
+		System.out.println(HashFunctions.bytesToHexStr(bnum)+" is "+HashFunctions.bytesToUnsignedInt(bnum)+"");		
 	}
 	
 	@Test
@@ -75,4 +78,22 @@ public class HashFunctionsTest {
 		assertEquals(data[1], dataStrToBytes[1]);
 	}
 
+	@Test
+	public void buildByteTest() {
+		byte b = Byte.parseByte("00000000", 2);
+		assertEquals(b, (byte) 0x00);
+		
+		//b = HashFunctions.buildByteFromBits("00000001");
+		//assertEquals(b, (byte) 0x01);
+		//b = HashFunctions.buildByteFromBits("00001111");
+		//assertEquals(b, (byte) 0x0f);
+		
+		//b = Byte.parseByte("10000000", 2);
+		//assertEquals(b, (byte) 0x00);
+		
+		//b = HashFunctions.buildByteFromBits("11110000");
+		//assertEquals(b, (byte) 0xf0);
+		//b = HashFunctions.buildByteFromBits("11111111");
+		//assertEquals(b, (byte) 0xff);
+	}
 }
