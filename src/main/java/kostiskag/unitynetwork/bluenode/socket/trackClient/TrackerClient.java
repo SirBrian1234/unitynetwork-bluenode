@@ -179,4 +179,35 @@ public class TrackerClient {
     	}
     	return null;
     }
+    
+    //we need two new dns queries
+    //return hostname
+    public String nslookupByVaddr(String vaddress) {
+    	if (connected) {
+    		String[] args = TCPSocketFunctions.sendData("LOOKUP_V"+" "+vaddress, writer, reader);        
+	        closeCon();
+	        
+	        if (args[0].equals("NOT_FOUND")) {
+	            return null;
+	        } else {
+	            return args[0];
+	        }       
+    	}
+    	return null;
+    }
+    
+    //returns vaddress
+    public String nslookupByHostname(String hostanme) {
+    	if (connected) {
+    		String[] args = TCPSocketFunctions.sendData("LOOKUP_H"+" "+hostanme, writer, reader);
+	        closeCon();
+	        
+	        if (args[0].equals("NOT_FOUND")) {
+	            return null;
+	        } else {
+	            return args[0];
+	        }
+    	}
+    	return null;
+    }
 }
