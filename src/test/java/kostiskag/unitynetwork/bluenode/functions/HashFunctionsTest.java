@@ -83,17 +83,17 @@ public class HashFunctionsTest {
 		byte b = Byte.parseByte("00000000", 2);
 		assertEquals(b, (byte) 0x00);
 		
-		//b = HashFunctions.buildByteFromBits("00000001");
-		//assertEquals(b, (byte) 0x01);
-		//b = HashFunctions.buildByteFromBits("00001111");
-		//assertEquals(b, (byte) 0x0f);
+		b = HashFunctions.buildByteFromBits("00000001");
+		assertEquals(b, (byte) 0x01);
+		b = HashFunctions.buildByteFromBits("00001111");
+		assertEquals(b, (byte) 0x0f);
 		
-		//b = Byte.parseByte("10000000", 2);
-		//assertEquals(b, (byte) 0x00);
+		b = HashFunctions.buildByteFromBits("11110000");
+		assertEquals(b, (byte) 0xf0);
+		b = HashFunctions.buildByteFromBits("11111111");
+		assertEquals(b, (byte) 0xff);
 		
-		//b = HashFunctions.buildByteFromBits("11110000");
-		//assertEquals(b, (byte) 0xf0);
-		//b = HashFunctions.buildByteFromBits("11111111");
-		//assertEquals(b, (byte) 0xff);
+		b = HashFunctions.buildByteFromBits("11110001");
+		assertEquals(b, (byte) 0xf1);
 	}
 }
