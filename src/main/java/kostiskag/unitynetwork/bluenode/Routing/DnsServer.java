@@ -7,8 +7,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.w3c.dom.NameList;
-
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
@@ -31,15 +29,15 @@ public class DnsServer extends Thread {
 	private QueueManager queue = new QueueManager(100);
 	private AtomicBoolean kill = new AtomicBoolean(false);
 	
-	private static byte[] flagsSetToFound = new byte[] {(byte) 0x81, (byte) 0x80};
-	private static byte[] flagsSetToNotFound = new byte[] {(byte) 0x81, (byte) 0x83};
-	//private static byte[] flagsSetToFound = new byte[] {HashFunctions.buildByteFromBits("1000 0100"), HashFunctions.buildByteFromBits("0000 0000")};
-	//private static byte[] flagsSetToNotFound = new byte[] {HashFunctions.buildByteFromBits("1000 0100"), HashFunctions.buildByteFromBits("0000 0011")};
+	//private static byte[] flagsSetToFound = new byte[] {(byte) 0x81, (byte) 0x80};
+	//private static byte[] flagsSetToNotFound = new byte[] {(byte) 0x81, (byte) 0x83};
+	private static byte[] flagsSetToFound = new byte[] {HashFunctions.buildByteFromBits("1000 0101"), HashFunctions.buildByteFromBits("0000 0000")};
+	private static byte[] flagsSetToNotFound = new byte[] {HashFunctions.buildByteFromBits("1000 0101"), HashFunctions.buildByteFromBits("0000 0011")};
 	private static byte[] oneIn2Bytes = new byte[] {(byte) 0x00, (byte) 0x01};
 	private static byte[] zeroIn2Bytes = new byte[] {(byte) 0x00, (byte) 0x00};
 	
 	public DnsServer() {
-		zone = "local";
+		zone = "ouiou";
 		dnsName = "ns1";
 	}
 	
@@ -118,60 +116,20 @@ public class DnsServer extends Thread {
 							byte[] flagsToSend = zeroIn2Bytes;
 							byte[] answer = zeroIn2Bytes;
 							byte[] ans = zeroIn2Bytes;
+							byte[] auth =  zeroIn2Bytes;
 							
 							if (qType.equals("0006") && nameList.size() == 1 && nameList.get(0).equals(zone)) {
-								//SOA - start of zone of authority query
-								//find how to answer yes!
-								
+								//SOA request
 								//building answer to return the hostname
 								flagsToSend = flagsSetToFound;
-								ans = oneIn2Bytes;
-								
-								//name set to a dot 2 bytes
-								byte[] nameToSend = new byte[] {(byte) 0xc0, (byte) 0x0c};
-								
-								//type set to SOA 2 bytes
-								byte[] typeToSend = new byte[] {(byte) 0x00, (byte) 0x06};
-								
-								//class set to IN 2 bytes
-								byte[] classToSend = oneIn2Bytes;
-								
-								//ttl set to 128 4 bytes
-								byte[] ttl = HashFunctions.UnsignedIntTo4Bytes(500);
-								
-								//length 
-								
-								//mname num N bytes
-								byte[] SOAname = buildDnsReplyNameInBytes(dnsName+"."+zone);
-								
-								byte[] SOArname = buildDnsReplyNameInBytes("unity"+"."+zone);
-								
-								byte[] serial = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x24, (byte) 0x30};
-								byte[] refresh = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x24, (byte) 0x30};
-								byte[] retry = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x0e, (byte) 0x10};
-								byte[] expire = new byte[] {(byte) 0x00, (byte) 0x09, (byte) 0x3a, (byte) 0x80};
-								byte[] minimum = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x0e, (byte) 0x10};
-								
-								//len 2 bytes set to everything after len
-								int soalen = SOAname.length + SOArname.length +4+4+4+4+4;
-								byte[] lenToSend = HashFunctions.UnsignedIntTo2Bytes(soalen);
-								
-								answer =  new byte[12+soalen];
-								System.arraycopy(nameToSend,  0, answer, 0,   2);
-								System.arraycopy(typeToSend,  0, answer, 2,   2);
-								System.arraycopy(classToSend, 0, answer, 4,   2);
-								System.arraycopy(ttl,         0, answer, 6,   4);
-								System.arraycopy(lenToSend,   0, answer, 10,  2);
-								System.arraycopy(SOAname,     0, answer, 12,  SOAname.length);
-								System.arraycopy(SOArname,    0, answer, 12+SOAname.length,  SOArname.length);
-								System.arraycopy(serial,      0, answer, 12+SOAname.length+SOArname.length,  4);
-								System.arraycopy(refresh,     0, answer, 12+SOAname.length+SOArname.length+4,  4);
-								System.arraycopy(retry,       0, answer, 12+SOAname.length+SOArname.length+4+4,  4);
-								System.arraycopy(expire,      0, answer, 12+SOAname.length+SOArname.length+4+4+4,  4);
-								System.arraycopy(minimum,     0, answer, 12+SOAname.length+SOArname.length+4+4+4+4,  4);
+								ans = zeroIn2Bytes;
+								auth = oneIn2Bytes;
+								//answer
+								answer = buildSOAAnswer();
 								
 						    } else if (qType.equals("0001") && nameList.size() == 2 && nameList.get(1).equals(zone)) {
-								//first lets check for a given hostname to provide a virtual address
+								//A type answer
+						    	//first lets check for a given hostname to provide a virtual address
 								String vaddress = null;
 								String hostname = nameList.get(0);
 								if (hostname.length() <= App.max_str_len_large_size) {
@@ -217,6 +175,7 @@ public class DnsServer extends Thread {
 										denied = true;
 									}									
 								} else {
+									App.bn.ConsolePrint(pre+"non configured query type was requested of hex: "+qType+" from: "+sourcevaddress);
 									denied = true;
 								}
 								
@@ -259,6 +218,7 @@ public class DnsServer extends Thread {
 								}
 								
 							} else if (qType.equals("000c") && nameList.size() == 6 && nameList.get(5).equals("arpa") && nameList.get(4).equals("in-addr") && nameList.get(3).equals("10")) {
+								//PTR type answer
 								// then look for a given ip address to provide a hostname
 								String hostname = null;
 								String vaddress= nameList.get(3)+"."+nameList.get(2)+"."+nameList.get(1)+"."+nameList.get(0);
@@ -272,7 +232,7 @@ public class DnsServer extends Thread {
 										denied = true;
 									
 									} else if (vaddress.equals("10.0.0.1")) {
-										//this dns should return dns
+										//this dns answer should return NS
 										hostname = dnsName;
 										hostname = hostname +"."+zone;
 										//type set to NS (num 2) 2 bytes
@@ -359,7 +319,15 @@ public class DnsServer extends Thread {
 									denied = true;
 								}
 								
-							}  else {
+							} else if (qType.equals("000d")) {
+								//HINFO request returns a SOA reply
+								//building answer to return the hostname
+								flagsToSend = flagsSetToFound;
+								ans = zeroIn2Bytes;
+								auth = oneIn2Bytes;
+								
+								answer = buildSOAAnswer();								
+							} else {
 								denied = true;
 							}
 							
@@ -391,8 +359,7 @@ public class DnsServer extends Thread {
 							//transfer the answer number
 							System.arraycopy(ans, 0, header, 6, 2);
 							
-							//authorities set to zero
-							byte[] auth =  zeroIn2Bytes;
+							//authorities set to number
 							System.arraycopy(auth, 0, header, 8, 2);
 							
 							//additional set to zero
@@ -413,16 +380,16 @@ public class DnsServer extends Thread {
 							byte[] sourceIp = null;
 							byte[] destIp = null;
 							try {
+								//build source and dest ip addresses in bytes
 								sourceIp = InetAddress.getByName("10.0.0.1").getAddress();
 								destIp = InetAddress.getByName(sourcevaddress).getAddress();
+								//build the ip packet
+								byte[] packet = IpPacket.MakeIpPacket(datagrammToSend, sourceIp, destIp, protocolType);
+								//offer the compiled packet for routing to the local destination
+								App.bn.localRedNodesTable.getRedNodeInstanceByAddr(sourcevaddress).getQueueMan().offer(packet);								
 							} catch (UnknownHostException e) {
 								e.printStackTrace();
 							}
-							byte[] packet = IpPacket.MakeIpPacket(datagrammToSend, sourceIp, destIp, protocolType);
-							
-							//offer the compiled packet for routing to the local destination
-							App.bn.localRedNodesTable.getRedNodeInstanceByAddr(sourcevaddress).getQueueMan().offer(packet);
-							
 						}
 					}
 				}
@@ -430,6 +397,57 @@ public class DnsServer extends Thread {
 		}
 		App.bn.ConsolePrint(pre+"ENDED");
 	}	
+
+	private byte[] buildSOAAnswer() {
+		//SOA - start of zone of authority answer
+		byte[] answer;
+		
+		//name set to a dot 2 bytes
+		byte[] nameToSend = new byte[] {(byte) 0xc0, (byte) 0x0c};
+		
+		//type set to SOA 2 bytes
+		byte[] typeToSend = new byte[] {(byte) 0x00, (byte) 0x06};
+		
+		//class set to IN 2 bytes
+		byte[] classToSend = oneIn2Bytes;
+		
+		//ttl set to 128 4 bytes
+		byte[] ttl = HashFunctions.UnsignedIntTo4Bytes(500);
+		
+		//length 
+		//calculate at the end and include
+		
+		//mname num N bytes
+		byte[] SOAname = buildDnsReplyNameInBytes(dnsName+"."+zone);
+		
+		byte[] SOArname = buildDnsReplyNameInBytes("hostmaster"+"."+zone);
+		
+		byte[] serial = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x24, (byte) 0x30};
+		byte[] refresh = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x24, (byte) 0x30};
+		byte[] retry = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x0e, (byte) 0x10};
+		byte[] expire = new byte[] {(byte) 0x00, (byte) 0x09, (byte) 0x3a, (byte) 0x80};
+		byte[] minimum = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x0e, (byte) 0x10};
+		
+		//len 2 bytes set to everything after len
+		int soalen = SOAname.length + SOArname.length +4+4+4+4+4;
+		byte[] lenToSend = HashFunctions.UnsignedIntTo2Bytes(soalen);
+		
+		answer =  new byte[12+soalen];
+		System.arraycopy(nameToSend,  0, answer, 0,   2);
+		System.arraycopy(typeToSend,  0, answer, 2,   2);
+		System.arraycopy(classToSend, 0, answer, 4,   2);
+		System.arraycopy(ttl,         0, answer, 6,   4);
+		System.arraycopy(lenToSend,   0, answer, 10,  2);
+		System.arraycopy(SOAname,     0, answer, 12,  SOAname.length);
+		System.arraycopy(SOArname,    0, answer, 12+SOAname.length,  SOArname.length);
+		System.arraycopy(serial,      0, answer, 12+SOAname.length+SOArname.length,  4);
+		System.arraycopy(refresh,     0, answer, 12+SOAname.length+SOArname.length+4,  4);
+		System.arraycopy(retry,       0, answer, 12+SOAname.length+SOArname.length+4+4,  4);
+		System.arraycopy(expire,      0, answer, 12+SOAname.length+SOArname.length+4+4+4,  4);
+		System.arraycopy(minimum,     0, answer, 12+SOAname.length+SOArname.length+4+4+4+4,  4);
+		
+		return answer;
+	}
 
 	public void kill() {
 		kill.set(true);
