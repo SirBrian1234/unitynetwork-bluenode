@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException;
 
 import org.junit.Test;
 
+import kostiskag.unitynetwork.bluenode.Routing.DnsServer;
 import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
 
 public class HashFunctionsTest {
@@ -62,7 +63,7 @@ public class HashFunctionsTest {
 		System.out.println(num+" -> "+HashFunctions.bytesToHexStr(numbutes));
 		assertEquals(HashFunctions.bytesToHexStr(numbutes), "0035");
 		
-		numbutes = HashFunctions.UnsignedIntToByte(num);
+		numbutes = HashFunctions.UnsignedIntToByteArray(num);
 		System.out.println(num+" -> "+HashFunctions.bytesToHexStr(numbutes));
 		assertEquals(HashFunctions.bytesToHexStr(numbutes), "35");
 		
@@ -95,5 +96,17 @@ public class HashFunctionsTest {
 		
 		b = HashFunctions.buildByteFromBits("11110001");
 		assertEquals(b, (byte) 0xf1);
+	}
+	
+	@Test
+	public void domainNameToByteArrayTest() {
+		String hostname = "hello.I.am.a.domain.described.in.text";
+		byte[] name = DnsServer.buildDnsReplyNameInBytes(hostname);
+		
+		for(int i=0; i<name.length; i++) {
+			int ch = (int) name[i];
+			char chn = (char) name [i];
+			System.out.println("byte in pos "+i+" is char ["+chn+":"+ch+"]");
+		}
 	}
 }

@@ -3,8 +3,11 @@ package kostiskag.unitynetwork.bluenode.Routing;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.w3c.dom.NameList;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
@@ -22,17 +25,22 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
  */
 public class DnsServer extends Thread {
 
+	private final String zone;
+	private final String dnsName;
 	private final String pre = "^DnsServer ";
 	private QueueManager queue = new QueueManager(100);
 	private AtomicBoolean kill = new AtomicBoolean(false);
 	
 	private static byte[] flagsSetToFound = new byte[] {(byte) 0x81, (byte) 0x80};
 	private static byte[] flagsSetToNotFound = new byte[] {(byte) 0x81, (byte) 0x83};
+	//private static byte[] flagsSetToFound = new byte[] {HashFunctions.buildByteFromBits("1000 0100"), HashFunctions.buildByteFromBits("0000 0000")};
+	//private static byte[] flagsSetToNotFound = new byte[] {HashFunctions.buildByteFromBits("1000 0100"), HashFunctions.buildByteFromBits("0000 0011")};
 	private static byte[] oneIn2Bytes = new byte[] {(byte) 0x00, (byte) 0x01};
 	private static byte[] zeroIn2Bytes = new byte[] {(byte) 0x00, (byte) 0x00};
 	
 	public DnsServer() {
-		
+		zone = "local";
+		dnsName = "ns1";
 	}
 	
 	@Override
@@ -111,14 +119,69 @@ public class DnsServer extends Thread {
 							byte[] answer = zeroIn2Bytes;
 							byte[] ans = zeroIn2Bytes;
 							
-							if (qType.equals("0001") && nameList.size() == 1) {
+							if (qType.equals("0006") && nameList.size() == 1 && nameList.get(0).equals(zone)) {
+								//SOA - start of zone of authority query
+								//find how to answer yes!
+								
+								//building answer to return the hostname
+								flagsToSend = flagsSetToFound;
+								ans = oneIn2Bytes;
+								
+								//name set to a dot 2 bytes
+								byte[] nameToSend = new byte[] {(byte) 0xc0, (byte) 0x0c};
+								
+								//type set to SOA 2 bytes
+								byte[] typeToSend = new byte[] {(byte) 0x00, (byte) 0x06};
+								
+								//class set to IN 2 bytes
+								byte[] classToSend = oneIn2Bytes;
+								
+								//ttl set to 128 4 bytes
+								byte[] ttl = HashFunctions.UnsignedIntTo4Bytes(500);
+								
+								//length 
+								
+								//mname num N bytes
+								byte[] SOAname = buildDnsReplyNameInBytes(dnsName+"."+zone);
+								
+								byte[] SOArname = buildDnsReplyNameInBytes("unity"+"."+zone);
+								
+								byte[] serial = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x24, (byte) 0x30};
+								byte[] refresh = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x24, (byte) 0x30};
+								byte[] retry = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x0e, (byte) 0x10};
+								byte[] expire = new byte[] {(byte) 0x00, (byte) 0x09, (byte) 0x3a, (byte) 0x80};
+								byte[] minimum = new byte[] {(byte) 0x00, (byte) 0x00, (byte) 0x0e, (byte) 0x10};
+								
+								//len 2 bytes set to everything after len
+								int soalen = SOAname.length + SOArname.length +4+4+4+4+4;
+								byte[] lenToSend = HashFunctions.UnsignedIntTo2Bytes(soalen);
+								
+								answer =  new byte[12+soalen];
+								System.arraycopy(nameToSend,  0, answer, 0,   2);
+								System.arraycopy(typeToSend,  0, answer, 2,   2);
+								System.arraycopy(classToSend, 0, answer, 4,   2);
+								System.arraycopy(ttl,         0, answer, 6,   4);
+								System.arraycopy(lenToSend,   0, answer, 10,  2);
+								System.arraycopy(SOAname,     0, answer, 12,  SOAname.length);
+								System.arraycopy(SOArname,    0, answer, 12+SOAname.length,  SOArname.length);
+								System.arraycopy(serial,      0, answer, 12+SOAname.length+SOArname.length,  4);
+								System.arraycopy(refresh,     0, answer, 12+SOAname.length+SOArname.length+4,  4);
+								System.arraycopy(retry,       0, answer, 12+SOAname.length+SOArname.length+4+4,  4);
+								System.arraycopy(expire,      0, answer, 12+SOAname.length+SOArname.length+4+4+4,  4);
+								System.arraycopy(minimum,     0, answer, 12+SOAname.length+SOArname.length+4+4+4+4,  4);
+								
+						    } else if (qType.equals("0001") && nameList.size() == 2 && nameList.get(1).equals(zone)) {
 								//first lets check for a given hostname to provide a virtual address
 								String vaddress = null;
 								String hostname = nameList.get(0);
 								if (hostname.length() <= App.max_str_len_large_size) {
 									App.bn.ConsolePrint(pre+"hostname lookup "+hostname);
 								
-									if (App.bn.localRedNodesTable.checkOnlineByHostname(hostname)) {
+									if (hostname.equals(dnsName)) { 
+										//this is the dns server
+										vaddress = "10.0.0.1";
+										
+									} else if (App.bn.localRedNodesTable.checkOnlineByHostname(hostname)) {
 										//check for local red nodes										
 										vaddress = App.bn.localRedNodesTable.getRedNodeInstanceByHn(hostname).getVaddress();
 										App.bn.ConsolePrint(pre+"hostname "+hostname+" found as a local RN with "+vaddress);
@@ -178,7 +241,7 @@ public class DnsServer extends Thread {
 									System.arraycopy(classToSend, 0, answer, 4, 2);
 									
 									//ttl set to 128 4 bytes
-									byte[] ttl = HashFunctions.UnsignedIntTo4Bytes(128);
+									byte[] ttl = HashFunctions.UnsignedIntTo4Bytes(586);
 									System.arraycopy(ttl, 0, answer, 6, 4);
 									
 									//len 2 bytes set to 4
@@ -199,6 +262,7 @@ public class DnsServer extends Thread {
 								// then look for a given ip address to provide a hostname
 								String hostname = null;
 								String vaddress= nameList.get(3)+"."+nameList.get(2)+"."+nameList.get(1)+"."+nameList.get(0);
+								byte[] typeToSend = HashFunctions.UnsignedIntTo2Bytes(0);
 								
 								if (vaddress.length() <= App.max_str_addr_len) {		
 									App.bn.ConsolePrint(pre+"vaddress lookup "+vaddress);
@@ -209,15 +273,25 @@ public class DnsServer extends Thread {
 									
 									} else if (vaddress.equals("10.0.0.1")) {
 										//this dns should return dns
-										denied = true;
+										hostname = dnsName;
+										hostname = hostname +"."+zone;
+										//type set to NS (num 2) 2 bytes
+										typeToSend = new byte[] {(byte) 0x00, (byte) 0x02};
 										
 									} else if (App.bn.localRedNodesTable.checkOnlineByVaddress(vaddress)) {
 										App.bn.ConsolePrint(pre+"vaddress nslookup is local.");
 										hostname = App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getHostname();
+										hostname = hostname +"."+zone;
+										//type set to PTR 2 bytes
+										typeToSend = new byte[] {(byte) 0x00, (byte) 0x0c};
 										
 									} else if (App.bn.network && App.bn.joined && App.bn.blueNodesTable.checkRemoteRedNodeByVaddress(vaddress)) {
 										try {
 											hostname = App.bn.blueNodesTable.getBlueNodeInstanceByRRNVaddr(vaddress).table.getByVaddress(vaddress).getHostname();
+											hostname = hostname +"."+zone;
+											//type set to PTR 2 bytes
+											typeToSend = new byte[] {(byte) 0x00, (byte) 0x0c};
+											
 											App.bn.ConsolePrint(pre+"vaddress nslookup is an associated rrn.");
 										} catch (Exception e) {
 											denied = true;
@@ -229,7 +303,11 @@ public class DnsServer extends Thread {
 										String trackerAnswer = tr.nslookupByVaddr(vaddress);
 										if (trackerAnswer != null) {											
 											//got it!
-											hostname = trackerAnswer;											
+											hostname = trackerAnswer;
+											hostname = hostname +"."+zone;
+											//type set to PTR 2 bytes
+											typeToSend = new byte[] {(byte) 0x00, (byte) 0x0c};
+											
 											//we have another job here and that is to build the path
 											//as a lookup may lead to future data exchange
 											App.bn.ConsolePrint(pre+"Building path for "+sourcevaddress+"  towards -> "+vaddress);
@@ -252,23 +330,17 @@ public class DnsServer extends Thread {
 										
 										//name set to a dot 2 bytes
 										byte[] nameToSend = new byte[] {(byte) 0xc0, (byte) 0x0c};
-
-										//type set to PTR 2 bytes
-										byte[] typeToSend = new byte[] {(byte) 0x00, (byte) 0x0c};;
-																				
+															
 										//class set to IN 2 bytes
 										byte[] classToSend = oneIn2Bytes;										
 										
 										//ttl set to 128 4 bytes
-										byte[] ttl = HashFunctions.UnsignedIntTo4Bytes(128);
+										byte[] ttl = HashFunctions.UnsignedIntTo4Bytes(586);
 										
-										//hostname N bytes + 1 byte head len + 1 byte zero at the end										
-										byte[] hostnamePlain = hostname.getBytes();
-										byte[] hostnameToSend = new byte[hostnamePlain.length+2];
-										System.arraycopy( HashFunctions.UnsignedIntToByte(hostnamePlain.length), 0, hostnameToSend, 0, 1);
-										System.arraycopy( hostnamePlain, 0, hostnameToSend, 1, hostnamePlain.length);
+										//domain name N bytes calculated by method										
+										byte[] hostnameToSend = buildDnsReplyNameInBytes(hostname);
 										
-										//len 2 bytes set to hostname's length
+										//len 2 bytes set to domain name's length
 										byte[] lenToSend = HashFunctions.UnsignedIntTo2Bytes(hostnameToSend.length);
 										
 										//init the answer with the proper size
@@ -524,4 +596,53 @@ public class DnsServer extends Thread {
         System.arraycopy(query, query.length-2, classType, 0, 2);
         return HashFunctions.bytesToHexStr(classType);
 	}
+	
+
+	/**
+	 * This method receives a string domain.name.in.parts and compiles it to 
+	 * a DNS byte name format to be included in a dns respnose
+	 * in bytes. A domain part is leaded by a byte which indicates the length of its respective part
+	 * at the end of the byte sequence there is a zero byte to indicate the end of the sequence. 
+	 * 
+	 * @param hostname
+	 * @return
+	 */
+	public static byte[] buildDnsReplyNameInBytes(String hostname) {
+		//split the parts, for each part calculate its length,
+		//store each part in a byte format following its length described in one byte at the head 
+		LinkedList<byte[]> calculatedParts = new LinkedList<byte[]>();
+		String[] parts = hostname.split("\\.");
+		for (int i=0; i < parts.length; i++) {
+			byte[] part = parts[i].getBytes();
+			byte[] calcPart = new byte[part.length+1];
+			System.arraycopy(part, 0, calcPart, 1, part.length);
+			calcPart[0] = HashFunctions.UnsignedIntTo1Byte(part.length);
+			calculatedParts.add(calcPart);
+		}
+		
+		//calculate the total length from the lengths of the individual parts 
+		int totalLen = 0;
+		Iterator<byte[]> it = calculatedParts.listIterator();
+		while(it.hasNext()) {
+			byte[] element = it.next();
+			totalLen += element.length;
+		}
+		//thats for the zero byte at the end
+		totalLen++;
+		
+		//build the array
+		byte[] builtName = new byte[totalLen];
+		
+		//now include all the parts to the final byte array
+		it = calculatedParts.listIterator();
+		int offset = 0;
+		while(it.hasNext()) {
+			byte[] part = it.next();
+			System.arraycopy(part, 0, builtName, offset, part.length);
+			offset += part.length;
+		}
+		
+		return builtName;
+	}
+
 }

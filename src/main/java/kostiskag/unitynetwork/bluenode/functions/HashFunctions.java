@@ -59,7 +59,7 @@ public class HashFunctions {
     	return bytes;
     }
     
-    public static byte[] UnsignedIntToByte(int num) {
+    public static byte[] UnsignedIntToByteArray(int num) {
     	byte[] bytes = null;
     	if (num >= 0 && num < Math.pow(2, 8)) {
     		bytes =  new byte[] {(byte)num };    		
@@ -67,7 +67,16 @@ public class HashFunctions {
     	return bytes;
     }
     
+    public static byte UnsignedIntTo1Byte(int num) {
+    	byte b = (byte) 0x00;
+    	if (num >= 0 && num < Math.pow(2, 8)) {
+    		b =  (byte)num ;    		
+    	}
+    	return b;
+    }
+    
     public static byte buildByteFromBits(String flags) {
+    	flags = flags.replaceAll(" ", "");
     	byte b = (byte) 0x00;
     	if (flags.length() == 8) {
     		b = (byte) Integer.parseInt(flags, 2);
