@@ -5,14 +5,17 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import javax.swing.UIManager;
 
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
+import kostiskag.unitynetwork.bluenode.functions.GetTime;
 
 /**
- *
+ * This class keeps the application's main method. 
+ * It runs basic tests in order to determine if the application can run as intended 
+ * and initialize a BlueNode object with predefined settings.
+ * 
  * @author Konstantinos Kagiampakis
  */
 public class App extends Thread {
@@ -23,9 +26,10 @@ public class App extends Thread {
 	public static final int max_str_len_small_size = 128;
 	public static final int max_str_len_large_size = 256;
 	public static final int max_str_addr_len = "255.255.255.255".length();
+	public static final int min_str_addr_len = "0.0.0.0".length();
 	// network
-	public static final int virtualNetworkAddressCapacity = (int) (Math.pow(2,24) - 2);
-	public static final int systemReservedAddressNumber = 2; 	
+	public static final int virtualNetworkAddressCapacity = (int) (Math.pow(2,24) - 2); //this is our 10.0.0.0/8 network
+	public static final int systemReservedAddressNumber = 1; //The number of reserved IP addresses from the system 	
 	// file names
 	public static final String configFileName = "bluenode.conf";
 	public static final String hostlistFileName = "host.list";
@@ -60,80 +64,90 @@ public class App extends Thread {
 				fw.append(message + "\n");
 				fw.close();
 			} catch (IOException ex) {
-				Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+				ex.printStackTrace();
 			}
 		}
 	}
 	
-	private static void loadUserList() {
-		accounts = new AccountsTable();
-		try {
-			ReadPreferencesFile.ParseHostClientList(new File(hostlistFileName));
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println(hostlistFileName+" was wrongly formated. Please update the file.");
-			System.exit(1);
-		}
-		System.out.println(accounts.toString());
-	
-	}
-	
 	/**
 	 * The app's main method here.
-	 * we do not use args anymore... we use bluenode.conf
+	 * we do not use args anymore... we use bluenode.conf. You may set the initial settings in the file.
 	 * inside this you can't use consoleprint as it is not ready yet, use system.out instead
 	 * grave mistakes are being punished with System.exit(1) as die() in not ready yet
 	 * 
 	 * @param argv
 	 */
 	public static void main(String argv[]) {
-		System.out.println("@Started main at " + Thread.currentThread().getName());
+		System.out.println(pre+"@Started at "+Thread.currentThread().getName());
 		
-		InputStream filein = null;
-		System.out.println("Checking configuration file " + configFileName + "...");
+		if (argv.length > 1) {
+			System.out.println(pre+"The application does not support any arguments. In order to provide settings edit the file:"+configFileName+".");
+			System.exit(1);
+		}
+		
+		//loading .conf file if exists or generating a new file and load the default settings if non existing.
+		System.out.println(pre+"Checking configuration file " + configFileName + "...");
 		File file = new File(configFileName);
+		InputStream filein = null;
 		if (file.exists()) {
 			try {
 				filein = new FileInputStream(file);
 				ReadPreferencesFile.ParseConfigFile(filein);
 				filein.close();
 			} catch (Exception e) {
-				System.err.println("File "+configFileName+" could not be loaded");
+				System.out.println(pre+"File "+configFileName+" could not be loaded.");
 				e.printStackTrace();
 				System.exit(1);
 			}
 		} else {
-			System.out.println(configFileName+" file not found in the dir. Generating new file with the default settings");			
+			System.out.println(pre+"File "+configFileName+" not found in the dir. Generating new file with the default settings.");			
      		try {
      			ReadPreferencesFile.GenerateConfigFile(file);
 				filein = new FileInputStream(file);
 				ReadPreferencesFile.ParseConfigFile(filein);
 				filein.close();
 			} catch (Exception e) {
-				System.err.println("File "+configFileName+" could not be loaded");
+				System.out.println(pre+"File "+configFileName+" could not be loaded.");
 				e.printStackTrace();
 				System.exit(1);
 			}
 		}
 
-	    filein = null;
-		System.out.println("Checking file " + hostlistFileName + "...");
+		// generating hostlist file if not existing
+	    System.out.println(pre+"Checking file " + hostlistFileName + "...");
 		file = new File(hostlistFileName);
+		filein = null;
 		if (!file.exists()) {
-			System.out.println(hostlistFileName+" file not found in the dir. Generating new file with the default settings");			
+			//generating
+			System.out.println(pre+hostlistFileName+" file not found in the dir. Generating new file with the default settings");			
      		try {
      			ReadPreferencesFile.GenerateHostClientFile(file);				
 			} catch (Exception e) {
-				System.err.println("File "+hostlistFileName+" could not be generated");
+				System.out.println(pre+"File "+hostlistFileName+" could not be generated.");
 				e.printStackTrace();
 				System.exit(1);
 			}
 		} else {
-			System.out.println(hostlistFileName+" exists in the dir");
+			//loading accounts
+			System.out.println(pre+"File "+hostlistFileName+" exists in the dir.");			
+			if (!network && useList) {
+				//reading file
+				System.out.println(pre+"Reading accounts from file.");
+				accounts = new AccountsTable();
+				try {
+					ReadPreferencesFile.ParseHostClientList(new File(hostlistFileName));
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.out.println(hostlistFileName+" was wrongly formated. Please edit or delete the file.");
+					System.exit(1);
+				}
+				System.out.println(pre+"hostlist loaded with "+accounts.getSize()+" host-clients.");       
+			}
 		}
 
+		// test and init gui if enabled
 		if (gui) {
-			System.out.println("checking gui libraries...");
+			System.out.println(pre+"checking gui libraries...");
 			try {
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} catch (Exception e) {
@@ -143,27 +157,29 @@ public class App extends Thread {
 					try {
 						UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
 					} catch (Exception ex1) {
-						System.err.println("although asked for gui there are no supported libs on this machine");
-						System.err.println("fix it or disable gui from the bluenode.conf");
+						System.out.println(pre+"although asked for gui there are no supported libs on this machine");
+						System.out.println(pre+"fix it or disable gui from the bluenode.conf");
 						System.exit(1);
 					}
 				}
 			}
 		}
 		
-		// 0. init bluenode.log
+		// init bluenode.log
+		System.out.println(pre+"initializing log file...");
 		if (log) {
 			FileWriter fw;
 			try {
 				fw = new FileWriter(App.logFile, false);
-				fw.write("---------------------------------------------------------------\n");
+				fw.write("-------------"+GetTime.getFullTimestamp()+"-------------\n");
 				fw.close();
 			} catch (IOException ex) {
-				Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+				ex.printStackTrace();
 			}
 		}
 
-		System.out.println("starting BlueNode...");
+		// init a bluenode object
+		System.out.println(pre+"starting a BlueNode instance...");
 		bn = new BlueNode(
 				network, 
 				trackerAddress, 

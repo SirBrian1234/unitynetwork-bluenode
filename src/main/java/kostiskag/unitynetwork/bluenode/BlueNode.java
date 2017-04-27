@@ -1,12 +1,11 @@
 package kostiskag.unitynetwork.bluenode;
 
-import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.FlyRegister;
-import kostiskag.unitynetwork.bluenode.Routing.Router;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
+import kostiskag.unitynetwork.bluenode.Routing.Router;
 import kostiskag.unitynetwork.bluenode.RunData.IpPoll;
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
@@ -35,14 +34,6 @@ public class BlueNode extends Thread{
 	public final boolean soutTraffic;	
 	public final boolean log;
 	public final AccountsTable accounts;
-	// gui data
-	public boolean viewTraffic = true;
-	private int messageCount = 0;	
-	public IpPoll bucket;
-	public PrintWriter prt;
-	public boolean[] viewType = new boolean[] { true, true, true, true };
-	public boolean[] viewhostType = new boolean[] { true, true };
-	public boolean autoScrollDown = true;
 	// tracker data
 	public String echoAddress;
 	// run data
@@ -60,6 +51,7 @@ public class BlueNode extends Thread{
 	public LocalRedNodeTable localRedNodesTable;
 	public BlueNodesTable blueNodesTable;
 	// objects
+	public IpPoll bucket;
 	public MainWindow window;
 	public BlueNodeServer auth;
 	public Router router;	
@@ -218,16 +210,13 @@ public class BlueNode extends Thread{
 		}
 	}
 
-	public void ConsolePrint(String Message) {
+	public void ConsolePrint(String message) {		
+		System.out.println(message);
 		if (gui) {
-			System.out.println(Message);
-			window.jTextArea1.append(Message + "\n");
-		} else {
-			System.out.println(Message);
+			window.ConsolePrint(message);
 		}
-
 		if (log) {
-			App.writeToLogFile(Message);
+			App.writeToLogFile(message);
 		}
 	}
 
@@ -237,27 +226,13 @@ public class BlueNode extends Thread{
 	 *  @param messageType ~ 0 keep alive, 1 pings, 2 acks, 3 routing
 	 *  @param hostType ~ 0 reds, 1 blues
 	 */
-	public void TrafficPrint(String Message, int messageType, int hostType) {
+	public void TrafficPrint(String message, int messageType, int hostType) {
 		if (gui) {
-			if (viewTraffic) {
-				if (viewType[messageType] == true && viewhostType[hostType] == true) {
-					messageCount++;
-					window.jTextArea2.append(Message + "\n");
-				}
-			}
-			if (messageCount > 10000) {
-				messageCount = 0;
-				window.jTextArea2.setText("");
-			}
-			if (autoScrollDown) {
-				window.jTextArea2.select(window.jTextArea2.getHeight() + 10000, 0);
-			}
+			window.TrafficPrint(message, messageType, hostType);
 		} else if (soutTraffic) {
-			System.out.println(Message);
+			System.out.println(message);
 		}
 	}
-
-	
 
 	public boolean joinNetwork() throws Exception {
 		if (network && !name.isEmpty() && authPort > 0 && authPort <= 65535) {

@@ -18,78 +18,90 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
  */
 public class RedNodeFunctions {
 	
-	private static String pre = "^LEASE LOCAL REDNODE ";
+	private static String pre = "^RedNodeFunctions ";
 
     static void lease(Socket connectionSocket, BufferedReader socketReader, PrintWriter socketWriter, String hostname, String Username, String Password) {
     	App.bn.ConsolePrint(pre + "LEASING "+hostname);
     	
     	//first check if already exists
     	if (App.bn.localRedNodesTable.checkOnlineByHostname(hostname)){
-    		socketWriter.println("REG FAILED");
+    		socketWriter.println("FAILED");
     		return;
     	}
     	
     	//get a virtuall ip address
     	String Vaddress = null;
-    	if (App.bn.network && App.bn.joined) {
-            
+    	if (App.bn.network && App.bn.joined) {            
     		//collect vaddress from tracker
     		TrackerClient tr = new TrackerClient();
     		Vaddress = tr.leaseRn(hostname, Username, Password);
             
             //leasing - reverse error capture     
-            if (Vaddress.equals("WRONG_COMMAND")) {
+    		if (Vaddress.startsWith("10.")) {
+    			
+    		} else if (Vaddress.equals("WRONG_COMMAND")) {
                 App.bn.ConsolePrint(pre + "WRONG_COMMAND");
-                socketWriter.println("BLUENODE FAILED");
+                socketWriter.println("FAILED BLUENODE");
                 return;
             } else if (Vaddress.equals("NOT_ONLINE")) {
                 App.bn.ConsolePrint(pre + "NOT_ONLINE");
-                socketWriter.println("BLUENODE FAILED");
+                socketWriter.println("FAILED BLUENODE");
                 return;
             } else if (Vaddress.equals("NOT_REGISTERED")) {
                 App.bn.ConsolePrint(pre + "NOT_REGISTERED");
-                socketWriter.println("BLUENODE FAILED");
+                socketWriter.println("FAILED BLUENODE");
                 return;
             } else if (Vaddress.equals("SYSTEM_ERROR")) {
                 App.bn.ConsolePrint(pre + "SYSTEM_ERROR");
-                socketWriter.println("BLUENODE FAILED");
+                socketWriter.println("FAILED BLUENODE");
                 return;
             } else if (Vaddress.equals("AUTH_FAILED")) {
-                App.bn.ConsolePrint(pre + "USER FAILED 1");
-                socketWriter.println("USER FAILED 1");
+                App.bn.ConsolePrint(pre + "FAILED USER");
+                socketWriter.println("FAILED USER");
                 return;
             } else if (Vaddress.equals("USER_HOSTNAME_MISSMATCH")) {
-                App.bn.ConsolePrint(pre + "HOSTNAME FAILED 3");
-                socketWriter.println("HOSTNAME FAILED 3");
-                return;
-            } else if (Vaddress.equals("ALLREADY_LEASED")) {
-                App.bn.ConsolePrint(pre + "HOSTNAME FAILED 2");
-                socketWriter.println("HOSTNAME FAILED 2");
+                App.bn.ConsolePrint(pre + "FAILED USER");
+                socketWriter.println("FAILED USER");
                 return;
             } else if (Vaddress.equals("NOT_FOUND")) {
                 App.bn.ConsolePrint(pre + "HOSTNAME FAILED 1");
-                socketWriter.println("HOSTNAME FAILED 1");
+                socketWriter.println("FAILED USER");
                 return;
             } else if (Vaddress.equals("LEASE_FAILED")) {
                 App.bn.ConsolePrint(pre + "HOSTNAME FAILED 1");
-                socketWriter.println("HOSTNAME FAILED 1");
+                socketWriter.println("FAILED USER");
                 return;
+            } else if (Vaddress.equals("ALLREADY_LEASED")) {
+                App.bn.ConsolePrint(pre + "FAILED HOSTNAME");
+                socketWriter.println("FAILED HOSTNAME");
+                return;
+            } else {
+            	socketWriter.println("FAILED");
+            	return;
             }
                             
         } else if (App.bn.useList) {
         	//collect vaddres from list
-        	Vaddress = App.bn.accounts.getVaddrIfExists(hostname, Username, Password);                          	
+        	Vaddress = App.bn.accounts.getVaddrIfExists(hostname, Username, Password);    
+        	if (Vaddress == null) {
+        		socketWriter.println("FAILED USER 0");
+        		return;
+        	}
         } else if (!App.bn.useList && !App.bn.network) {
         	//no network, no list - each red node collects a ticket
             int addr_num = App.bn.bucket.poll();
             Vaddress = IpAddrFunctions.numberTo10ipAddr(addr_num);
+            if (Vaddress == null) {
+        		socketWriter.println("FAILED USER 0");
+        		return;
+        	}
         } else {
         	return;
         }
                
         App.bn.ConsolePrint(pre + "COLLECTED VADDRESS "+Vaddress);
         
-        //crating the local rn object
+        //building the local rn object
         String phAddress = connectionSocket.getInetAddress().getHostAddress();
         int port = connectionSocket.getPort();
     	LocalRedNodeInstance RNclient = new LocalRedNodeInstance(socketReader, socketWriter, hostname, Vaddress, phAddress, port);
@@ -109,7 +121,7 @@ public class RedNodeFunctions {
             ex.printStackTrace();
         }
         
-        socketWriter.println("REG OK " + RNclient.getDown().getDestPort() + " " + RNclient.getUp().getSourcePort() + " " + RNclient.getVaddress());
+        socketWriter.println("REG_OK " + RNclient.getDown().getDestPort() + " " + RNclient.getUp().getSourcePort() + " " + RNclient.getVaddress());
         App.bn.ConsolePrint(pre+"RED NODE OK " +  RNclient.getHostname() + "/" + RNclient.getVaddress() +" ~ " + RNclient.getPhAddress() + ":" + RNclient.getUp().getSourcePort() + ":" + RNclient.getDown().getDestPort());
         
         //initTerm will use the session socket and will hold this thread

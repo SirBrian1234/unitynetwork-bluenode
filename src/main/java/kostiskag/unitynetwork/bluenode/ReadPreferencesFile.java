@@ -13,7 +13,7 @@ import java.util.Properties;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class ReadPreferencesFile {
     
@@ -86,8 +86,7 @@ public class ReadPreferencesFile {
             validline = line.split("\\s+");
             int address = Integer.parseInt(validline[3]);
             App.accounts.insert(validline[0], validline[1], validline[2], address);				            	            
-        }            
-        System.out.println("hostlist loaded with "+size+" host-clients");                
+        }                  
     }
     
     public static void GenerateConfigFile(File file) throws FileNotFoundException, UnsupportedEncodingException {    

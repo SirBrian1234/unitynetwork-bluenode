@@ -28,17 +28,22 @@ import java.awt.event.ActionEvent;
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 5505085647328297106L;
+    private static final long serialVersionUID = 5505085647328297106L;
 	private final Object lockLocal = new Object();
     private final Object lockBn = new Object();
     private final Object lockRRn = new Object();
+    private final Object lockTraffic = new Object();
+    private final Object lockConsole = new Object();
 	private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port"});
     private final DefaultTableModel remoteRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Blue Node Name", "Last Checked"});
     private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Is a Server", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port", "Last Checked"});
-    public int messageCount = 0;
+    private boolean autoScrollDownTraffic = true;
+    private boolean autoScrollDownConsole = true;
+    private boolean viewTraffic = true;
+    private boolean[] viewType = new boolean[] { true, true, true, true };
+	private boolean[] viewhostType = new boolean[] { true, true };
+	private int messageCountConsole = 0;
+    private int messageCountTraffic = 0;
 
     public MainWindow() {
     	setTitle("Blue Node");
@@ -730,9 +735,9 @@ public class MainWindow extends javax.swing.JFrame {
 
 	private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         if (jToggleButton1.isSelected()) {
-            App.bn.viewTraffic = true;
+            viewTraffic = true;
         } else {
-            App.bn.viewTraffic = false;
+            viewTraffic = false;
         }
     }
 
@@ -753,44 +758,44 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void jCheckBox5ActionPerformed(java.awt.event.ActionEvent evt) {
-         App.bn.viewType[0] = jCheckBox5.isSelected();
+         viewType[0] = jCheckBox5.isSelected();
     }
 
     private void jCheckBox11ActionPerformed(java.awt.event.ActionEvent evt) {
-        App.bn.viewType[1] = jCheckBox11.isSelected();
+        viewType[1] = jCheckBox11.isSelected();
     }
 
     private void jCheckBox10ActionPerformed(java.awt.event.ActionEvent evt) {
-       App.bn.viewType[2] = jCheckBox10.isSelected();
+       viewType[2] = jCheckBox10.isSelected();
     }
 
     private void jCheckBox9ActionPerformed(java.awt.event.ActionEvent evt) {
-        App.bn.viewType[3] = jCheckBox9.isSelected();
+        viewType[3] = jCheckBox9.isSelected();
     }
 
     private void jRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) {
         if (jRadioButton3.isSelected()) {
-            App.bn.viewhostType[0] = true;
-            App.bn.viewhostType[1] = true;
+            viewhostType[0] = true;
+            viewhostType[1] = true;
         }
     }
 
     private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         if (jRadioButton1.isSelected()) {
-            App.bn.viewhostType[0] = true;
-            App.bn.viewhostType[1] = false;
+            viewhostType[0] = true;
+            viewhostType[1] = false;
         }
     }
 
     private void jRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {
         if (jRadioButton2.isSelected()) {
-            App.bn.viewhostType[0] = false;
-            App.bn.viewhostType[1] = true;
+            viewhostType[0] = false;
+            viewhostType[1] = true;
         }
     }
 
     private void jCheckBox12ActionPerformed(java.awt.event.ActionEvent evt) {
-        App.bn.autoScrollDown = jCheckBox12.isSelected();
+        autoScrollDownTraffic = jCheckBox12.isSelected();
     }
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButton1;
@@ -868,6 +873,39 @@ public class MainWindow extends javax.swing.JFrame {
     
     public void setEchoIpAddress(String addr) {
     	textField.setText(addr);
+    }
+    
+    public void ConsolePrint(String message) {
+    	synchronized (lockConsole) {
+    		messageCountConsole++;
+    		jTextArea1.append(message + "\n");    
+    		
+    		if (messageCountConsole > 10000) {
+				messageCountConsole = 0;
+				jTextArea1.setText("");
+			}
+			if (autoScrollDownConsole) {
+				jTextArea1.select(jTextArea1.getHeight() + 10000, 0);
+			}
+		}    	
+    }
+    
+    public void TrafficPrint(String message, int messageType, int hostType) {		
+		synchronized (lockTraffic) {
+			if (viewTraffic) {
+				if (viewType[messageType] == true && viewhostType[hostType] == true) {
+					messageCountTraffic++;
+					jTextArea2.append(message + "\n");
+				}
+			}
+			if (messageCountTraffic > 10000) {
+				messageCountTraffic = 0;
+				jTextArea2.setText("");
+			}
+			if (autoScrollDownTraffic) {
+				jTextArea2.select(jTextArea2.getHeight() + 10000, 0);
+			}
+		}
     }
 
 	public void updateLocalRns() {
