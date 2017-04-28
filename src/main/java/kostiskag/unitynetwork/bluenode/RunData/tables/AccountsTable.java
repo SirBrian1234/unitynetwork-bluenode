@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.AccountInstance;
+import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
 import kostiskag.unitynetwork.bluenode.functions.IpAddrFunctions;
 
 /**
@@ -29,7 +30,7 @@ public class AccountsTable {
         //data validate
     	if (password != null && hostname != null) {
     		if (!username.isEmpty() && !password.isEmpty() && !hostname.isEmpty()) {
-    			if (vadressNum > 0 && vadressNum <= (16777214 - 2 - App.systemReservedAddressNumber)) {
+    			if (vadressNum > 0 && vadressNum <= (App.virtualNetworkAddressCapacity - App.systemReservedAddressNumber)) {
 	    			//check if unique
 	    			String effectveVaddress = IpAddrFunctions.numberTo10ipAddr(vadressNum);
 	    			Iterator<AccountInstance> it = list.listIterator();

@@ -2,10 +2,15 @@ package kostiskag.unitynetwork.bluenode.RunData.tables;
 
 import static org.junit.Assert.*;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
+import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
+import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
 
 public class AccountsTableTest {
 	
@@ -59,7 +64,13 @@ public class AccountsTableTest {
 		} catch (Exception e) {
 			assertTrue(false);
 		}
-		assertTrue(table.checkList("pakis-1", "pakis", "597fd1c04c2543183fd58155d560844883a4709f13b0090de00fde6214b681d1"));		
+		
+		try {
+			String pass = HashFunctions.SHA256(HashFunctions.SHA256(App.SALT) +  HashFunctions.SHA256("pakis") + HashFunctions.SHA256(App.SALT + "1234"));
+			assertTrue(table.checkList("pakis-1", "pakis", pass));
+		} catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}		
 	}
 	
 	@Test
@@ -74,6 +85,11 @@ public class AccountsTableTest {
 			assertTrue(false);
 		}
 		System.out.println(table.toString());
-		assertEquals(table.getVaddrIfExists("pakis-3", "pakis", "597fd1c04c2543183fd58155d560844883a4709f13b0090de00fde6214b681d1"), "10.0.0.6");
+		try {
+			String pass = HashFunctions.SHA256(HashFunctions.SHA256(App.SALT) +  HashFunctions.SHA256("pakis") + HashFunctions.SHA256(App.SALT + "1234"));
+			assertEquals(table.getVaddrIfExists("pakis-3", "pakis", pass), "10.0.0.5");
+		} catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 	}
 }
