@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
+import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 
 /**
  *

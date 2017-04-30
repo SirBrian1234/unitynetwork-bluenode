@@ -7,9 +7,9 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 
 /**
  * 

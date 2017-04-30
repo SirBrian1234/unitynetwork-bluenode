@@ -9,9 +9,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
+import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 
 /**
  * This service runs for every user it opens a UDP socket and waits a row to

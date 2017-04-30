@@ -6,9 +6,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import kostiskag.unitynetwork.bluenode.redThreads.RedDownService;
 
 /**

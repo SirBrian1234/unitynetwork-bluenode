@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.net.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
+import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 
 /**
  * down service listens for virtual packets then sends them to the target

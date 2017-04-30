@@ -1,4 +1,4 @@
-package kostiskag.unitynetwork.bluenode.GUI;
+package kostiskag.unitynetwork.bluenode.gui;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -44,7 +44,11 @@ public class MainWindow extends javax.swing.JFrame {
     	setTitle("Blue Node");
     	initComponents(); 
         if (!App.bn.network) {
-    		jTabbedPane1.remove(2);    		
+    		jTabbedPane1.remove(2);    
+    		jCheckBox6.setEnabled(false);
+    		jCheckBox6.setVisible(false);
+    		jCheckBox7.setEnabled(false);
+    		jCheckBox7.setVisible(false);
     	}
         
         jTable1.setDefaultEditor(Object.class, null);

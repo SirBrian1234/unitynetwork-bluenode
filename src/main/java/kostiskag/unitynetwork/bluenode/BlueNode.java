@@ -3,7 +3,6 @@ package kostiskag.unitynetwork.bluenode;
 import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.DnsServer;
 import kostiskag.unitynetwork.bluenode.Routing.FlyRegister;
 import kostiskag.unitynetwork.bluenode.Routing.Router;
@@ -14,6 +13,7 @@ import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.LocalRedNodeTable;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
 import kostiskag.unitynetwork.bluenode.functions.PortHandle;
+import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeSonarService;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeService.BlueNodeServer;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
