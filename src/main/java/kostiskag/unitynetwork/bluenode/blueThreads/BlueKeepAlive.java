@@ -3,7 +3,7 @@ package kostiskag.unitynetwork.bluenode.blueThreads;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
+import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
 /**
@@ -28,7 +28,7 @@ public class BlueKeepAlive extends Thread {
         this.pre = "^KEEP ALIVE "+blueNode.getName()+" ";
     	this.timeInSec = App.bn.trackerMaxIdleTime;
     	this.numOfPacketsToSend = 3;        
-        this.packet = IpPacket.MakeUPacket(("00000 "+App.bn.name+" [KEEP ALIVE]  ").getBytes(), null, null, true);                
+        this.packet = UnityPacket.buildPacket(("00000 "+App.bn.name+" [KEEP ALIVE]  ").getBytes(), null, null, 0);                
     }
     
     public BlueNodeInstance getBlueNode() {

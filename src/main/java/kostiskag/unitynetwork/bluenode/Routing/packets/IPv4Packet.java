@@ -9,7 +9,7 @@ import java.util.logging.Logger;
  *
  * @author kostis
  */
-public class IpDatagramm {
+public class IPv4Packet {
                            
     public static String getVersion(byte[] packet) {
         String version = Integer.toHexString(packet[0]);
@@ -25,7 +25,7 @@ public class IpDatagramm {
         try {
             source = InetAddress.getByAddress(addr);
         } catch (UnknownHostException ex) {
-            Logger.getLogger(IpDatagramm.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(IPv4Packet.class.getName()).log(Level.SEVERE, null, ex);
         }                
         return source;
     }
@@ -39,24 +39,15 @@ public class IpDatagramm {
         try {
             dest = InetAddress.getByAddress(addr);
         } catch (UnknownHostException ex) {
-            Logger.getLogger(IpDatagramm.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(IPv4Packet.class.getName()).log(Level.SEVERE, null, ex);
         }
         return dest;
     }
     
-    public static long checksum(byte[] buf, int length) {
-        int i = 0;
-        long sum = 0;
-        while (length > 0) {
-            sum += (buf[i++] & 0xff) << 8;
-            if ((--length) == 0) {
-                break;
-            }
-            sum += (buf[i++] & 0xff);
-            --length;
-        }
-
-        return (~((sum & 0xFFFF) + (sum >> 16))) & 0xFFFF;
-    }      
+    public static byte[] getPayload(byte[] frame) {        
+        byte[] packet = new byte[frame.length-14];        
+        System.arraycopy(frame, 14, packet, 0, packet.length);
+        return packet;
+    }
 }
 

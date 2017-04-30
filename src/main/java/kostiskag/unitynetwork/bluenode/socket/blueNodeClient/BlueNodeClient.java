@@ -9,7 +9,7 @@ import java.net.Socket;
 import java.util.LinkedList;
 
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
+import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.RunData.instances.RemoteRedNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
@@ -129,7 +129,7 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				byte[] payload = ("00002 " + App.bn.name + " [UPING PACKET]").getBytes();
-		        byte[] data = IpPacket.MakeUPacket(payload, null, null, true);
+		        byte[] data = UnityPacket.buildPacket(payload, null, null, 0);
 		        
 				TCPSocketFunctions.sendData("UPING", socketWriter, socketReader);
 				//wait to get set

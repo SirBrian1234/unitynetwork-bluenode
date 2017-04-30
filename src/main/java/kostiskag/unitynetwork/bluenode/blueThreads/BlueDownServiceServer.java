@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.net.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
+import kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
+import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.App;
 
@@ -67,9 +68,9 @@ public class BlueDownServiceServer extends Thread {
                         MainWindow.jCheckBox7.setSelected(true);
                         didTrigger = true;
                     }
-                    String version = IpPacket.getVersion(packet);
+                    String version = IPv4Packet.getVersion(packet);
                     if (version.equals("0")) {                        
-                        byte[] payload = IpPacket.getPayloadU(packet);
+                        byte[] payload = UnityPacket.getPayload(packet);
                         String receivedMessage = new String(payload);
                         String args[] = receivedMessage.split("\\s+");
                         if (args.length > 1) {                                                        

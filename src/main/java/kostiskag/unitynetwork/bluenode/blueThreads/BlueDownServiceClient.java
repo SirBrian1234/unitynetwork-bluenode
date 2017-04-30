@@ -8,7 +8,8 @@ import java.net.SocketException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
+import kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
+import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
 /**
@@ -77,9 +78,9 @@ public class BlueDownServiceClient extends Thread {
 			DatagramPacket sendUDPPacket = new DatagramPacket(data, data.length, blueNodePhAddress, downport);
 			try {
 				clientSocket.send(sendUDPPacket);
-				String version = IpPacket.getVersion(data);
+				String version = IPv4Packet.getVersion(data);
 				if (version.equals("0")) {
-					byte[] payload = IpPacket.getPayloadU(data);
+					byte[] payload = UnityPacket.getPayload(data);
 					String sentMessage = new String(payload);
 					String args[] = sentMessage.split("\\s+");
 					if (args.length > 1) {

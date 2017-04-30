@@ -9,8 +9,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
+import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 
 /**
@@ -124,9 +125,9 @@ public class RedlUpService extends Thread {
             DatagramPacket sendUDPPacket = new DatagramPacket(data, data.length, clientAddress, destPort);
             try {
                 serverSocket.send(sendUDPPacket);
-                String version = IpPacket.getVersion(data);                
+                String version = IPv4Packet.getVersion(data);                
                 if (version.equals("0")) {
-                    byte[] payload = IpPacket.getPayloadU(data);
+                    byte[] payload = UnityPacket.getPayload(data);
                     String receivedMessage = new String(payload);
                     String args[] = receivedMessage.split("\\s+");
                     if (args.length > 1) {

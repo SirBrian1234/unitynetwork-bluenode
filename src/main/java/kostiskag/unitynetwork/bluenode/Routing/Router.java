@@ -1,6 +1,8 @@
 package kostiskag.unitynetwork.bluenode.Routing;
 
 import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
+import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
 /**
@@ -37,18 +39,18 @@ public class Router extends Thread {
              * specific udp vaddr - addr:udp then when you get the stuff send it
              */
 
-            String version = IpPacket.getVersion(data);
+            String version = IPv4Packet.getVersion(data);
             String sourcevaddress;
             String destvaddress;
 
             if (version.equals("45") || version.equals("1") || version.equals("2")) {
                 if (version.equals("45")) {
-                	sourcevaddress = IpPacket.getSourceAddress(data).getHostAddress();
-                	destvaddress = IpPacket.getDestAddress(data).getHostAddress();
+                	sourcevaddress = IPv4Packet.getSourceAddress(data).getHostAddress();
+                	destvaddress = IPv4Packet.getDestAddress(data).getHostAddress();
                     App.bn.TrafficPrint(pre + "IP " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
                 } else {
-                    destvaddress = IpPacket.getUDestAddress(data).getHostAddress();
-                    sourcevaddress = IpPacket.getUSourceAddress(data).getHostAddress();
+                    destvaddress = UnityPacket.getDestAddress(data).getHostAddress();
+                    sourcevaddress = UnityPacket.getSourceAddress(data).getHostAddress();
                     App.bn.TrafficPrint(pre + version + " " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
                 }
 

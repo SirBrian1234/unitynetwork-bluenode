@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.net.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
+import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 
 /**
@@ -80,9 +81,9 @@ public class RedDownService extends Thread {
                         MainWindow.jCheckBox3.setSelected(true);
                         didTrigger = true;
                     }
-                    String version = IpPacket.getVersion(data);
+                    String version = IPv4Packet.getVersion(data);
                     if (version.equals("0")) {                        
-                        byte[] payload = IpPacket.getPayloadU(data);
+                        byte[] payload = UnityPacket.getPayload(data);
                         String receivedMessage = new String(payload);
                         String args[] = receivedMessage.split("\\s+");
                         if (args.length > 1) {                            
@@ -98,13 +99,13 @@ public class RedDownService extends Thread {
                         	App.bn.TrafficPrint(pre + "WRONG LENGTH",1,0);
                         }
                     } else if (version.equals("1")) {                        
-                        byte[] payload = IpPacket.getPayloadU(data);
+                        byte[] payload = UnityPacket.getPayload(data);
                         String receivedMessage = new String(payload);
                         String args[] = receivedMessage.split("\\s+");
                         if (args.length > 1) {                            
                             if (args[0].equals("00004")){
                                 //ack
-                                App.bn.TrafficPrint(pre + "[ACK] -> "+IpPacket.getUDestAddress(data).getHostAddress() ,2,0);
+                                App.bn.TrafficPrint(pre + "[ACK] -> "+UnityPacket.getDestAddress(data).getHostAddress() ,2,0);
                                 App.bn.manager.offer(data); 
                             }  
                         } else {

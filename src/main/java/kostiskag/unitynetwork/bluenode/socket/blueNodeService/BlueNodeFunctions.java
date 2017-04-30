@@ -9,7 +9,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
+import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
@@ -102,7 +102,7 @@ public class BlueNodeFunctions {
      */
     static void Dping(BlueNodeInstance bn, PrintWriter outputWriter) {
         byte[] payload = ("00003 "+App.bn.name+" [DPING PACKET]").getBytes();
-        byte[] data = IpPacket.MakeUPacket(payload, null, null, true);
+        byte[] data = UnityPacket.buildPacket(payload, null, null, 0);
         try {
         	for (int i=0; i<3; i++) {
         		bn.getQueueMan().offer(data);

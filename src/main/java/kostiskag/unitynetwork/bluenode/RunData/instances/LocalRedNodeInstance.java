@@ -5,8 +5,8 @@ import java.io.PrintWriter;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
+import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.redThreads.RedDownService;
 import kostiskag.unitynetwork.bluenode.redThreads.RedKeepAlive;
 import kostiskag.unitynetwork.bluenode.redThreads.RedlUpService;
@@ -171,7 +171,7 @@ public class LocalRedNodeInstance {
                     if (getQueueMan() != null) {
 
                         byte[] payload = "00001 [DPING PACKET]".getBytes();
-                        byte[] data = IpPacket.MakeUPacket(payload, null, null, true);
+                        byte[] data = UnityPacket.buildPacket(payload, null, null, 0);
 
                         for (int i = 0; i < 2; i++) {
                             getQueueMan().offer(data);
