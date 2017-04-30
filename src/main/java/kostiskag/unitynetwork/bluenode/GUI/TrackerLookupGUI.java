@@ -1,4 +1,4 @@
-package kostiskag.unitynetwork.bluenode.GUI;
+package kostiskag.unitynetwork.bluenode.gui;
 
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;

@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
+import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.IpPacket;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.redThreads.RedDownService;

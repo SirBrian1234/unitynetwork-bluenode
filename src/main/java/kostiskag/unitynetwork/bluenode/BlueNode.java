@@ -2,7 +2,7 @@ package kostiskag.unitynetwork.bluenode;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import kostiskag.unitynetwork.bluenode.GUI.MainWindow;
+import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.FlyRegister;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.Routing.Router;
