@@ -109,7 +109,7 @@ public class RedNodeFunctions {
             ex.printStackTrace();
         }
         
-        socketWriter.println("REG OK " + RNclient.getDown().getDestPort() + " " + RNclient.getUp().getSourcePort() + " " + RNclient.getVaddress());
+        socketWriter.println("REG_OK " + RNclient.getDown().getDestPort() + " " + RNclient.getUp().getSourcePort() + " " + RNclient.getVaddress());
         App.bn.ConsolePrint(pre+"RED NODE OK " +  RNclient.getHostname() + "/" + RNclient.getVaddress() +" ~ " + RNclient.getPhAddress() + ":" + RNclient.getUp().getSourcePort() + ":" + RNclient.getDown().getDestPort());
         
         //initTerm will use the session socket and will hold this thread
