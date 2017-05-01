@@ -16,7 +16,7 @@ import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
  * 
  * @author kostis
  */
-public class BlueDownServiceClient extends Thread {
+public class BlueSendClient extends Thread {
 
 	private final String pre;
 	private final BlueNodeInstance blueNode;
@@ -32,7 +32,7 @@ public class BlueDownServiceClient extends Thread {
 	 * the AuthService Thread remember = BlueDownServiceClient is a client
 	 * thread to BlueUpServiceserver, therefore he is the one to SEND.
 	 */
-	public BlueDownServiceClient(BlueNodeInstance blueNode, int downport) {
+	public BlueSendClient(BlueNodeInstance blueNode, int downport) {
 		this.blueNode = blueNode;
 		this.pre = "^BlueDownServiceClient " + blueNode.getName() + " ";
 		this.blueNodePhAddress = blueNode.getPhaddress();		
@@ -78,22 +78,24 @@ public class BlueDownServiceClient extends Thread {
 			DatagramPacket sendUDPPacket = new DatagramPacket(data, data.length, blueNodePhAddress, downport);
 			try {
 				clientSocket.send(sendUDPPacket);
-				String version = IPv4Packet.getVersion(data);
-				if (version.equals("0")) {
-					byte[] payload = UnityPacket.getPayload(data);
-					String sentMessage = new String(payload);
-					String args[] = sentMessage.split("\\s+");
-					if (args.length > 1) {
-						if (args[0].equals("00000")) {
-							// keep alive
-							App.bn.TrafficPrint(pre +sentMessage, 0, 1);
-						} else if (args[0].equals("00002")) {
-                            //blue node uping!
-                            App.bn.TrafficPrint(pre + "UPING SENT", 1, 1);
-                        } else if (args[0].equals("00003")) {
-							// blue node dping!
-							App.bn.TrafficPrint(pre + "DPING SENT", 1, 1);
+				if (UnityPacket.isUnity(data)) {
+					if (UnityPacket.isKeepAlive(data)) {
+						// keep alive
+						App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 1);
+					} else if (UnityPacket.isUping(data)) {
+                        //blue node uping!
+                        App.bn.TrafficPrint(pre + "UPING SENT", 1, 1);
+                    } else if (UnityPacket.isDping(data)) {
+						// blue node dping!
+						App.bn.TrafficPrint(pre + "DPING SENT", 1, 1);
+					} else if (UnityPacket.isAck(data)) {
+						try {
+							App.bn.TrafficPrint(pre + "ACK-> "+UnityPacket.getDestAddress(data)+" SENT", 2, 1);
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
+					} else if (UnityPacket.isMessage(data)) {
+						App.bn.TrafficPrint(pre + "MESSAGE SENT", 3, 1);
 					}
 				}
 				if (App.bn.gui && didTrigger == false) {

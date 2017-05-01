@@ -7,12 +7,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.RunData.tables.RemoteRedNodeTable;
-import kostiskag.unitynetwork.bluenode.blueThreads.BlueDownServiceClient;
-import kostiskag.unitynetwork.bluenode.blueThreads.BlueDownServiceServer;
+import kostiskag.unitynetwork.bluenode.blueThreads.BlueSendClient;
+import kostiskag.unitynetwork.bluenode.blueThreads.BlueReceiveServer;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueKeepAlive;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
-import kostiskag.unitynetwork.bluenode.blueThreads.BlueUpServiceClient;
-import kostiskag.unitynetwork.bluenode.blueThreads.BlueUpServiceServer;
+import kostiskag.unitynetwork.bluenode.blueThreads.BlueReceiveClient;
+import kostiskag.unitynetwork.bluenode.blueThreads.BlueSendServer;
 import kostiskag.unitynetwork.bluenode.functions.GetTime;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
@@ -36,10 +36,10 @@ public class BlueNodeInstance {
     private final BlueKeepAlive ka;
     private final QueueManager man;
     private BlueNodeTimeBuilder timeBuilder;
-    private BlueDownServiceServer down;
-    private BlueUpServiceServer up;
-    private BlueDownServiceClient downcl;
-    private BlueUpServiceClient upcl;
+    private BlueReceiveServer down;
+    private BlueSendServer up;
+    private BlueSendClient downcl;
+    private BlueReceiveClient upcl;
     //triggers
     private int state = 0;    
     private AtomicBoolean uPing = new AtomicBoolean(false);
@@ -80,9 +80,9 @@ public class BlueNodeInstance {
         this.timestamp = GetTime.getSmallTimestamp();
         
         //setting down as server
-        down = new BlueDownServiceServer(this);
+        down = new BlueReceiveServer(this);
         //a=setting up as server
-        up = new BlueUpServiceServer(this);
+        up = new BlueSendServer(this);
 
         //starting all threads
         down.start();
@@ -114,9 +114,9 @@ public class BlueNodeInstance {
         this.timestamp = GetTime.getSmallTimestamp();
         
         //setting down as client
-        downcl = new BlueDownServiceClient(this, upPort);
+        downcl = new BlueSendClient(this, upPort);
         //setting up as client
-        upcl = new BlueUpServiceClient(this, downPort);
+        upcl = new BlueReceiveClient(this, downPort);
         //clients have also a timeBuilder
         timeBuilder = new BlueNodeTimeBuilder(this, App.bn.blueNodeTimeStepSec, App.bn.blueNodeMaxIdleTimeSec);
         

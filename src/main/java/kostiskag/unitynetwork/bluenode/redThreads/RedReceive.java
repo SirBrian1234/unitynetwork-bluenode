@@ -19,7 +19,7 @@ import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
  * 
  * @author kostis
  */
-public class RedDownService extends Thread {
+public class RedReceive extends Thread {
 
     private final String pre;
     private final LocalRedNodeInstance rn;
@@ -31,7 +31,7 @@ public class RedDownService extends Thread {
     private Boolean didTrigger = false;
     private AtomicBoolean kill = new AtomicBoolean(false);
 
-    public RedDownService(LocalRedNodeInstance rn ) {
+    public RedReceive(LocalRedNodeInstance rn ) {
         this.rn = rn;
     	pre =  "^RedDownService "+rn.getHostname()+" ";
     	destPort = App.bn.UDPports.requestPort();        
@@ -76,44 +76,38 @@ public class RedDownService extends Thread {
                 int len = receivePacket.getLength();
                 if (len > 0 && len <= 1500) {
                     data = new byte[len];
-                    System.arraycopy(receivePacket.getData(), 0, data, 0, len);
+                    System.arraycopy(receivePacket.getData(), 0, data, 0, len);                    
+                    if (UnityPacket.isUnity(data)) {                                                
+                    	if (UnityPacket.isKeepAlive(data)) {
+                            //keep alive packet received
+                            App.bn.TrafficPrint(pre +"KEEP ALIVE RECEIVED" ,0,0);
+                        }  else if (UnityPacket.isUping(data)){
+                        	//rednode uping packet received by the aspect of the red node
+                        	//the red node tests its upload
+                            rn.setUPing(true);
+                            App.bn.TrafficPrint(pre + "UPING RECEIVED",1,0);
+                        } else if (UnityPacket.isAck(data)){
+                        	try {
+								App.bn.TrafficPrint(pre + "ACK ->"+UnityPacket.getDestAddress(data).getHostAddress()+" RECEIVED" ,2,0);
+								App.bn.manager.offer(data); 
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+                        } else if (UnityPacket.isMessage(data)) {
+                        	try {
+								App.bn.TrafficPrint(pre + "Message -> "+UnityPacket.getDestAddress(data).getHostAddress()+" RECEIVED" ,2,0);
+								App.bn.manager.offer(data);
+                        	} catch (Exception e) {
+								e.printStackTrace();
+							}
+                        }                                                    
+                    } else if (IPv4Packet.isIPv4(data)){             
+                        App.bn.TrafficPrint(pre + "IPv4",3,0);
+                        App.bn.manager.offer(data);                        
+                    }
                     if (App.bn.gui && !didTrigger) {
                         MainWindow.jCheckBox3.setSelected(true);
                         didTrigger = true;
-                    }
-                    String version = IPv4Packet.getVersion(data);
-                    if (version.equals("0")) {                        
-                        byte[] payload = UnityPacket.getPayload(data);
-                        String receivedMessage = new String(payload);
-                        String args[] = receivedMessage.split("\\s+");
-                        if (args.length > 1) {                            
-                            if (args[0].equals("00000")){
-                                //keep alive packet received
-                                App.bn.TrafficPrint(pre + version+" [KEEP ALIVE]" ,0,0);
-                            }  else if (args[0].equals("00001")) {
-                                //rednode uping packet received                                              
-                                rn.setUPing(true);
-                                App.bn.TrafficPrint(pre + "REDNODE UPING RECEIVED",1,0);
-                            } 
-                        } else {
-                        	App.bn.TrafficPrint(pre + "WRONG LENGTH",1,0);
-                        }
-                    } else if (version.equals("1")) {                        
-                        byte[] payload = UnityPacket.getPayload(data);
-                        String receivedMessage = new String(payload);
-                        String args[] = receivedMessage.split("\\s+");
-                        if (args.length > 1) {                            
-                            if (args[0].equals("00004")){
-                                //ack
-                                App.bn.TrafficPrint(pre + "[ACK] -> "+UnityPacket.getDestAddress(data).getHostAddress() ,2,0);
-                                App.bn.manager.offer(data); 
-                            }  
-                        } else {
-                        	App.bn.TrafficPrint(pre + "WRONG LENGTH",2,0);
-                        }
-                    } else {             
-                        App.bn.TrafficPrint(pre + "IPv4",3,0);
-                        App.bn.manager.offer(data);                        
                     }
                 }
             } catch (java.net.SocketException ex1) {

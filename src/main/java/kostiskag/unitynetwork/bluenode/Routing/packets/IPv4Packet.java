@@ -1,53 +1,46 @@
 package kostiskag.unitynetwork.bluenode.Routing.packets;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class IPv4Packet {
-                           
-    public static String getVersion(byte[] packet) {
-        String version = Integer.toHexString(packet[0]);
-        return version;
+	
+	public static final int IPversion = 69;
+	public static final int MIN_LEN = 20;
+	
+    public static boolean isIPv4(byte[] packet) {
+        int version = HashFunctions.bytesToUnsignedInt(new byte[] {packet[0]});
+        if (version == IPversion  && packet.length >= MIN_LEN) {
+        	return true;
+        }
+        return false;
     }    
     
-    public static InetAddress getSourceAddress(byte[] packet) {
-        byte[] addr = new byte[4];
-        for (int i=0; i<4; i++){
-             addr[i] = packet[12+i];             
+    public static InetAddress getSourceAddress(byte[] packet) throws Exception {
+        if (isIPv4(packet)) {
+	    	byte[] addr = new byte[4];
+	        for (int i=0; i<4; i++){
+	             addr[i] = packet[12+i];             
+	        }
+	        return InetAddress.getByAddress(addr);
         }
-        InetAddress source = null;
-        try {
-            source = InetAddress.getByAddress(addr);
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(IPv4Packet.class.getName()).log(Level.SEVERE, null, ex);
-        }                
-        return source;
+        throw new Exception ("This is not an IPv4 packet.");
     }
 
-    public static InetAddress getDestAddress(byte[] packet) {
-        byte[] addr = new byte[4];
-        for (int i=0; i<4; i++){
-             addr[i] = packet[16+i];             
-        }
-        InetAddress dest = null;
-        try {
-            dest = InetAddress.getByAddress(addr);
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(IPv4Packet.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return dest;
-    }
-    
-    public static byte[] getPayload(byte[] frame) {        
-        byte[] packet = new byte[frame.length-14];        
-        System.arraycopy(frame, 14, packet, 0, packet.length);
-        return packet;
+    public static InetAddress getDestAddress(byte[] packet) throws Exception {
+    	if (isIPv4(packet)) {
+	    	byte[] addr = new byte[4];
+	        for (int i=0; i<4; i++){
+	             addr[i] = packet[16+i];             
+	        }
+	        return InetAddress.getByAddress(addr);
+    	}
+    	throw new Exception ("This is not an IPv4 packet.");
     }
 }
 

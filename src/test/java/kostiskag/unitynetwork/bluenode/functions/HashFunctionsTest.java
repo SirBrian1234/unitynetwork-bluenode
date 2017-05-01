@@ -96,5 +96,14 @@ public class HashFunctionsTest {
 		b = HashFunctions.buildByteFromBits("11110001");
 		assertEquals(b, (byte) 0xf1);
 	}
+	
+	@Test
+	public void myTest() {
+		byte[] ipv4 = new byte[] {0x45};
+		String hex = Integer.toHexString(ipv4[0]);
+		System.out.println(hex);
+		int version = HashFunctions.bytesToUnsignedInt(ipv4);
+		System.out.println(HashFunctions.bytesToUnsignedInt(ipv4)+" "+version);
+	}
 
 }

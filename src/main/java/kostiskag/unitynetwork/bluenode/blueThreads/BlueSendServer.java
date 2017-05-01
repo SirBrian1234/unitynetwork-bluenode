@@ -13,13 +13,13 @@ import kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
 import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.gui.*;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
-import kostiskag.unitynetwork.bluenode.redThreads.RedlUpService;
+import kostiskag.unitynetwork.bluenode.redThreads.RedlSend;
 
 /**
  *
  * @author kostis
  */
-public class BlueUpServiceServer extends Thread {
+public class BlueSendServer extends Thread {
 
     private final String pre;
     private final BlueNodeInstance blueNode;
@@ -35,7 +35,7 @@ public class BlueUpServiceServer extends Thread {
      * we do this on the constructor so that the running time will be charged on
      * the AuthService Thread
      */
-    public BlueUpServiceServer(BlueNodeInstance blueNode) {    	
+    public BlueSendServer(BlueNodeInstance blueNode) {    	
     	this.blueNode = blueNode;
     	this.pre = "^BlueUpServiceServer "+blueNode.getName()+" ";
         this.blueNodePhAddress = blueNode.getPhaddress();
@@ -87,7 +87,7 @@ public class BlueUpServiceServer extends Thread {
             App.bn.ConsolePrint(pre + "FISH SOCKET CLOSED, EXITING");
             return;
         } catch (IOException ex) {
-            Logger.getLogger(RedlUpService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(RedlSend.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
 
@@ -110,24 +110,26 @@ public class BlueUpServiceServer extends Thread {
             DatagramPacket sendUDPPacket = new DatagramPacket(data, data.length, blueNodePhAddress, destPort);
             try {
                 serverSocket.send(sendUDPPacket);
-                String version = IPv4Packet.getVersion(data);
-                if (version.equals("0")) {
-                    byte[] payload = UnityPacket.getPayload(data);
-                    String sentMessage = new String(payload);
-                    String args[] = sentMessage.split("\\s+");
-                    if (args.length > 1) {
-                        if (args[0].equals("00000")) {
-                            //keep alive
-                            App.bn.TrafficPrint(pre+sentMessage, 0, 1);
-                        } else if (args[0].equals("00002")) {
-                            //blue node uping!
-                            App.bn.TrafficPrint(pre + "UPING SENT", 1, 1);
-                        } else if (args[0].equals("00003")) {
-                            //blue node uping!
-                            App.bn.TrafficPrint(pre + "DPING SENT", 1, 1);
-                        }
-                    }
-                }
+                if (UnityPacket.isUnity(data)) {
+					if (UnityPacket.isKeepAlive(data)) {
+						// keep alive
+						App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 1);
+					} else if (UnityPacket.isUping(data)) {
+                        //blue node uping!
+                        App.bn.TrafficPrint(pre + "UPING SENT", 1, 1);
+                    } else if (UnityPacket.isDping(data)) {
+						// blue node dping!
+						App.bn.TrafficPrint(pre + "DPING SENT", 1, 1);
+					} else if (UnityPacket.isAck(data)) {
+						try {
+							App.bn.TrafficPrint(pre + "ACK-> "+UnityPacket.getDestAddress(data)+" SENT", 2, 1);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					} else if (UnityPacket.isMessage(data)) {
+						App.bn.TrafficPrint(pre + "MESSAGE SENT", 3, 1);
+					}
+				}
                 if (App.bn.gui && !didTrigger) {
                 	didTrigger = true;
                 	MainWindow.jCheckBox6.setSelected(true);                    

@@ -20,7 +20,7 @@ import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
  * 
  * @author kostis
  */
-public class RedlUpService extends Thread {
+public class RedlSend extends Thread {
 
     private final String pre;
     private final LocalRedNodeInstance rn;
@@ -40,7 +40,7 @@ public class RedlUpService extends Thread {
      * IF FISH NEVER FISHES THEN EVERYTHING IS STUCK AND WE
      * HAVE A DEAD ENTRY
      */
-    public RedlUpService(LocalRedNodeInstance rn) {        
+    public RedlSend(LocalRedNodeInstance rn) {        
         this.rn = rn;
         pre = "^RedlUpService "+rn.getHostname()+" ";
         sourcePort = App.bn.UDPports.requestPort();
@@ -72,12 +72,12 @@ public class RedlUpService extends Thread {
             App.bn.ConsolePrint(pre + "PORT ALLREADY BINDED, EXITING");
             return;
         } catch (SocketException ex) {
-            Logger.getLogger(RedlUpService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(RedlSend.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
             serverSocket.setSoTimeout(10000);
         } catch (SocketException ex) {
-            Logger.getLogger(RedlUpService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(RedlSend.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         byte[] buffer = new byte[2048];
@@ -91,7 +91,7 @@ public class RedlUpService extends Thread {
             App.bn.ConsolePrint(pre + "FISH SOCKET CLOSED, EXITING");
             return;
         } catch (IOException ex) {
-            Logger.getLogger(RedlUpService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(RedlSend.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
 
@@ -125,24 +125,27 @@ public class RedlUpService extends Thread {
             DatagramPacket sendUDPPacket = new DatagramPacket(data, data.length, clientAddress, destPort);
             try {
                 serverSocket.send(sendUDPPacket);
-                String version = IPv4Packet.getVersion(data);                
-                if (version.equals("0")) {
-                    byte[] payload = UnityPacket.getPayload(data);
-                    String receivedMessage = new String(payload);
-                    String args[] = receivedMessage.split("\\s+");
-                    if (args.length > 1) {
-                        if (args[0].equals("00000")) {
-                            //keep alive
-                            App.bn.TrafficPrint(pre+version +" [KEEP ALIVE]", 0, 0);
-                        } else if (args[0].equals("00001")) {
-                            //rednode ping                                               
-                            rn.setUPing(true);
-                            App.bn.TrafficPrint(pre + "DPING LEAVES", 1, 0);
-                        }
-                    } else {
-                    	App.bn.TrafficPrint(pre + "WRONG LENGTH", 1, 0);                        
-                    }
-                } 
+                if (UnityPacket.isUnity(data)) {
+					if (UnityPacket.isKeepAlive(data)) {
+						App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 0);
+					} else if (UnityPacket.isDping(data)) {
+						App.bn.TrafficPrint(pre + "DPING SENT", 1, 0);
+					} else if (UnityPacket.isAck(data)) {
+						try {
+							App.bn.TrafficPrint(pre + "ACK "+UnityPacket.getDestAddress(data)+" SENT", 2, 0);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					} else if (UnityPacket.isMessage(data)) {
+						try {
+							App.bn.TrafficPrint(pre + "MESSAGE "+UnityPacket.getDestAddress(data)+" SENT", 3, 0);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				} else if (IPv4Packet.isIPv4(data)) {
+					App.bn.TrafficPrint(pre + "IPV4 SENT", 3, 0);
+				}
                 if (App.bn.gui && !trigger) {
                     MainWindow.jCheckBox4.setSelected(true);
                     trigger = true;

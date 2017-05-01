@@ -8,8 +8,8 @@ import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
 /**
  * It has been detected that some NATs may remove entries from their
- * tables if they had been idle for a long time. This is a problem for us and
- * for this reason we need to keep alive the peer UDP connections. This
+ * tables if they were idle for a long time. This is a problem for us as
+ * we need to keep alive the peer UDP connections at all times. This
  * class's thread will offer three packets every timeInSec in order to 
  * keep alive the connections. 
  * 
@@ -27,8 +27,9 @@ public class BlueKeepAlive extends Thread {
     	this.blueNode = blueNode;
         this.pre = "^KEEP ALIVE "+blueNode.getName()+" ";
     	this.timeInSec = App.bn.trackerMaxIdleTime;
-    	this.numOfPacketsToSend = 3;        
-        this.packet = UnityPacket.buildPacket(("00000 "+App.bn.name+" [KEEP ALIVE]  ").getBytes(), null, null, 0);                
+    	this.numOfPacketsToSend = 3;      
+    	//0 is the keep alive packet
+        this.packet = UnityPacket.buildKeepAlivePacket();             
     }
     
     public BlueNodeInstance getBlueNode() {

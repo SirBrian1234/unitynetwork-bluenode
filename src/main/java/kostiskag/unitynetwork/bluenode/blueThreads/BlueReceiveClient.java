@@ -10,13 +10,13 @@ import kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
 import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
-import kostiskag.unitynetwork.bluenode.redThreads.RedDownService;
+import kostiskag.unitynetwork.bluenode.redThreads.RedReceive;
 
 /**
  *
  * @author kostis
  */
-public class BlueUpServiceClient extends Thread {
+public class BlueReceiveClient extends Thread {
 
     private final String pre;
     private final BlueNodeInstance blueNode;
@@ -31,7 +31,7 @@ public class BlueUpServiceClient extends Thread {
      * we do this on the constructor so that the running time will be charged on
      * the AuthService Thread
      */
-    public BlueUpServiceClient(BlueNodeInstance blueNode, int upPort) {
+    public BlueReceiveClient(BlueNodeInstance blueNode, int upPort) {
         this.blueNode = blueNode;
         this.pre = "^BlueUpServiceClient "+blueNode.getName()+" ";
         this.blueNodePhAddress = blueNode.getPhaddress();    	
@@ -62,7 +62,7 @@ public class BlueUpServiceClient extends Thread {
             App.bn.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
             return;
         } catch (SocketException ex) {
-            Logger.getLogger(RedDownService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(RedReceive.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
 
@@ -77,7 +77,7 @@ public class BlueUpServiceClient extends Thread {
             return;
         } catch (IOException ex) {
             App.bn.TrafficPrint("FISH PACKET SEND ERROR",3,1);
-            Logger.getLogger(BlueUpServiceClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BlueReceiveClient.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
         App.bn.TrafficPrint("FISH PACKET",3,1);
@@ -94,26 +94,34 @@ public class BlueUpServiceClient extends Thread {
                     	didTrigger = true;
                     	MainWindow.jCheckBox7.setSelected(true);                        
                     }
-                    String version = IPv4Packet.getVersion(packet);
-                    if (version.equals("0")) {
-                        byte[] payload = UnityPacket.getPayload(packet);
-                        String receivedMessage = new String(payload);
-                        String args[] = receivedMessage.split("\\s+");
-                        if (args.length > 1) {                            
-                            if (args[0].equals("00000")) {
-                                App.bn.TrafficPrint(pre +receivedMessage,0,1);
-                            } else if (args[0].equals("00002")) {
-                                //blue node uping!
-                                blueNode.setUping(true);                                
-                                App.bn.TrafficPrint(pre + "UPING RECEIVED",1,1);
-                            } else if (args[0].equals("00003")) {
-                                //blue node uping!
-                                blueNode.setDping(true);                                
-                                App.bn.TrafficPrint(pre + "DPING RECEIVED",1,1);
-                            }
-                        }
-                    } else {
+                    
+                    if (UnityPacket.isUnity(packet)) {
+    					if (UnityPacket.isKeepAlive(packet)) {
+    						// keep alive
+    						App.bn.TrafficPrint(pre +"KEEP ALIVE RECEIVED", 0, 1);
+    					} else if (UnityPacket.isUping(packet)) {
+                            //blue node uping!
+    						blueNode.setUping(true);    
+    						App.bn.TrafficPrint(pre + "UPING RECEIVED", 1, 1);
+                        } else if (UnityPacket.isDping(packet)) {
+    						// blue node dping!
+                        	blueNode.setDping(true);   
+    						App.bn.TrafficPrint(pre + "DPING RECEIVED", 1, 1);
+    					} else if (UnityPacket.isAck(packet)) {
+    						try {
+    							App.bn.manager.offer(packet); 
+    							App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet)+" RECEIVED", 2, 1);
+    						} catch (Exception e) {
+    							e.printStackTrace();
+    						}
+    					} else if (UnityPacket.isMessage(packet)) {
+    						App.bn.manager.offer(packet); 
+    						App.bn.TrafficPrint(pre + "MESSAGE RECEIVED", 3, 1);
+    					}        				
+                    } else if (IPv4Packet.isIPv4(packet)){
                         App.bn.manager.offer(packet);                        
+                    } else {
+                    	System.out.println(pre + "wrong type");
                     }
                 } else {
                     System.out.println(pre + "wrong length");

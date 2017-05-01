@@ -13,7 +13,7 @@ import kostiskag.unitynetwork.bluenode.App;
  *
  * @author kostis
  */
-public class BlueDownServiceServer extends Thread {
+public class BlueReceiveServer extends Thread {
 
     private final String pre;
     private final BlueNodeInstance blueNode;
@@ -22,7 +22,7 @@ public class BlueDownServiceServer extends Thread {
     private Boolean didTrigger = false;
     private AtomicBoolean kill = new AtomicBoolean(false);    
 
-    public BlueDownServiceServer(BlueNodeInstance blueNode) {
+    public BlueReceiveServer(BlueNodeInstance blueNode) {
         this.downPort = App.bn.UDPports.requestPort();
         this.blueNode = blueNode;
         this.pre = "^BlueDownServiceServer "+blueNode.getName()+" ";        
@@ -68,33 +68,36 @@ public class BlueDownServiceServer extends Thread {
                         MainWindow.jCheckBox7.setSelected(true);
                         didTrigger = true;
                     }
-                    String version = IPv4Packet.getVersion(packet);
-                    if (version.equals("0")) {                        
-                        byte[] payload = UnityPacket.getPayload(packet);
-                        String receivedMessage = new String(payload);
-                        String args[] = receivedMessage.split("\\s+");
-                        if (args.length > 1) {                                                        
-                            if (args[0].equals("00000")) {
-                                //keep alive
-                                App.bn.TrafficPrint(pre + receivedMessage,0,1);
-                            } else if (args[0].equals("00002")) {
-                                //blue node dping!
-                            	blueNode.setUping(true);                            
-                                App.bn.TrafficPrint(pre + "UPING RECEIVED",1,1);
-                            } else if (args[0].equals("00003")) {
-                                //blue node dping!
-                            	blueNode.setDping(true);                            
-                                App.bn.TrafficPrint(pre + "DPING RECEIVED",1,1);
-                            } else if (args[0].equals("00004")) {
-                                //ack
-                                App.bn.TrafficPrint(pre + version + " " + receivedMessage,2,1);
-                            }
-                        }                        
-                    } else {
+                    
+                    if (UnityPacket.isUnity(packet)) {
+    					if (UnityPacket.isKeepAlive(packet)) {
+    						// keep alive
+    						App.bn.TrafficPrint(pre +"KEEP ALIVE RECEIVED", 0, 1);
+    					} else if (UnityPacket.isUping(packet)) {
+                            //blue node uping!
+    						blueNode.setUping(true);    
+    						App.bn.TrafficPrint(pre + "UPING RECEIVED", 1, 1);
+                        } else if (UnityPacket.isDping(packet)) {
+    						// blue node dping!
+                        	blueNode.setDping(true);   
+    						App.bn.TrafficPrint(pre + "DPING RECEIVED", 1, 1);
+    					} else if (UnityPacket.isAck(packet)) {
+    						try {
+    							App.bn.manager.offer(packet); 
+    							App.bn.TrafficPrint(pre + "ACK-> "+UnityPacket.getDestAddress(packet)+" RECEIVED", 2, 1);
+    						} catch (Exception e) {
+    							e.printStackTrace();
+    						}
+    					} else if (UnityPacket.isMessage(packet)) {
+    						App.bn.manager.offer(packet); 
+    						App.bn.TrafficPrint(pre + "MESSAGE RECEIVED", 3, 1);
+    					}        				
+                    } else if (IPv4Packet.isIPv4(packet)){
                         App.bn.manager.offer(packet);                        
                     }
+                    
                 } else {
-                    System.out.println(pre + "WRONG LENGTH");
+                    System.out.println(pre + "MAXIMUM LENGTH EXCEDED");
                 }
             } catch (java.net.SocketException ex1) {
                 App.bn.ConsolePrint(pre + "SOCKET ERROR");

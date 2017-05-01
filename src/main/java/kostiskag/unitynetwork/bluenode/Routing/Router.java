@@ -34,24 +34,32 @@ public class Router extends Thread {
                 continue;
             }
             
-            /* from this point on a packet needs to be routed... now lets check 
+            /* 
+             * from this point on a packet needs to be routed... now lets check 
              * if destination is registered check vaddress table and sent to 
              * specific udp vaddr - addr:udp then when you get the stuff send it
              */
 
-            String version = IPv4Packet.getVersion(data);
-            String sourcevaddress;
-            String destvaddress;
+            String sourcevaddress = null;
+            String destvaddress = null;
 
-            if (version.equals("45") || version.equals("1") || version.equals("2")) {
-                if (version.equals("45")) {
-                	sourcevaddress = IPv4Packet.getSourceAddress(data).getHostAddress();
-                	destvaddress = IPv4Packet.getDestAddress(data).getHostAddress();
-                    App.bn.TrafficPrint(pre + "IP " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
+            if (IPv4Packet.isIPv4(data) || UnityPacket.isMessage(data) || UnityPacket.isAck(data)) {
+                if (IPv4Packet.isIPv4(data)) {
+                	try {
+						sourcevaddress = IPv4Packet.getSourceAddress(data).getHostAddress();
+						destvaddress = IPv4Packet.getDestAddress(data).getHostAddress();
+	                    App.bn.TrafficPrint(pre + "IP " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}                	
                 } else {
-                    destvaddress = UnityPacket.getDestAddress(data).getHostAddress();
-                    sourcevaddress = UnityPacket.getSourceAddress(data).getHostAddress();
-                    App.bn.TrafficPrint(pre + version + " " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
+                    try {
+						sourcevaddress = UnityPacket.getSourceAddress(data).getHostAddress();
+						destvaddress = UnityPacket.getDestAddress(data).getHostAddress();
+	                    App.bn.TrafficPrint(pre + "Unity " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
+                    } catch (Exception e) {
+						e.printStackTrace();
+					}                    
                 }
 
                 if (destvaddress.startsWith("10.")) {
@@ -65,6 +73,7 @@ public class Router extends Thread {
 	                    //load the packet data to local red node's queue
 	                    App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offer(data);
 	                    App.bn.TrafficPrint(pre+"LOCAL DESTINATION", 3, 0);
+	                    
 	                } else if (App.bn.joined) {
 	                    if (App.bn.blueNodesTable.checkRemoteRedNodeByVaddress(destvaddress)) {
 	                    	//load the packet to remote blue node's queue

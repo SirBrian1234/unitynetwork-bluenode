@@ -7,9 +7,9 @@ import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
-import kostiskag.unitynetwork.bluenode.redThreads.RedDownService;
+import kostiskag.unitynetwork.bluenode.redThreads.RedReceive;
 import kostiskag.unitynetwork.bluenode.redThreads.RedKeepAlive;
-import kostiskag.unitynetwork.bluenode.redThreads.RedlUpService;
+import kostiskag.unitynetwork.bluenode.redThreads.RedlSend;
 
 /** 
  * RedAuthService runs every time for a single user only It is responsible for
@@ -32,8 +32,8 @@ public class LocalRedNodeInstance {
     private BufferedReader socketReader;
     private PrintWriter socketWriter;
     //thread objects
-    private RedDownService down;
-    private RedlUpService up;
+    private RedReceive down;
+    private RedlSend up;
     private RedKeepAlive ka;
     private QueueManager man;
     //loggers
@@ -68,10 +68,10 @@ public class LocalRedNodeInstance {
         man = new QueueManager(10);
 
         //set downlink (allways by the aspect of bluenode)
-        down = new RedDownService(this);
+        down = new RedReceive(this);
 
         //set uplink (allways by the aspect of bluenode)
-        up = new RedlUpService(this);
+        up = new RedlSend(this);
 
         //set keep alive
         ka = new RedKeepAlive(this);
@@ -112,11 +112,11 @@ public class LocalRedNodeInstance {
         return uping;
     }
 
-    public RedlUpService getUp() {
+    public RedlSend getUp() {
         return up;
     }
 
-    public RedDownService getDown() {
+    public RedReceive getDown() {
         return down;
     }
 
@@ -169,14 +169,11 @@ public class LocalRedNodeInstance {
 
                 } else if (clientSentence.startsWith("DPING")) {
                     if (getQueueMan() != null) {
-
-                        byte[] payload = "00001 [DPING PACKET]".getBytes();
-                        byte[] data = UnityPacket.buildPacket(payload, null, null, 0);
-
+                        byte[] data = UnityPacket.buildDpingPacket();
                         for (int i = 0; i < 2; i++) {
                             getQueueMan().offer(data);
                         }
-                        socketWriter.println("PING ON THE WAY");
+                        socketWriter.println("PING ON THE WAY");                        
                     } else {
                         socketWriter.println("BLUE NODE ERROR");
                         App.bn.ConsolePrint(pre + "NO QUEUE FOUND FOR " + Vaddress + " HOST KILLED");
@@ -218,7 +215,7 @@ public class LocalRedNodeInstance {
     private void urefresh() {
         up.kill();
 
-        up = new RedlUpService(this);
+        up = new RedlSend(this);
         up.start();
 
         try {
@@ -232,7 +229,7 @@ public class LocalRedNodeInstance {
 
     private void drefresh() {
         down.kill();
-        down = new RedDownService(this);
+        down = new RedReceive(this);
         down.start();
 
         try {

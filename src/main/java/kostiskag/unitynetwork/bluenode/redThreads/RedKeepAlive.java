@@ -1,9 +1,7 @@
 package kostiskag.unitynetwork.bluenode.redThreads;
 
-import java.net.InetAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
@@ -21,7 +19,6 @@ public class RedKeepAlive extends Thread {
     //data
     private final int keepAliveTime;
     private final int numOfPacketsToSend = 3;
-    private final byte[] payload = ("00000 [KEEP ALIVE]").getBytes();
     private final byte[] data;
     //triggers
     private AtomicBoolean kill = new AtomicBoolean(false);
@@ -30,7 +27,8 @@ public class RedKeepAlive extends Thread {
         this.rn = rn;
         this.pre = "^RedKeepAlive "+rn.getHostname()+" ";
         this.keepAliveTime = kostiskag.unitynetwork.bluenode.App.bn.trackerMaxIdleTime;              
-        this.data = UnityPacket.buildPacket(payload, null, null, 0);
+        //keep alive packet
+        this.data = UnityPacket.buildKeepAlivePacket();
     }
     
     public LocalRedNodeInstance getRn() {

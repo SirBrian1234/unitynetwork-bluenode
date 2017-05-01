@@ -128,17 +128,14 @@ public class BlueNodeClient {
 	public boolean uPing() {
 		if (bn != null) {
 			if (connected) {
-				byte[] payload = ("00002 " + App.bn.name + " [UPING PACKET]").getBytes();
-		        byte[] data = UnityPacket.buildPacket(payload, null, null, 0);
-		        
-				TCPSocketFunctions.sendData("UPING", socketWriter, socketReader);
+				byte[] data = UnityPacket.buildUpingPacket();
+		        TCPSocketFunctions.sendData("UPING", socketWriter, socketReader);
 				//wait to get set
 		        for (int i=0; i<3; i++) {
 		        	bn.getQueueMan().offer(data);
 		        	try {
 						sleep(200);
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 		        }

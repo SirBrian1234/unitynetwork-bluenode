@@ -101,8 +101,7 @@ public class BlueNodeFunctions {
      * A Bn has requested to get some packets. That's all!
      */
     static void Dping(BlueNodeInstance bn, PrintWriter outputWriter) {
-        byte[] payload = ("00003 "+App.bn.name+" [DPING PACKET]").getBytes();
-        byte[] data = UnityPacket.buildPacket(payload, null, null, 0);
+        byte[] data = UnityPacket.buildDpingPacket();
         try {
         	for (int i=0; i<3; i++) {
         		bn.getQueueMan().offer(data);
