@@ -3,7 +3,6 @@ package kostiskag.unitynetwork.bluenode.socket.blueNodeService;
 import static java.lang.Thread.sleep;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -65,8 +64,8 @@ public class BlueNodeFunctions {
 			return;
 		}
         
-        socketWriter.println("ASSOSIATING "+bn.getUpport()+" "+bn.getDownport());        
-		App.bn.ConsolePrint(pre + "remote auth port "+bn.getRemoteAuthPort()+" upport "+bn.getUpport()+" downport "+bn.getDownport());
+        socketWriter.println("ASSOSIATING "+bn.getServerSendPort()+" "+bn.getServerReceivePort());        
+		App.bn.ConsolePrint(pre + "remote auth port "+bn.getRemoteAuthPort()+" upport "+bn.getServerSendPort()+" downport "+bn.getServerReceivePort());
     	
     	try {
 			App.bn.blueNodesTable.leaseBn(bn);

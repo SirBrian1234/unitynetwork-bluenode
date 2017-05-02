@@ -7,12 +7,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.RunData.tables.RemoteRedNodeTable;
-import kostiskag.unitynetwork.bluenode.blueThreads.BlueSendClient;
-import kostiskag.unitynetwork.bluenode.blueThreads.BlueReceiveServer;
+import kostiskag.unitynetwork.bluenode.blueThreads.BlueReceive;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueKeepAlive;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
-import kostiskag.unitynetwork.bluenode.blueThreads.BlueReceiveClient;
-import kostiskag.unitynetwork.bluenode.blueThreads.BlueSendServer;
+import kostiskag.unitynetwork.bluenode.blueThreads.BlueSend;
 import kostiskag.unitynetwork.bluenode.functions.GetTime;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
@@ -36,10 +34,8 @@ public class BlueNodeInstance {
     private final BlueKeepAlive ka;
     private final QueueManager man;
     private BlueNodeTimeBuilder timeBuilder;
-    private BlueReceiveServer down;
-    private BlueSendServer up;
-    private BlueSendClient downcl;
-    private BlueReceiveClient upcl;
+    private BlueReceive receive;
+    private BlueSend send;
     //triggers
     private int state = 0;    
     private AtomicBoolean uPing = new AtomicBoolean(false);
@@ -56,7 +52,7 @@ public class BlueNodeInstance {
     	this.phAddressStr = "1.1.1.1";
     	this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
     	this.remoteAuthPort = 7000;
-    	this.pre = "^BLUENODE "+name+" ";
+    	this.pre = "^BlueNodeInstance "+name+" ";
     	this.state = 0;                  
         this.ka = new BlueKeepAlive(this);
         this.man = new QueueManager(20);
@@ -66,6 +62,7 @@ public class BlueNodeInstance {
 
     /**
      * This is the server constructor.
+     * 
      */
     public BlueNodeInstance(String name, String phAddressStr, int authPort) throws Exception {
     	this.isServer = true;
@@ -80,26 +77,24 @@ public class BlueNodeInstance {
         this.timestamp = GetTime.getSmallTimestamp();
         
         //setting down as server
-        down = new BlueReceiveServer(this);
+        receive = new BlueReceive(this);
         //a=setting up as server
-        up = new BlueSendServer(this);
+        send = new BlueSend(this);
 
         //starting all threads
-        down.start();
-        up.start();
+        receive.start();
+        send.start();
         ka.start();
 
         //hold the thread a bit to catch up the started threads
-        Thread.sleep(100);
+        Thread.sleep(200);
 
-        state = 1;
         //remember!, don't close the socket here, let the method return and it will be closed from the caller       
     }
 
     /**
      * This is the client constructor.
      * 
-     * @throws Exception 
      */
     public BlueNodeInstance(String name, String phAddress, int authPort, int upPort, int downPort) throws Exception {
     	this.isServer = false;
@@ -114,19 +109,21 @@ public class BlueNodeInstance {
         this.timestamp = GetTime.getSmallTimestamp();
         
         //setting down as client
-        downcl = new BlueSendClient(this, upPort);
+        send = new BlueSend(this, upPort);
         //setting up as client
-        upcl = new BlueReceiveClient(this, downPort);
+        receive = new BlueReceive(this, downPort);
         //clients have also a timeBuilder
         timeBuilder = new BlueNodeTimeBuilder(this, App.bn.blueNodeTimeStepSec, App.bn.blueNodeMaxIdleTimeSec);
         
         //starting all threads
-        downcl.start();
-        upcl.start();
+        send.start();
+        receive.start();
         ka.start();
         timeBuilder.start(); 
+        
+        //hold the thread a bit to catch up the started threads
+        Thread.sleep(200);
 
-        state = 1;
         //remember!, don't close the socket here, let the method return and it will be closed from the caller
     }
 
@@ -174,37 +171,29 @@ public class BlueNodeInstance {
     }
     
     
-    public int getDownport() {
+    public int getServerReceivePort() {
         if (isServer){
-            return down.getDownport();
+            return receive.getServerPort();
         } else {
-            return downcl.getDownport();
+            return 0;
         }
     }
 
-    public int getUpport() {
+    public int getServerSendPort() {
         if (isServer){
-            return up.getUpport();
+            return send.getServerPort();
         } else {
-            return upcl.getUpport();
+            return 0;
         }        
     }    
     
-    public String getDownStr() {
-        if (isServer) {
-            return down.toString();
-        } else {
-            return downcl.toString();
-        }
+    public int getPortToSend() {
+    	return send.getPortToSend();
     }
     
-    public String getUpStr() {
-        if (isServer) {
-            return up.toString();
-        } else {
-            return upcl.toString();
-        }
-    }  
+    public int getPortToReceive() {
+    	return receive.getPortToReceive();
+    }
     
     public boolean isServer() {
         return isServer;
@@ -236,14 +225,13 @@ public class BlueNodeInstance {
 
     public void killtasks() { 
         ka.kill();
-        if (isServer) {
-            up.kill();
-            down.kill();
-        } else {
-            upcl.kill();
-            downcl.kill();
+        send.kill();
+        receive.kill();
+        
+        if (!isServer) {
             timeBuilder.Kill();
         }
+        
         man.clear();
         state = -1;
     }

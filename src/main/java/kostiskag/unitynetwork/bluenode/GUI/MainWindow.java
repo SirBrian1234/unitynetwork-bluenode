@@ -36,7 +36,7 @@ public class MainWindow extends javax.swing.JFrame {
     private final Object lockConsole = new Object();
 	private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port"});
     private final DefaultTableModel remoteRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Blue Node Name", "Last Checked"});
-    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Is a Server", "Physical Address", "Auth Port", "Uplink Port", "Downlink Port", "Last Checked"});
+    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Is a Server", "Physical Address", "Auth Port", "Send Port", "Receive Port", "Last Checked"});
     private boolean autoScrollDownTraffic = true;
     private boolean autoScrollDownConsole = true;
     private boolean viewTraffic = true;

@@ -199,7 +199,7 @@ public class BlueNodesTable {
         int i=0;
     	while(it.hasNext()) {
         	BlueNodeInstance bn = it.next();
-        	object[i] = new String[]{bn.getName(), bn.isTheRemoteAServer(), bn.getPhAddressStr(), ""+bn.getRemoteAuthPort(),""+bn.getUpport(), ""+bn.getDownport(), bn.getTime()};
+        	object[i] = new String[]{bn.getName(), bn.isTheRemoteAServer(), bn.getPhAddressStr(), ""+bn.getRemoteAuthPort(),""+bn.getPortToSend(), ""+bn.getPortToReceive(), bn.getTime()};
         	i++;
         }
     	return object;

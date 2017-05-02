@@ -88,7 +88,7 @@ public class RedReceive extends Thread {
                             App.bn.TrafficPrint(pre + "UPING RECEIVED",1,0);
                         } else if (UnityPacket.isAck(data)){
                         	try {
-								App.bn.TrafficPrint(pre + "ACK ->"+UnityPacket.getDestAddress(data).getHostAddress()+" RECEIVED" ,2,0);
+								App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(data).getHostAddress()+" RECEIVED" ,2,0);
 								App.bn.manager.offer(data); 
 							} catch (Exception e) {
 								e.printStackTrace();

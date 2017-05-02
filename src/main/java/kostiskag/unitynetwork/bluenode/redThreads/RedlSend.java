@@ -132,13 +132,13 @@ public class RedlSend extends Thread {
 						App.bn.TrafficPrint(pre + "DPING SENT", 1, 0);
 					} else if (UnityPacket.isAck(data)) {
 						try {
-							App.bn.TrafficPrint(pre + "ACK "+UnityPacket.getDestAddress(data)+" SENT", 2, 0);
+							App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(data)+" SENT", 2, 0);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					} else if (UnityPacket.isMessage(data)) {
 						try {
-							App.bn.TrafficPrint(pre + "MESSAGE "+UnityPacket.getDestAddress(data)+" SENT", 3, 0);
+							App.bn.TrafficPrint(pre + "MESSAGE -> "+UnityPacket.getDestAddress(data)+" SENT", 3, 0);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
