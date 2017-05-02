@@ -68,42 +68,45 @@ public class RedReceive extends Thread {
         }
 
         byte[] receiveData = new byte[2048];
-        byte[] data = null;
+        byte[] packet = null;
         DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
         while (!kill.get()) {
             try {
                 serverSocket.receive(receivePacket);
                 int len = receivePacket.getLength();
                 if (len > 0 && len <= 1500) {
-                    data = new byte[len];
-                    System.arraycopy(receivePacket.getData(), 0, data, 0, len);                    
-                    if (UnityPacket.isUnity(data)) {                                                
-                    	if (UnityPacket.isKeepAlive(data)) {
+                    packet = new byte[len];
+                    System.arraycopy(receivePacket.getData(), 0, packet, 0, len);                    
+                    if (UnityPacket.isUnity(packet)) {                                                
+                    	if (UnityPacket.isKeepAlive(packet)) {
                             //keep alive packet received
                             App.bn.TrafficPrint(pre +"KEEP ALIVE RECEIVED" ,0,0);
-                        }  else if (UnityPacket.isUping(data)){
+                        }  else if (UnityPacket.isUping(packet)){
                         	//rednode uping packet received by the aspect of the red node
                         	//the red node tests its upload
                             rn.setUPing(true);
                             App.bn.TrafficPrint(pre + "UPING RECEIVED",1,0);
-                        } else if (UnityPacket.isAck(data)){
+                        } else if (UnityPacket.isShortRoutedAck(packet)) {
+                        	//do something
+                        	App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", 1, 0);
+                        } else if (UnityPacket.isLongRoutedAck(packet)){
                         	try {
-								App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(data).getHostAddress()+" RECEIVED" ,2,0);
-								App.bn.manager.offer(data); 
+								App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED" ,2,0);
+								App.bn.manager.offer(packet); 
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
-                        } else if (UnityPacket.isMessage(data)) {
+                        } else if (UnityPacket.isMessage(packet)) {
                         	try {
-								App.bn.TrafficPrint(pre + "Message -> "+UnityPacket.getDestAddress(data).getHostAddress()+" RECEIVED" ,2,0);
-								App.bn.manager.offer(data);
+								App.bn.TrafficPrint(pre + "Message -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED" ,2,0);
+								App.bn.manager.offer(packet);
                         	} catch (Exception e) {
 								e.printStackTrace();
 							}
                         }                                                    
-                    } else if (IPv4Packet.isIPv4(data)){             
+                    } else if (IPv4Packet.isIPv4(packet)){             
                         App.bn.TrafficPrint(pre + "IPv4",3,0);
-                        App.bn.manager.offer(data);                        
+                        App.bn.manager.offer(packet);                        
                     }
                     if (App.bn.gui && !didTrigger) {
                         MainWindow.jCheckBox3.setSelected(true);

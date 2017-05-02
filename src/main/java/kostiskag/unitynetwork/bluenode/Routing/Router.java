@@ -10,6 +10,9 @@ import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
  * a red node's queue or a blue node's queue. When a packet has a not known destination
  * the FlyRegister is called.
  * 
+ * This class's thread should NEVER wait in a full queue as if it does so the whole rooting goes poof!!!
+ * This outcome should be avoided. Wait only on an empty queue.
+ * 
  * @author kostis
  */
 public class Router extends Thread {
@@ -43,7 +46,7 @@ public class Router extends Thread {
             String sourcevaddress = null;
             String destvaddress = null;
 
-            if (IPv4Packet.isIPv4(data) || UnityPacket.isMessage(data) || UnityPacket.isAck(data)) {
+            if (IPv4Packet.isIPv4(data) || UnityPacket.isMessage(data) || UnityPacket.isLongRoutedAck(data)) {
                 if (IPv4Packet.isIPv4(data)) {
                 	try {
 						sourcevaddress = IPv4Packet.getSourceAddress(data).getHostAddress();
@@ -71,7 +74,7 @@ public class Router extends Thread {
 	                	
 	                } else if (App.bn.localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
 	                    //load the packet data to local red node's queue
-	                    App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offer(data);
+	                    App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offerNoWait(data);
 	                    App.bn.TrafficPrint(pre+"LOCAL DESTINATION", 3, 0);
 	                    
 	                } else if (App.bn.joined) {
@@ -80,7 +83,7 @@ public class Router extends Thread {
 	                        BlueNodeInstance bn;
 							try {
 								bn = App.bn.blueNodesTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
-								bn.getQueueMan().offer(data);
+								bn.getQueueMan().offerNoWait(data);
 		                        App.bn.TrafficPrint(pre +"REMOTE DESTINATION -> " + bn.getName(), 3, 1);
 							} catch (Exception e) {
 								e.printStackTrace();

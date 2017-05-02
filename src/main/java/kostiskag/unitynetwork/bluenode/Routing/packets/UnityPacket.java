@@ -20,15 +20,20 @@ import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
  * 0  KEEP ALIVE
  * 1  UPING
  * 2  DPING
- * 3  ACK
- * 4  MESSAGE
+ * 3  SHORT ROUTED ACK -> Short Ack -> ACK_S
+ * 4  END TO END ROUTED ACK -> Long Ack -> ACK_L
+ * 5  MESSAGE
  * 
  * --------------------------------
  * | 1 byte version | 1 byte code | -> KEEP ALIVE, UPING, DPING they need no payload
  * --------------------------------
  *    or      /\ the above types do not need routing \/ the below need rooting
+ * --------------------------------------------------
+ * | 1 byte version | 1 byte code |  2 bytes number |-> SHORT ACK keeps a packet tracking number to aid control flow mechanisms 
+ * --------------------------------------------------
+ *    or
  * --------------------------------------------------------------------------------------------
- * | 1 byte version | 1 byte code | Source IP  (4 bytes) | Dest IP (4 bytes) | 2 bytes number |-> ACK keeps a packet tracking number to aid control flow mechanisms 
+ * | 1 byte version | 1 byte code | Source IP  (4 bytes) | Dest IP (4 bytes) | 2 bytes number |-> LONG ACK keeps a packet tracking number to aid control flow mechanisms 
  * --------------------------------------------------------------------------------------------
  *    or
  * ---------------------------------------------------------------------------------------------
@@ -46,8 +51,9 @@ public class UnityPacket {
 	private static final int KEEP_ALIVE = 0;
 	private static final int UPING = 1;
 	private static final int DPING = 2;
-	private static final int ACK = 3;
-	private static final int MESSAGE = 4;
+	private static final int ACK_S = 3;
+	private static final int ACK_L = 4;
+	private static final int MESSAGE = 5;
 	
 	private static final byte[] noPayload = new byte[]{};
 	
@@ -83,13 +89,21 @@ public class UnityPacket {
 		return false;
     }	
     
-    public static boolean isAck(byte[] packet) {
+    public static boolean isLongRoutedAck(byte[] packet) {
     	int code = (int) packet[1];
-		if (code == ACK && packet.length == 12) {
+		if (code == ACK_L && packet.length == 12) {
 			return true;
 		}
 		return false;
     }	
+    
+    public static boolean isShortRoutedAck(byte[] packet) {
+    	int code = (int) packet[1];
+		if (code == ACK_S && packet.length == 4) {
+			return true;
+		}
+		return false;
+    }
     
     public static boolean isMessage(byte[] packet) {
     	int code = (int) packet[1];
@@ -99,13 +113,22 @@ public class UnityPacket {
 		return false;
     }
     
-    public static int getAckTrackNum(byte[] packet) throws Exception {
-    	if (isAck(packet)) {
+    public static int getLongRoutedAckTrackNum(byte[] packet) throws Exception {
+    	if (isLongRoutedAck(packet)) {
     		byte[] byteNum = new byte[2];
     		System.arraycopy(packet, 10, byteNum, 0, 2);
     		return HashFunctions.bytesToUnsignedInt(byteNum);
     	}
-    	throw new Exception("The packet was not an ack packet"); 
+    	throw new Exception("The packet was not a long routed ack packet"); 
+    }
+    
+    public static int getShortRoutedAckTrackNum(byte[] packet) throws Exception {
+    	if (isShortRoutedAck(packet)) {
+    		byte[] byteNum = new byte[2];
+    		System.arraycopy(packet, 2, byteNum, 0, 2);
+    		return HashFunctions.bytesToUnsignedInt(byteNum);
+    	}
+    	throw new Exception("The packet was not an short routed ack packet"); 
     }
     
     public static String getMessageMessage(byte[] packet) throws Exception {
@@ -118,7 +141,7 @@ public class UnityPacket {
     }
 
 	public static InetAddress getSourceAddress(byte[] packet) throws Exception {
-		if (isMessage(packet) || isAck(packet)) {
+		if (isMessage(packet) || isLongRoutedAck(packet)) {
 	        byte[] addr = new byte[4];
 	        for (int i = 0; i < 4; i++) {
 	            addr[i] = packet[2 + i];
@@ -129,7 +152,7 @@ public class UnityPacket {
     }
 
     public static InetAddress getDestAddress(byte[] packet) throws Exception {
-    	if (isMessage(packet) || isAck(packet)) {
+    	if (isMessage(packet) || isLongRoutedAck(packet)) {
 	    	byte[] addr = new byte[4];
 	        for (int i = 0; i < 4; i++) {
 	            addr[i] = packet[6 + i];
@@ -151,7 +174,12 @@ public class UnityPacket {
 		return buildPacket(DPING, noPayload);
 	}
 	
-	public static byte[] buildAckPacket(InetAddress source, InetAddress dest, int trackNumber) {
+	public static byte[] buildShortRoutedAckPacket(InetAddress source, InetAddress dest, int trackNumber) {
+		byte[] trackNumBytes = HashFunctions.UnsignedIntTo2Bytes(trackNumber);
+		return buildPacket(ACK_S, trackNumBytes);
+	}
+	
+	public static byte[] buildLongRoutedAckPacket(InetAddress source, InetAddress dest, int trackNumber) {
 		byte[] sourceBytes = source.getAddress();
 		byte[] destBytes = dest.getAddress();
 		byte[] trackNumBytes = HashFunctions.UnsignedIntTo2Bytes(trackNumber);
@@ -160,7 +188,7 @@ public class UnityPacket {
 		System.arraycopy(sourceBytes,   0, payload, 0, 4);
         System.arraycopy(destBytes,     0, payload, 4, 4);
         System.arraycopy(trackNumBytes, 0, payload, 8, 2);
-		return buildPacket(ACK, trackNumBytes);
+		return buildPacket(ACK_L, payload);
 	}
 	
 	public static byte[] buildMessagePacket(int type, InetAddress source, InetAddress dest, String message) {

@@ -93,13 +93,6 @@ public class BlueReceive extends Thread {
                 if (len > 0 && len <= 1500) {
                     byte[] packet = new byte[len];
                     System.arraycopy(receivePacket.getData(), 0, packet, 0, len);
-                    if (!didTrigger) {
-                    	if (App.bn.gui) {
-                    		MainWindow.jCheckBox7.setSelected(true);
-                        }
-                    	didTrigger = true;
-                    }
-                    
                     if (UnityPacket.isUnity(packet)) {
     					if (UnityPacket.isKeepAlive(packet)) {
     						// keep alive
@@ -112,7 +105,10 @@ public class BlueReceive extends Thread {
                             //blue node dping!
     						blueNode.setDping(true);    
     						App.bn.TrafficPrint(pre + "DPING RECEIVED", 1, 1);
-                        } else if (UnityPacket.isAck(packet)) {
+                        } else if (UnityPacket.isShortRoutedAck(packet)) {
+                        	//do something
+                        	App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", 1, 1);
+                        } else if (UnityPacket.isLongRoutedAck(packet)) {
     						try {
     							App.bn.manager.offer(packet); 
     							App.bn.TrafficPrint(pre + "ACK-> "+UnityPacket.getDestAddress(packet)+" RECEIVED", 2, 1);
@@ -127,6 +123,12 @@ public class BlueReceive extends Thread {
                         App.bn.manager.offer(packet);                        
                     }
                     
+                    if (!didTrigger) {
+                    	if (App.bn.gui) {
+                    		MainWindow.jCheckBox7.setSelected(true);
+                        }
+                    	didTrigger = true;
+                    }
                 } else {
                     System.out.println(pre + "MAXIMUM LENGTH EXCEDED");
                 }

@@ -91,9 +91,9 @@ public class BlueSend extends Thread {
     	App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName());
     	
         while (!kill.get()) {        	
-        	byte data[];
+        	byte packet[];
             try {
-                data = blueNode.getQueueMan().poll();
+                packet = blueNode.getQueueMan().poll();
             } catch (java.lang.NullPointerException ex1) {
                 continue;
             } catch (java.util.NoSuchElementException ex) {
@@ -103,31 +103,35 @@ public class BlueSend extends Thread {
             	break;
             }
 
-            DatagramPacket sendUDPPacket = new DatagramPacket(data, data.length, blueNodePhAddress, portToSend);
+            DatagramPacket sendUDPPacket = new DatagramPacket(packet, packet.length, blueNodePhAddress, portToSend);
             try {
                 socket.send(sendUDPPacket);
-                if (UnityPacket.isUnity(data)) {
-					if (UnityPacket.isKeepAlive(data)) {
+                if (UnityPacket.isUnity(packet)) {
+					if (UnityPacket.isKeepAlive(packet)) {
 						//keep alive
 						App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 1);
-					} else if (UnityPacket.isUping(data)) {
+					} else if (UnityPacket.isUping(packet)) {
 						//blue node uping!
 						App.bn.TrafficPrint(pre + "UPING SENT", 1, 1);
-					} else if (UnityPacket.isDping(data)) {
+					} else if (UnityPacket.isDping(packet)) {
 						//blue node dping!
 						App.bn.TrafficPrint(pre + "DPING SENT", 1, 1);
-					} else if (UnityPacket.isAck(data)) {
+					} else if (UnityPacket.isShortRoutedAck(packet)) {
+						//short ack sent
+						App.bn.TrafficPrint(pre + "SHORT ACK SENT", 1, 1);
+					} else if (UnityPacket.isLongRoutedAck(packet)) {
 						try {
-							App.bn.TrafficPrint(pre + "ACK-> "+UnityPacket.getDestAddress(data)+" SENT", 2, 1);
+							App.bn.TrafficPrint(pre + "LONG ACK-> "+UnityPacket.getDestAddress(packet)+" SENT", 2, 1);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-					} else if (UnityPacket.isMessage(data)) {
+					} else if (UnityPacket.isMessage(packet)) {
 						App.bn.TrafficPrint(pre + "MESSAGE SENT", 3, 1);
 					}
-				} else if (IPv4Packet.isIPv4(data)) {
+				} else if (IPv4Packet.isIPv4(packet)) {
 					App.bn.TrafficPrint(pre + "IPV4 SENT", 3, 1);
 				}
+                
                 if (!didTrigger) {
                 	if (App.bn.gui) {
                 		MainWindow.jCheckBox6.setSelected(true);

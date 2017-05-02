@@ -104,46 +104,48 @@ public class RedlSend extends Thread {
          * In other words when there is a packet on queue write on socket.
          */
         while (!kill.get()) {
-            byte[] data = null;
+            byte[] packet = null;
             try {
-            	data = rn.getQueueMan().poll();                   
+            	packet = rn.getQueueMan().poll();                   
             } catch (Exception ex1) {
                 continue;
             }
             
             if (kill.get()) {
             	break;
-            } else if (data == null) {
+            } else if (packet == null) {
             	continue;
-            } else if (data.length == 0) {
+            } else if (packet.length == 0) {
             	continue;
-            } else if (data.length > 1500) {
-            	App.bn.TrafficPrint("Throwing oversized packet of size "+data.length, 3, 0);
+            } else if (packet.length > 1500) {
+            	App.bn.TrafficPrint("Throwing oversized packet of size "+packet.length, 3, 0);
                 continue;
             }
 
-            DatagramPacket sendUDPPacket = new DatagramPacket(data, data.length, clientAddress, destPort);
+            DatagramPacket sendUDPPacket = new DatagramPacket(packet, packet.length, clientAddress, destPort);
             try {
                 serverSocket.send(sendUDPPacket);
-                if (UnityPacket.isUnity(data)) {
-					if (UnityPacket.isKeepAlive(data)) {
+                if (UnityPacket.isUnity(packet)) {
+					if (UnityPacket.isKeepAlive(packet)) {
 						App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 0);
-					} else if (UnityPacket.isDping(data)) {
+					} else if (UnityPacket.isDping(packet)) {
 						App.bn.TrafficPrint(pre + "DPING SENT", 1, 0);
-					} else if (UnityPacket.isAck(data)) {
+					} else if (UnityPacket.isShortRoutedAck(packet)) {
+                    	App.bn.TrafficPrint(pre + "SHORT ACK SENT", 1, 0);
+                    } else if (UnityPacket.isLongRoutedAck(packet)) {
 						try {
-							App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(data)+" SENT", 2, 0);
+							App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet)+" SENT", 2, 0);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-					} else if (UnityPacket.isMessage(data)) {
+					} else if (UnityPacket.isMessage(packet)) {
 						try {
-							App.bn.TrafficPrint(pre + "MESSAGE -> "+UnityPacket.getDestAddress(data)+" SENT", 3, 0);
+							App.bn.TrafficPrint(pre + "MESSAGE -> "+UnityPacket.getDestAddress(packet)+" SENT", 3, 0);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
-				} else if (IPv4Packet.isIPv4(data)) {
+				} else if (IPv4Packet.isIPv4(packet)) {
 					App.bn.TrafficPrint(pre + "IPV4 SENT", 3, 0);
 				}
                 if (App.bn.gui && !trigger) {
