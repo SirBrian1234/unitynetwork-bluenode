@@ -1,36 +1,39 @@
 package kostiskag.unitynetwork.bluenode.Routing;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
 import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
 /**
- * An object of this class takes a packet from a queue and forwards it to 
- * a red node's queue or a blue node's queue. When a packet has a not known destination
- * the FlyRegister is called.
- * 
- * This class's thread should NEVER wait in a full queue as if it does so the whole rooting goes poof!!!
- * This outcome should be avoided. Wait only on an empty queue.
+ * An object of this class can be owned either by a blue node or a red node instance
+ * They provide their receive queu here. The router routes the packet in another
+ * queue. Since every instance has its own router the thread may wait for the target 
+ * queue to have available space.
  * 
  * @author kostis
  */
 public class Router extends Thread {
 
-    public final String pre = "^Router ";
+    public final String pre;
+    public final QueueManager queueToRoute;
+    public final AtomicBoolean kill = new AtomicBoolean(false);
     
-    public Router() {
-    	
+    public Router(String name, QueueManager queueToRoute) {
+    	this.pre = "^Router "+name;
+    	this.queueToRoute = queueToRoute;
     }
 
     @Override
     public void run() {
         App.bn.ConsolePrint(pre + "started routing at thread " + Thread.currentThread().getName());
 
-        while (true) {
+        while (!kill.get()) {
             byte[] data;
             try {
-                data = App.bn.manager.poll();
+                data = queueToRoute.poll();
             } catch (java.lang.NullPointerException ex1) {
                 continue;
             } catch (java.util.NoSuchElementException ex) {
@@ -74,7 +77,7 @@ public class Router extends Thread {
 	                	
 	                } else if (App.bn.localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
 	                    //load the packet data to local red node's queue
-	                    App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getQueueMan().offerNoWait(data);
+	                    App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getSendQueue().offer(data);
 	                    App.bn.TrafficPrint(pre+"LOCAL DESTINATION", 3, 0);
 	                    
 	                } else if (App.bn.joined) {
@@ -83,7 +86,7 @@ public class Router extends Thread {
 	                        BlueNodeInstance bn;
 							try {
 								bn = App.bn.blueNodesTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
-								bn.getQueueMan().offerNoWait(data);
+								bn.getSendQueue().offer(data);
 		                        App.bn.TrafficPrint(pre +"REMOTE DESTINATION -> " + bn.getName(), 3, 1);
 							} catch (Exception e) {
 								e.printStackTrace();
@@ -103,5 +106,11 @@ public class Router extends Thread {
             	App.bn.TrafficPrint(pre+"wrong header packet detected in router.",3,1);
             }           
         }
+        App.bn.ConsolePrint(pre + "ended");
+    }
+    
+    public void kill() {
+    	kill.set(true);
+    	queueToRoute.exit();
     }
 }

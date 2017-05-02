@@ -93,7 +93,7 @@ public class BlueSend extends Thread {
         while (!kill.get()) {        	
         	byte packet[];
             try {
-                packet = blueNode.getQueueMan().poll();
+                packet = blueNode.getSendQueue().poll();
             } catch (java.lang.NullPointerException ex1) {
                 continue;
             } catch (java.util.NoSuchElementException ex) {
@@ -164,7 +164,7 @@ public class BlueSend extends Thread {
 		try {
 			socket = new DatagramSocket();
 		} catch (SocketException ex) {
-			blueNode.getQueueMan().clear();
+			blueNode.getSendQueue().clear();
 			App.bn.ConsolePrint(pre + "socket could not be opened");
 			ex.printStackTrace();
 		}

@@ -53,7 +53,7 @@ public class BlueKeepAlive extends Thread {
         //this offers three packets and sleeps again
         while (!kill.get()) {                                    
             for (int i=0; i<numOfPacketsToSend; i++) {                    
-                blueNode.getQueueMan().offer(packet);                                    
+                blueNode.getSendQueue().offer(packet);                                    
             }            
             try {
                 sleep(timeInSec * 1000);

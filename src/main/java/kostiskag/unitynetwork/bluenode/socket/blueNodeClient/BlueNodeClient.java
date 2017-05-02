@@ -132,7 +132,7 @@ public class BlueNodeClient {
 		        TCPSocketFunctions.sendData("UPING", socketWriter, socketReader);
 				//wait to get set
 		        for (int i=0; i<3; i++) {
-		        	bn.getQueueMan().offer(data);
+		        	bn.getSendQueue().offer(data);
 		        	try {
 						sleep(200);
 					} catch (InterruptedException e) {

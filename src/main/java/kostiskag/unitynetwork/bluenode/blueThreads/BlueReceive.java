@@ -110,17 +110,18 @@ public class BlueReceive extends Thread {
                         	App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", 1, 1);
                         } else if (UnityPacket.isLongRoutedAck(packet)) {
     						try {
-    							App.bn.manager.offer(packet); 
+    							blueNode.getReceiveQueue().offer(packet);
     							App.bn.TrafficPrint(pre + "ACK-> "+UnityPacket.getDestAddress(packet)+" RECEIVED", 2, 1);
     						} catch (Exception e) {
     							e.printStackTrace();
     						}
     					} else if (UnityPacket.isMessage(packet)) {
-    						App.bn.manager.offer(packet); 
+    						blueNode.getReceiveQueue().offer(packet);
     						App.bn.TrafficPrint(pre + "MESSAGE RECEIVED", 3, 1);
     					}        				
                     } else if (IPv4Packet.isIPv4(packet)){
-                        App.bn.manager.offer(packet);                        
+                    	blueNode.getReceiveQueue().offer(packet); 
+                    	App.bn.TrafficPrint(pre + "IPV4 RECEIVED", 3, 1);
                     }
                     
                     if (!didTrigger) {

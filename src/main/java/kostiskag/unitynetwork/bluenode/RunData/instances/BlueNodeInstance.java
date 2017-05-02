@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
+import kostiskag.unitynetwork.bluenode.Routing.Router;
 import kostiskag.unitynetwork.bluenode.RunData.tables.RemoteRedNodeTable;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueReceive;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueKeepAlive;
@@ -32,10 +33,12 @@ public class BlueNodeInstance {
     //threads, objects
     public RemoteRedNodeTable table;    
     private final BlueKeepAlive ka;
-    private final QueueManager man;
+    private QueueManager sendQueue;
+    private QueueManager receiveQueue;
     private BlueNodeTimeBuilder timeBuilder;
     private BlueReceive receive;
     private BlueSend send;
+    private Router router;
     //triggers
     private int state = 0;    
     private AtomicBoolean uPing = new AtomicBoolean(false);
@@ -55,7 +58,7 @@ public class BlueNodeInstance {
     	this.pre = "^BlueNodeInstance "+name+" ";
     	this.state = 0;                  
         this.ka = new BlueKeepAlive(this);
-        this.man = new QueueManager(20);
+        this.sendQueue = new QueueManager(20);
         this.table = new RemoteRedNodeTable(this);    
         this.timestamp = GetTime.getSmallTimestamp();
     }
@@ -73,18 +76,22 @@ public class BlueNodeInstance {
     	this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
         this.table = new RemoteRedNodeTable(this);
         this.ka = new BlueKeepAlive(this);
-        this.man = new QueueManager(20);   
         this.timestamp = GetTime.getSmallTimestamp();
         
+        //setting queues
+        this.sendQueue = new QueueManager(20);   
+        this.receiveQueue = new QueueManager(20);   
+        this.router  = new Router(getName(), receiveQueue);
         //setting down as server
-        receive = new BlueReceive(this);
+        this.receive = new BlueReceive(this);
         //a=setting up as server
-        send = new BlueSend(this);
+        this.send = new BlueSend(this);
 
         //starting all threads
-        receive.start();
-        send.start();
-        ka.start();
+        this.receive.start();
+        this.send.start();
+        this.ka.start();
+        this.router.start();
 
         //hold the thread a bit to catch up the started threads
         Thread.sleep(200);
@@ -105,21 +112,25 @@ public class BlueNodeInstance {
         this.remoteAuthPort = authPort;
         this.table = new RemoteRedNodeTable(this);
         this.ka = new BlueKeepAlive(this);
-        this.man = new QueueManager(20);   
         this.timestamp = GetTime.getSmallTimestamp();
         
+        //setting queues
+        this.sendQueue = new QueueManager(20);   
+        this.receiveQueue = new QueueManager(20); 
+        this.router  = new Router(getName(), receiveQueue);
         //setting down as client
-        send = new BlueSend(this, upPort);
+        this.send = new BlueSend(this, upPort);
         //setting up as client
-        receive = new BlueReceive(this, downPort);
+        this.receive = new BlueReceive(this, downPort);
         //clients have also a timeBuilder
-        timeBuilder = new BlueNodeTimeBuilder(this, App.bn.blueNodeTimeStepSec, App.bn.blueNodeMaxIdleTimeSec);
+        this.timeBuilder = new BlueNodeTimeBuilder(this, App.bn.blueNodeTimeStepSec, App.bn.blueNodeMaxIdleTimeSec);
         
         //starting all threads
-        send.start();
-        receive.start();
-        ka.start();
-        timeBuilder.start(); 
+        this.send.start();
+        this.receive.start();
+        this.ka.start();
+        this.router.start();
+        this.timeBuilder.start(); 
         
         //hold the thread a bit to catch up the started threads
         Thread.sleep(200);
@@ -166,10 +177,13 @@ public class BlueNodeInstance {
         return dPing.get();
     }
     
-    public QueueManager getQueueMan() {
-        return man;
+    public QueueManager getSendQueue() {
+        return sendQueue;
     }
     
+    public QueueManager getReceiveQueue() {
+		return receiveQueue;
+	}
     
     public int getServerReceivePort() {
         if (isServer){
@@ -227,12 +241,13 @@ public class BlueNodeInstance {
         ka.kill();
         send.kill();
         receive.kill();
+        router.kill();
         
         if (!isServer) {
             timeBuilder.Kill();
         }
         
-        man.clear();
+        sendQueue.clear();
         state = -1;
     }
 }

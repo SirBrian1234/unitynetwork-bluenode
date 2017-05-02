@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
+import kostiskag.unitynetwork.bluenode.Routing.Router;
 import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.redThreads.RedReceive;
 import kostiskag.unitynetwork.bluenode.redThreads.RedKeepAlive;
@@ -35,7 +36,9 @@ public class LocalRedNodeInstance {
     private RedReceive down;
     private RedlSend up;
     private RedKeepAlive ka;
-    private QueueManager man;
+    private QueueManager sendQueue;
+    private QueueManager receiveQueue;
+    private Router router;
     //loggers
     private boolean uping = false;
     private boolean didTrigger = false;
@@ -59,13 +62,17 @@ public class LocalRedNodeInstance {
     	this.port = port;
 
     	//notify the gui variables
-    	if (App.bn.gui && didTrigger == false) {
-            MainWindow.jCheckBox2.setSelected(true);
+    	if (!didTrigger) {
+    		if (App.bn.gui) {
+    			MainWindow.jCheckBox2.setSelected(true);
+    		}
             didTrigger = true;
         }
 
-        //set queue manager
-        man = new QueueManager(10);
+        //set queues
+        sendQueue = new QueueManager(10);
+        receiveQueue = new QueueManager(10);
+        router = new Router(getHostname(), receiveQueue);
 
         //set downlink (allways by the aspect of bluenode)
         down = new RedReceive(this);
@@ -80,6 +87,7 @@ public class LocalRedNodeInstance {
         down.start();
         up.start();
         ka.start();
+        router.start();
         
         state = 1;
     }
@@ -104,8 +112,12 @@ public class LocalRedNodeInstance {
         return state;
     }
     
-    public QueueManager getQueueMan() {
-        return man;
+    public QueueManager getSendQueue() {
+        return sendQueue;
+    }
+    
+    public QueueManager getReceiveQueue() {
+        return receiveQueue;
     }
     
     private boolean getUPing() {
@@ -168,10 +180,10 @@ public class LocalRedNodeInstance {
                     setUPing(false);
 
                 } else if (clientSentence.startsWith("DPING")) {
-                    if (getQueueMan() != null) {
+                    if (getSendQueue() != null) {
                         byte[] data = UnityPacket.buildDpingPacket();
                         for (int i = 0; i < 2; i++) {
-                            getQueueMan().offer(data);
+                            getSendQueue().offer(data);
                         }
                         socketWriter.println("PING ON THE WAY");                        
                     } else {
@@ -202,6 +214,7 @@ public class LocalRedNodeInstance {
             down.kill();
             up.kill();
             ka.kill();
+            router.kill();
             
             //setting state
             state = -1;       

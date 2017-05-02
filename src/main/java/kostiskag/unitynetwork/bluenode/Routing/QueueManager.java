@@ -36,25 +36,31 @@ public class QueueManager extends Thread {
 		}		
 	}
 	
+	public synchronized boolean hasSpace() {
+		if (queue.size() <  maxCapacity) {
+			return true;
+		} else {
+			return false;
+		}	
+	}
+	
 	/**
-	 * Offer may make the calling thread to wait until empty
+	 * Offer may make the calling thread to WAIT until empty
 	 * 
 	 * @param data
 	 */
 	public synchronized void offer(byte[] data) {
-
-		while (queue.size() == maxCapacity && !kill.get()) {
+		boolean kill = this.kill.get();
+		while (queue.size() == maxCapacity && !kill) {
 			try {
 				wait();
 			} catch (InterruptedException ex) {
 				ex.printStackTrace();
 			}
 		}
-
-		if (kill.get()) {
+		if (kill) {
 			return;
 		}
-
 		queue.add(data);
 		notify();
 	}
@@ -72,9 +78,32 @@ public class QueueManager extends Thread {
 		} else {
 			queue.poll();
 			queue.add(data);
+			notify();
 		}
 	}
 
+	/**
+	 * In order to not poll something which may not be
+	 * later sent we can poll first. Determine where the packet goes
+	 * and then poll.
+	 * 
+	 * @return
+	 */
+	public synchronized byte[] peek() {
+		while (queue.isEmpty() && !kill.get()) {
+			try {
+				wait();
+			} catch (InterruptedException ex) {
+				ex.printStackTrace();
+			}
+		}
+		if (kill.get()) {
+			return null;
+		}
+		byte[] data = queue.peek();
+		return data;
+	}
+	
 	public synchronized byte[] poll() {
 		while (queue.isEmpty() && !kill.get()) {
 			try {
@@ -103,4 +132,6 @@ public class QueueManager extends Thread {
 		queue.clear();
 		notifyAll();
 	}
+
+	
 }

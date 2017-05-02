@@ -106,7 +106,7 @@ public class RedlSend extends Thread {
         while (!kill.get()) {
             byte[] packet = null;
             try {
-            	packet = rn.getQueueMan().poll();                   
+            	packet = rn.getSendQueue().poll();                   
             } catch (Exception ex1) {
                 continue;
             }
@@ -167,6 +167,6 @@ public class RedlSend extends Thread {
     public void kill() {
         kill.set(true);
         serverSocket.close();
-        rn.getQueueMan().exit();
+        rn.getSendQueue().exit();
     }       
 }

@@ -31,7 +31,7 @@ public class RedReceive extends Thread {
     private Boolean didTrigger = false;
     private AtomicBoolean kill = new AtomicBoolean(false);
 
-    public RedReceive(LocalRedNodeInstance rn ) {
+    public RedReceive(LocalRedNodeInstance rn) {
         this.rn = rn;
     	pre =  "^RedDownService "+rn.getHostname()+" ";
     	destPort = App.bn.UDPports.requestPort();        
@@ -92,21 +92,27 @@ public class RedReceive extends Thread {
                         } else if (UnityPacket.isLongRoutedAck(packet)){
                         	try {
 								App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED" ,2,0);
-								App.bn.manager.offer(packet); 
+								//now you have controll over the buffer
+								// do stuff here
+								rn.getReceiveQueue().offer(packet);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
                         } else if (UnityPacket.isMessage(packet)) {
                         	try {
 								App.bn.TrafficPrint(pre + "Message -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED" ,2,0);
-								App.bn.manager.offer(packet);
+								//now you have controll over the buffer
+								// do stuff here
+								rn.getReceiveQueue().offer(packet);
                         	} catch (Exception e) {
 								e.printStackTrace();
 							}
                         }                                                    
                     } else if (IPv4Packet.isIPv4(packet)){             
                         App.bn.TrafficPrint(pre + "IPv4",3,0);
-                        App.bn.manager.offer(packet);                        
+                        //now you have controll over the buffer
+						// do stuff here
+						rn.getReceiveQueue().offer(packet);                     
                     }
                     if (App.bn.gui && !didTrigger) {
                         MainWindow.jCheckBox3.setSelected(true);

@@ -45,7 +45,7 @@ public class RedKeepAlive extends Thread {
       
         while (!kill.get()) {            
             for (int i = 0; i < numOfPacketsToSend; i++) {
-                rn.getQueueMan().offer(data);                
+                rn.getSendQueue().offer(data);                
             }
 
             try {

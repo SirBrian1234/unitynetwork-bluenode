@@ -103,7 +103,7 @@ public class BlueNodeFunctions {
         byte[] data = UnityPacket.buildDpingPacket();
         try {
         	for (int i=0; i<3; i++) {
-        		bn.getQueueMan().offer(data);
+        		bn.getSendQueue().offer(data);
         		sleep(200);
         	}			
 		} catch (Exception e) {

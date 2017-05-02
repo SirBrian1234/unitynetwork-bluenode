@@ -54,9 +54,7 @@ public class BlueNode extends Thread{
 	public IpPoll bucket;
 	public MainWindow window;
 	public BlueNodeServer auth;
-	public Router router;	
 	public FlyRegister flyreg;
-	public QueueManager manager;
 	public BlueNodeSonarService bnSornar;
 	public BlueNodeTimeBuilder bnTimeBuilder;
 	public TrackerTimeBuilder trackerTimeBuilder;
@@ -140,25 +138,12 @@ public class BlueNode extends Thread{
 		}
 
 		/*
-		 *  3. Initialize packet queues
-		 */
-		manager = new QueueManager(200);
-		
-		/*
 		 *  3. Initialize auth server 
 		 *  
 		 *  The service to receive responses from RBNs RNs Tracker
 		 */
 		auth = new BlueNodeServer(authPort);
 		auth.start();
-
-		/*
-		 *  5. Initialize a router object 
-		 *  
-		 *  basically a blue node's router
-		 */
-		router = new Router();
-		router.start();
 		
 		/* 
 		 * 6. Initialize sonar
