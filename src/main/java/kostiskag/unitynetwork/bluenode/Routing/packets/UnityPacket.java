@@ -58,58 +58,72 @@ public class UnityPacket {
 	private static final byte[] noPayload = new byte[]{};
 	
 	public static boolean isUnity(byte[] packet) {
-		int version = (int) packet[0];
-		if (version == UNITYversion && packet.length >= MIN_LEN) {
-			return true;
+		if (packet.length >= MIN_LEN) {
+			int version = (int) packet[0];
+			if (version == UNITYversion) {
+				return true;
+			}
 		}
 		return false;
     }
     
     public static boolean isKeepAlive(byte[] packet) {
-    	int code = (int) packet[1];
-		if (code == KEEP_ALIVE && packet.length == 2) {
-			return true;
-		}
+    	if (packet.length == 2) {
+	    	int code = (int) packet[1];
+			if (code == KEEP_ALIVE) {
+				return true;
+			}
+    	}
 		return false;
     }	
     
     public static boolean isUping(byte[] packet) {
-    	int code = (int) packet[1];
-		if (code == UPING && packet.length == 2) {
-			return true;
-		}
+    	if (packet.length == 2) {
+	    	int code = (int) packet[1];
+			if (code == UPING) {
+				return true;
+			}
+    	}
 		return false;
     }	
     
     public static boolean isDping(byte[] packet) {
-    	int code = (int) packet[1];
-		if (code == DPING && packet.length == 2) {
-			return true;
-		}
+    	if (packet.length == 2) {
+	    	int code = (int) packet[1];
+			if (code == DPING) {
+				return true;
+			}
+    	}
 		return false;
     }	
     
     public static boolean isLongRoutedAck(byte[] packet) {
-    	int code = (int) packet[1];
-		if (code == ACK_L && packet.length == 12) {
-			return true;
-		}
+    	if (packet.length == 12) {
+	    	int code = (int) packet[1];
+			if (code == ACK_L) {
+				return true;
+			}
+    	}
 		return false;
     }	
     
     public static boolean isShortRoutedAck(byte[] packet) {
-    	int code = (int) packet[1];
-		if (code == ACK_S && packet.length == 4) {
-			return true;
-		}
+    	if (packet.length == 4) {
+	    	int code = (int) packet[1];
+			if (code == ACK_S) {
+				return true;
+			}
+    	}
 		return false;
     }
     
     public static boolean isMessage(byte[] packet) {
-    	int code = (int) packet[1];
-		if (code == MESSAGE && packet.length > 10) {
-			return true;
-		}
+    	if (packet.length > 10) {
+	    	int code = (int) packet[1];
+			if (code == MESSAGE) {
+				return true;
+			}
+    	}
 		return false;
     }
     
