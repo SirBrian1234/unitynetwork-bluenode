@@ -22,7 +22,7 @@ public class Router extends Thread {
     public final AtomicBoolean kill = new AtomicBoolean(false);
     
     public Router(String name, QueueManager queueToRoute) {
-    	this.pre = "^Router "+name;
+    	this.pre = "^Router "+name+" ";
     	this.queueToRoute = queueToRoute;
     }
 

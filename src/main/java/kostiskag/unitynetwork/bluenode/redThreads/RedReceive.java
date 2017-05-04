@@ -25,24 +25,24 @@ public class RedReceive extends Thread {
     private final LocalRedNodeInstance rn;
     //socket
     private DatagramSocket serverSocket;
-    private int sourcePort;
-    private int destPort;
+    private int clientPort;
+    private int serverPort;
     //triggers
     private Boolean didTrigger = false;
     private AtomicBoolean kill = new AtomicBoolean(false);
 
     public RedReceive(LocalRedNodeInstance rn) {
         this.rn = rn;
-    	pre =  "^RedDownService "+rn.getHostname()+" ";
-    	destPort = App.bn.UDPports.requestPort();        
+    	pre =  "^RedReceive "+rn.getHostname()+" ";
+    	serverPort = App.bn.UDPports.requestPort();        
     }
 
-    public int getDestPort() {
-        return destPort;
+    public int getServerPort() {
+        return serverPort;
     }        
     
-    public int getSourcePort() {
-		return sourcePort;
+    public int getClientPort() {
+		return clientPort;
 	}
     
     public LocalRedNodeInstance getRn() {
@@ -55,10 +55,10 @@ public class RedReceive extends Thread {
 
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + destPort);
+        App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + serverPort);
      
         try {
-            serverSocket = new DatagramSocket(destPort);
+            serverSocket = new DatagramSocket(serverPort);
         } catch (java.net.BindException ex) {
             App.bn.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
             return;
@@ -92,7 +92,7 @@ public class RedReceive extends Thread {
                         } else if (UnityPacket.isLongRoutedAck(packet)){
                         	try {
 								App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED" ,2,0);
-								//now you have controll over the buffer
+								//now you have control over the buffer
 								// do stuff here
 								rn.getReceiveQueue().offer(packet);
 							} catch (Exception e) {
@@ -110,7 +110,7 @@ public class RedReceive extends Thread {
                         }                                                    
                     } else if (IPv4Packet.isIPv4(packet)){             
                         App.bn.TrafficPrint(pre + "IPv4",3,0);
-                        //now you have controll over the buffer
+                        //now you have control over the buffer
 						// do stuff here
 						rn.getReceiveQueue().offer(packet);                     
                     }
@@ -127,7 +127,7 @@ public class RedReceive extends Thread {
                 break;
             }
         }               
-        App.bn.UDPports.releasePort(sourcePort);        
+        App.bn.UDPports.releasePort(clientPort);        
         App.bn.ConsolePrint(pre + "ENDED");
     }
 

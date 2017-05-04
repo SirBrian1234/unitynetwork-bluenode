@@ -33,8 +33,8 @@ public class LocalRedNodeInstance {
     private BufferedReader socketReader;
     private PrintWriter socketWriter;
     //thread objects
-    private RedReceive down;
-    private RedlSend up;
+    private RedReceive receive;
+    private RedlSend send;
     private RedKeepAlive ka;
     private QueueManager sendQueue;
     private QueueManager receiveQueue;
@@ -75,17 +75,17 @@ public class LocalRedNodeInstance {
         router = new Router(getHostname(), receiveQueue);
 
         //set downlink (allways by the aspect of bluenode)
-        down = new RedReceive(this);
+        receive = new RedReceive(this);
 
         //set uplink (allways by the aspect of bluenode)
-        up = new RedlSend(this);
+        send = new RedlSend(this);
 
         //set keep alive
         ka = new RedKeepAlive(this);
         
         //start the above
-        down.start();
-        up.start();
+        receive.start();
+        send.start();
         ka.start();
         router.start();
         
@@ -124,12 +124,12 @@ public class LocalRedNodeInstance {
         return uping;
     }
 
-    public RedlSend getUp() {
-        return up;
+    public RedlSend getSend() {
+        return send;
     }
 
-    public RedReceive getDown() {
-        return down;
+    public RedReceive getReceive() {
+        return receive;
     }
 
     public boolean isUPinged() {
@@ -161,7 +161,9 @@ public class LocalRedNodeInstance {
                 if (clientSentence.startsWith("PING")) {
                     socketWriter.println("PING OK");
                 } else if (clientSentence.startsWith("UPING")) {
-                    boolean set = false;
+                	setUPing(false);
+                	boolean set = false;
+                	socketWriter.println("SET");
                     for (int i = 0; i < 12; i++) {
                         try {
                             Thread.sleep(500);
@@ -174,23 +176,21 @@ public class LocalRedNodeInstance {
                             break;
                         }
                     }
-                    if (set == false) {
+                    if (!set) {
                         socketWriter.println("UPING FAILED");
                     }
                     setUPing(false);
 
-                } else if (clientSentence.startsWith("DPING")) {
-                    if (getSendQueue() != null) {
+                } else if (clientSentence.startsWith("DPING")) {                    
                         byte[] data = UnityPacket.buildDpingPacket();
-                        for (int i = 0; i < 2; i++) {
+                        for (int i = 0; i < 10; i++) {
                             getSendQueue().offer(data);
-                        }
-                        socketWriter.println("PING ON THE WAY");                        
-                    } else {
-                        socketWriter.println("BLUE NODE ERROR");
-                        App.bn.ConsolePrint(pre + "NO QUEUE FOUND FOR " + Vaddress + " HOST KILLED");
-                        break;
-                    }
+                            try {
+								Thread.sleep(200);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+                        }                                                                  
                 } else if (clientSentence.startsWith("DREFRESH")) {
                     App.bn.ConsolePrint(pre + " " + Vaddress + " UP REFRESH");
                     urefresh();
@@ -211,8 +211,8 @@ public class LocalRedNodeInstance {
         	//you have to let initTerm return and the socket closes by itself
         	
             //killing user tasks
-            down.kill();
-            up.kill();
+            receive.kill();
+            send.kill();
             ka.kill();
             router.kill();
             
@@ -222,35 +222,31 @@ public class LocalRedNodeInstance {
     }
     
     private void whoami() {
-        socketWriter.println(Hostname + "/" + Vaddress + " ~ " + phAddressStr + ":" + up.getSourcePort() + ":" + down.getDestPort());
+        socketWriter.println(Hostname + "/" + Vaddress + " ~ " + phAddressStr + ":" + send.getServerPort() + ":" + receive.getServerPort());
     }
 
     private void urefresh() {
-        up.kill();
-
-        up = new RedlSend(this);
-        up.start();
-
+        send.kill();
+        send = new RedlSend(this);
+        send.start();
         try {
             Thread.sleep(3000);
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
-
-        socketWriter.println("DOWNLINK REFRESH " + up.getSourcePort());
+        socketWriter.println("SEND REFRESH "+send.getServerPort());
     }
 
     private void drefresh() {
-        down.kill();
-        down = new RedReceive(this);
-        down.start();
-
+        receive.kill();
+        receive = new RedReceive(this);
+        receive.start();
         try {
             Thread.sleep(3000);
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
-        socketWriter.println("UPLINK REFRESH " + down.getDestPort());
+        socketWriter.println("RECEIVE REFRESH "+receive.getServerPort());
     }
 
     public void exit() {

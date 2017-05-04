@@ -25,8 +25,8 @@ public class RedlSend extends Thread {
     private final String pre;
     private final LocalRedNodeInstance rn;
     //socket    
-    private int destPort;
-    private int sourcePort;
+    private int clientPort;
+    private int serverPort;
     private DatagramSocket serverSocket;
     //triggers
     private boolean trigger = false;
@@ -42,16 +42,16 @@ public class RedlSend extends Thread {
      */
     public RedlSend(LocalRedNodeInstance rn) {        
         this.rn = rn;
-        pre = "^RedlUpService "+rn.getHostname()+" ";
-        sourcePort = App.bn.UDPports.requestPort();
+        pre = "^RedlSend "+rn.getHostname()+" ";
+        serverPort = App.bn.UDPports.requestPort();
     }
     
-    public int getSourcePort() {
-        return sourcePort;
+    public int getServerPort() {
+        return serverPort;
     }
     
-    public int getDestPort() {
-		return destPort;
+    public int getClientPort() {
+		return clientPort;
 	}
     
     public LocalRedNodeInstance getRn() {
@@ -64,10 +64,10 @@ public class RedlSend extends Thread {
     
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + sourcePort);        
+        App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + serverPort);        
         
         try {
-            serverSocket = new DatagramSocket(sourcePort);
+            serverSocket = new DatagramSocket(serverPort);
         } catch (java.net.BindException ex) {
             App.bn.ConsolePrint(pre + "PORT ALLREADY BINDED, EXITING");
             return;
@@ -83,7 +83,7 @@ public class RedlSend extends Thread {
         byte[] buffer = new byte[2048];
         DatagramPacket receivedUDPPacket = new DatagramPacket(buffer, buffer.length);
         try {
-            serverSocket.receive(receivedUDPPacket);
+        	serverSocket.receive(receivedUDPPacket);
         } catch (java.net.SocketTimeoutException ex) {
             App.bn.ConsolePrint(pre + "FISH SOCKET TIMEOUT");
             return;
@@ -91,12 +91,14 @@ public class RedlSend extends Thread {
             App.bn.ConsolePrint(pre + "FISH SOCKET CLOSED, EXITING");
             return;
         } catch (IOException ex) {
+        	App.bn.ConsolePrint(pre + "IO EXCEPTION");
             Logger.getLogger(RedlSend.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
 
         InetAddress clientAddress = receivedUDPPacket.getAddress();
-        destPort = receivedUDPPacket.getPort();
+        clientPort = receivedUDPPacket.getPort();
+        System.out.println(pre+"you are"+clientAddress.getHostAddress()+" from "+clientPort);
 
         /*
          * The task at hand is to use a synchronized packet queue and
@@ -122,7 +124,7 @@ public class RedlSend extends Thread {
                 continue;
             }
 
-            DatagramPacket sendUDPPacket = new DatagramPacket(packet, packet.length, clientAddress, destPort);
+            DatagramPacket sendUDPPacket = new DatagramPacket(packet, packet.length, clientAddress, clientPort);
             try {
                 serverSocket.send(sendUDPPacket);
                 if (UnityPacket.isUnity(packet)) {
@@ -160,7 +162,7 @@ public class RedlSend extends Thread {
                 break;
             }
         }
-        App.bn.UDPports.releasePort(sourcePort);
+        App.bn.UDPports.releasePort(serverPort);
         App.bn.ConsolePrint(pre + "ENDED");                
     }
 

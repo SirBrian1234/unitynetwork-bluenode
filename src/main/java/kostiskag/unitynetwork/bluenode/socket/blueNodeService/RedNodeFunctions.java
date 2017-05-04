@@ -1,12 +1,11 @@
 package kostiskag.unitynetwork.bluenode.socket.blueNodeService;
 
+import static java.lang.Thread.sleep;
+
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import static java.lang.Thread.sleep;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
 import kostiskag.unitynetwork.bluenode.functions.IpAddrFunctions;
@@ -29,7 +28,7 @@ public class RedNodeFunctions {
     		return;
     	}
     	
-    	//get a virtuall ip address
+    	//get a virtual IP address
     	String Vaddress = null;
     	if (App.bn.network && App.bn.joined) {            
     		//collect vaddress from tracker
@@ -121,8 +120,8 @@ public class RedNodeFunctions {
             ex.printStackTrace();
         }
         
-        socketWriter.println("REG_OK " + RNclient.getDown().getDestPort() + " " + RNclient.getUp().getSourcePort() + " " + RNclient.getVaddress());
-        App.bn.ConsolePrint(pre+"RED NODE OK " +  RNclient.getHostname() + "/" + RNclient.getVaddress() +" ~ " + RNclient.getPhAddress() + ":" + RNclient.getUp().getSourcePort() + ":" + RNclient.getDown().getDestPort());
+        socketWriter.println("REG_OK "+RNclient.getVaddress()+" "+RNclient.getReceive().getServerPort()+" "+RNclient.getSend().getServerPort());
+        App.bn.ConsolePrint(pre+"RED NODE OK " +  RNclient.getHostname() + "/" + RNclient.getVaddress() +" ~ " + RNclient.getPhAddress() + ":" + RNclient.getSend().getServerPort() + ":" + RNclient.getReceive().getServerPort());
         
         //initTerm will use the session socket and will hold this thread
         RNclient.initTerm();

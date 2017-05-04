@@ -2,16 +2,14 @@ package kostiskag.unitynetwork.bluenode;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import kostiskag.unitynetwork.bluenode.Routing.FlyRegister;
-import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
-import kostiskag.unitynetwork.bluenode.Routing.Router;
 import kostiskag.unitynetwork.bluenode.RunData.IpPoll;
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.LocalRedNodeTable;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
 import kostiskag.unitynetwork.bluenode.functions.PortHandle;
+import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeSonarService;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeService.BlueNodeServer;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
@@ -146,7 +144,7 @@ public class BlueNode extends Thread{
 		auth.start();
 		
 		/* 
-		 * 6. Initialize sonar
+		 * 4. Initialize sonar
 		 * 
 		 * sonarService periodically checks the remote BNs associated as clients
 		 * whereas the timeBuilder keeps track of the remote BNs associated as servers
@@ -158,7 +156,7 @@ public class BlueNode extends Thread{
 		}
 
 		/* 
-		 * 7. Initialize Register On The Fly
+		 * 5. Initialize Register On The Fly
 		 * 
 		 *  when a packet heading to an unknown destination is received
 		 *  the FlyReg may do all the tasks in order to dynamically build 
@@ -173,7 +171,7 @@ public class BlueNode extends Thread{
 		}
 
 		/*
-		 *  8. lease with the network, use a predefined user's list or dynamically allocate
+		 *  6. lease with the network, use a predefined user's list or dynamically allocate
 		 *  virtual addresses to connected RNs
 		 */
 		if (network) {
