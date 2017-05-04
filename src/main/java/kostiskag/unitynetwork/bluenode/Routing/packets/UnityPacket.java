@@ -174,7 +174,7 @@ public class UnityPacket {
 		return buildPacket(DPING, noPayload);
 	}
 	
-	public static byte[] buildShortRoutedAckPacket(InetAddress source, InetAddress dest, int trackNumber) {
+	public static byte[] buildShortRoutedAckPacket(int trackNumber) {
 		byte[] trackNumBytes = HashFunctions.UnsignedIntTo2Bytes(trackNumber);
 		return buildPacket(ACK_S, trackNumBytes);
 	}
@@ -191,7 +191,7 @@ public class UnityPacket {
 		return buildPacket(ACK_L, payload);
 	}
 	
-	public static byte[] buildMessagePacket(int type, InetAddress source, InetAddress dest, String message) {
+	public static byte[] buildMessagePacket(InetAddress source, InetAddress dest, String message) {
 		byte[] sourceBytes = source.getAddress();
 		byte[] destBytes = dest.getAddress();
 		byte[] messg = message.getBytes();
