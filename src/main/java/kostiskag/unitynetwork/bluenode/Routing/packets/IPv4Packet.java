@@ -14,11 +14,13 @@ public class IPv4Packet {
 	public static final int MIN_LEN = 20;
 	
     public static boolean isIPv4(byte[] packet) {
-    	if (packet.length >= MIN_LEN) {
-	        int version = HashFunctions.bytesToUnsignedInt(new byte[] {packet[0]});
-	        if (version == IPversion) {
-	        	return true;
-	        }
+    	if (packet != null) {
+	    	if (packet.length >= MIN_LEN) {
+		        int version = HashFunctions.bytesToUnsignedInt(new byte[] {packet[0]});
+		        if (version == IPversion) {
+		        	return true;
+		        }
+	    	}
     	}
         return false;
     }    
