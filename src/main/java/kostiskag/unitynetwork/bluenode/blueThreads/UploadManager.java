@@ -20,7 +20,7 @@ public class UploadManager {
     }
 
     public synchronized void gotACK(int buffer) {
-    	System.out.println("buffer "+buffer);
+    	//System.out.println("buffer "+buffer);
     	//a bluenode has an available queue for each rn up to size 20 
     	this.buffer = buffer;
         if (buffer < 10) {
@@ -46,7 +46,7 @@ public class UploadManager {
 
     //clearToSend
     public synchronized void waitToSend() {        
-        System.out.println("len "+len+ " average time "+averageTime);
+        //System.out.println("len "+len+ " average time "+averageTime);
         if (len <= -20){
             try {                
                 //System.out.println(" 2000 ");

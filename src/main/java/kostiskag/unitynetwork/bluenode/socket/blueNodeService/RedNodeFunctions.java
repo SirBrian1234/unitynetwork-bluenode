@@ -132,7 +132,7 @@ public class RedNodeFunctions {
         if (App.bn.network && App.bn.joined) {
         	TrackerClient tr = new TrackerClient();
             tr.releaseRnByHostname(RNclient.getHostname());
-            App.bn.blueNodesTable.releaseLocalRedNodeByHostnameFromAll(RNclient.getHostname());
+            App.bn.blueNodesTable.releaseLocalRedNodeByHostnameFromAll(hostname);
         }
         
         //release from local red node table
