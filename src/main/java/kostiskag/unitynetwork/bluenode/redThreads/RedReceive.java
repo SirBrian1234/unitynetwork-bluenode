@@ -127,7 +127,8 @@ public class RedReceive extends Thread {
                 break;
             }
         }               
-        App.bn.UDPports.releasePort(clientPort);        
+        App.bn.UDPports.releasePort(clientPort);   
+        rn.getReceiveQueue().clear();
         App.bn.ConsolePrint(pre + "ENDED");
     }
 

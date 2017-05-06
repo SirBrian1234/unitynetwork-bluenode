@@ -193,10 +193,10 @@ public class LocalRedNodeInstance {
                         }                                                                  
                 } else if (clientSentence.startsWith("DREFRESH")) {
                     App.bn.ConsolePrint(pre + " " + Vaddress + " UP REFRESH");
-                    urefresh();
+                    drefresh();
                 } else if (clientSentence.startsWith("UREFRESH")) {
                     App.bn.ConsolePrint(pre + Vaddress + " DOWN REFRESH");
-                    drefresh();
+                    urefresh();
                 } else if (clientSentence.startsWith("WHOAMI")) {
                     whoami();
                 } else if (clientSentence.startsWith("EXIT")) {
@@ -225,28 +225,28 @@ public class LocalRedNodeInstance {
         socketWriter.println(Hostname + "/" + Vaddress + " ~ " + phAddressStr + ":" + send.getServerPort() + ":" + receive.getServerPort());
     }
 
-    private void urefresh() {
+    private void drefresh() {
         send.kill();
         send = new RedlSend(this);
         send.start();
         try {
-            Thread.sleep(3000);
+            Thread.sleep(1000);
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
-        socketWriter.println("SEND REFRESH "+send.getServerPort());
+        socketWriter.println("DREFRESH "+send.getServerPort());
     }
 
-    private void drefresh() {
+    private void urefresh() {
         receive.kill();
         receive = new RedReceive(this);
         receive.start();
         try {
-            Thread.sleep(3000);
+            Thread.sleep(1000);
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
-        socketWriter.println("RECEIVE REFRESH "+receive.getServerPort());
+        socketWriter.println("UREFRESH "+receive.getServerPort());
     }
 
     public void exit() {

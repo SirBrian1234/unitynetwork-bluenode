@@ -162,13 +162,13 @@ public class RedlSend extends Thread {
                 break;
             }
         }
+        serverSocket.close();
         App.bn.UDPports.releasePort(serverPort);
         App.bn.ConsolePrint(pre + "ENDED");                
     }
 
     public void kill() {
         kill.set(true);
-        serverSocket.close();
-        rn.getSendQueue().exit();
+        rn.getSendQueue().clear();
     }       
 }
