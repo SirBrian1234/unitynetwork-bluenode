@@ -106,10 +106,17 @@ public class BlueReceive extends Thread {
     						blueNode.setDping(true);    
     						App.bn.TrafficPrint(pre + "DPING RECEIVED", 1, 1);
                         } else if (UnityPacket.isShortRoutedAck(packet)) {
-                        	//do something
-                        	App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", 1, 1);
+                        	//collect the ack
+                        	try {
+								blueNode.getUploadMan().gotACK(UnityPacket.getShortRoutedAckTrackNum(packet));
+								App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", 1, 1);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+                        	
                         } else if (UnityPacket.isLongRoutedAck(packet)) {
-    						try {
+    						//route the L-ACK
+                        	try {
     							blueNode.getReceiveQueue().offer(packet);
     							App.bn.TrafficPrint(pre + "ACK-> "+UnityPacket.getDestAddress(packet)+" RECEIVED", 2, 1);
     						} catch (Exception e) {
@@ -118,10 +125,18 @@ public class BlueReceive extends Thread {
     					} else if (UnityPacket.isMessage(packet)) {
     						blueNode.getReceiveQueue().offer(packet);
     						App.bn.TrafficPrint(pre + "MESSAGE RECEIVED", 3, 1);
+    						
+    						//build and offer a short routed ack towards the sender bluenode
+    						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(blueNode.getReceiveQueue().getlen());
+    						blueNode.getSendQueue().offer(ACKS);
     					}        				
-                    } else if (IPv4Packet.isIPv4(packet)){
+                    } else if (IPv4Packet.isIPv4(packet)) {
                     	blueNode.getReceiveQueue().offer(packet); 
                     	App.bn.TrafficPrint(pre + "IPV4 RECEIVED", 3, 1);
+                    	
+                    	//build and offer a short routed ack towards the sender bluenode
+						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(blueNode.getReceiveQueue().getlen());
+						blueNode.getSendQueue().offer(ACKS);
                     }
                     
                     if (!didTrigger) {

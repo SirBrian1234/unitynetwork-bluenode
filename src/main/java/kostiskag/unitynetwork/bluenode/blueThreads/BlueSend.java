@@ -89,7 +89,6 @@ public class BlueSend extends Thread {
     	}
     	
     	App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName());
-    	
         while (!kill.get()) {        	
         	byte packet[];
             try {
@@ -105,30 +104,38 @@ public class BlueSend extends Thread {
 
             DatagramPacket sendUDPPacket = new DatagramPacket(packet, packet.length, blueNodePhAddress, portToSend);
             try {
-                socket.send(sendUDPPacket);
-                if (UnityPacket.isUnity(packet)) {
+            	if (UnityPacket.isUnity(packet)) {
 					if (UnityPacket.isKeepAlive(packet)) {
 						//keep alive
+						socket.send(sendUDPPacket);
 						App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 1);
 					} else if (UnityPacket.isUping(packet)) {
 						//blue node uping!
+						socket.send(sendUDPPacket);
 						App.bn.TrafficPrint(pre + "UPING SENT", 1, 1);
 					} else if (UnityPacket.isDping(packet)) {
 						//blue node dping!
+						socket.send(sendUDPPacket);
 						App.bn.TrafficPrint(pre + "DPING SENT", 1, 1);
 					} else if (UnityPacket.isShortRoutedAck(packet)) {
 						//short ack sent
+						socket.send(sendUDPPacket);
 						App.bn.TrafficPrint(pre + "SHORT ACK SENT", 1, 1);
 					} else if (UnityPacket.isLongRoutedAck(packet)) {
+						socket.send(sendUDPPacket);
 						try {
 							App.bn.TrafficPrint(pre + "LONG ACK-> "+UnityPacket.getDestAddress(packet)+" SENT", 2, 1);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					} else if (UnityPacket.isMessage(packet)) {
+						blueNode.getUploadMan().waitToSend();
+						socket.send(sendUDPPacket);
 						App.bn.TrafficPrint(pre + "MESSAGE SENT", 3, 1);
 					}
 				} else if (IPv4Packet.isIPv4(packet)) {
+					blueNode.getUploadMan().waitToSend();
+					socket.send(sendUDPPacket);
 					App.bn.TrafficPrint(pre + "IPV4 SENT", 3, 1);
 				}
                 

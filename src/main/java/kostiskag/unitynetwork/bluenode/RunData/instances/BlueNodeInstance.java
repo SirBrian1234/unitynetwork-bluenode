@@ -12,6 +12,7 @@ import kostiskag.unitynetwork.bluenode.blueThreads.BlueReceive;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueKeepAlive;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueSend;
+import kostiskag.unitynetwork.bluenode.blueThreads.UploadManager;
 import kostiskag.unitynetwork.bluenode.functions.GetTime;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
@@ -38,6 +39,7 @@ public class BlueNodeInstance {
     private BlueNodeTimeBuilder timeBuilder;
     private BlueReceive receive;
     private BlueSend send;
+    private UploadManager uploadMan;
     private Router router;
     //triggers
     private int state = 0;    
@@ -59,6 +61,7 @@ public class BlueNodeInstance {
     	this.state = 0;                  
         this.ka = new BlueKeepAlive(this);
         this.sendQueue = new QueueManager(20);
+        this.uploadMan = new UploadManager();
         this.table = new RemoteRedNodeTable(this);    
         this.timestamp = GetTime.getSmallTimestamp();
     }
@@ -78,6 +81,8 @@ public class BlueNodeInstance {
         this.ka = new BlueKeepAlive(this);
         this.timestamp = GetTime.getSmallTimestamp();
         
+        //setting upload manager
+        this.uploadMan = new UploadManager();
         //setting queues
         this.sendQueue = new QueueManager(20);   
         this.receiveQueue = new QueueManager(20);   
@@ -114,6 +119,8 @@ public class BlueNodeInstance {
         this.ka = new BlueKeepAlive(this);
         this.timestamp = GetTime.getSmallTimestamp();
         
+        //setting upload manager
+        this.uploadMan = new UploadManager();
         //setting queues
         this.sendQueue = new QueueManager(20);   
         this.receiveQueue = new QueueManager(20); 
@@ -176,6 +183,10 @@ public class BlueNodeInstance {
     public boolean getDPing() {
         return dPing.get();
     }
+    
+    public UploadManager getUploadMan() {
+		return uploadMan;
+	}
     
     public QueueManager getSendQueue() {
         return sendQueue;
