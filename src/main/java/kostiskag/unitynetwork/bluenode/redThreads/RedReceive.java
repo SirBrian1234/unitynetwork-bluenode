@@ -87,7 +87,7 @@ public class RedReceive extends Thread {
                             rn.setUPing(true);
                             App.bn.TrafficPrint(pre + "UPING RECEIVED",1,0);
                         } else if (UnityPacket.isShortRoutedAck(packet)) {
-                        	//do something
+                        	//you should not do something
                         	App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", 1, 0);
                         } else if (UnityPacket.isLongRoutedAck(packet)){
                         	try {
@@ -104,6 +104,11 @@ public class RedReceive extends Thread {
 								//now you have controll over the buffer
 								// do stuff here
 								rn.getReceiveQueue().offer(packet);
+								
+								//build and offer a short routed ack
+								byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(rn.getReceiveQueue().getlen());
+								rn.getSendQueue().offer(ACKS);
+								
                         	} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -112,7 +117,11 @@ public class RedReceive extends Thread {
                         App.bn.TrafficPrint(pre + "IPv4",3,0);
                         //now you have control over the buffer
 						// do stuff here
-						rn.getReceiveQueue().offer(packet);                     
+						rn.getReceiveQueue().offer(packet);   
+						
+						//build and offer a short routed ack
+						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(rn.getReceiveQueue().getlen());
+						rn.getSendQueue().offer(ACKS);
                     }
                     if (App.bn.gui && !didTrigger) {
                         MainWindow.jCheckBox3.setSelected(true);
