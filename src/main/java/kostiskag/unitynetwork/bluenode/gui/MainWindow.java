@@ -44,6 +44,7 @@ public class MainWindow extends javax.swing.JFrame {
 	private boolean[] viewhostType = new boolean[] { true, true };
 	private int messageCountConsole = 0;
     private int messageCountTraffic = 0;
+    private About about;
 
     public MainWindow() {
     	setTitle("Blue Node");
@@ -226,13 +227,25 @@ public class MainWindow extends javax.swing.JFrame {
         textField = new JTextField();
         textField.setEditable(false);
         textField.setColumns(10);
+        
+        btnNewButton = new JButton("About");
+        btnNewButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent arg0) {
+        		if (about == null) {
+					about = new About();
+				} else if (!about.isVisible()) {
+					about = new About();
+				}
+        	}
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3Layout.setHorizontalGroup(
         	jPanel3Layout.createParallelGroup(Alignment.TRAILING)
-        		.addGroup(jPanel3Layout.createSequentialGroup()
+        		.addGroup(Alignment.LEADING, jPanel3Layout.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(jPanel3Layout.createParallelGroup(Alignment.LEADING)
+        				.addComponent(btnNewButton, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(jTextField1, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(lblOperationMode)
         				.addComponent(jLabel1)
@@ -244,7 +257,7 @@ public class MainWindow extends javax.swing.JFrame {
         					.addComponent(jLabel2)
         					.addGap(46))
         				.addComponent(jTextField2, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
-        				.addComponent(jLabel4, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        				.addComponent(jLabel4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(jLabel5)
         				.addComponent(jTextField4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE))
         			.addContainerGap())
@@ -276,7 +289,9 @@ public class MainWindow extends javax.swing.JFrame {
         			.addComponent(jLabel4)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jTextField4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addContainerGap(92, Short.MAX_VALUE))
+        			.addPreferredGap(ComponentPlacement.RELATED, 83, Short.MAX_VALUE)
+        			.addComponent(btnNewButton)
+        			.addContainerGap())
         );
         jPanel3.setLayout(jPanel3Layout);
 
@@ -856,6 +871,7 @@ public class MainWindow extends javax.swing.JFrame {
     private JButton btnOpenBlueNode;
     private JLabel lblEchoAddress;
     private JTextField textField;
+    private JButton btnNewButton;
     
     public void setBlueNodeInfo() {    
         jTextField1.setText(App.bn.name);
