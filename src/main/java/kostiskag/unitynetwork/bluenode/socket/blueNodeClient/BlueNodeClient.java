@@ -15,6 +15,10 @@ import kostiskag.unitynetwork.bluenode.RunData.instances.RemoteRedNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
+/**
+ * 
+ * @author Konstantinos Kagiampakis
+ */
 public class BlueNodeClient {
 
 	public static String pre = "^BlueNodeClient ";

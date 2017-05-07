@@ -8,7 +8,7 @@ import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class BlueNodeServer extends Thread{
 

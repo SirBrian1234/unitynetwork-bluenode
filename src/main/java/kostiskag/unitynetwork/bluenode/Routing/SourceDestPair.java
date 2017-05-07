@@ -2,7 +2,7 @@ package kostiskag.unitynetwork.bluenode.Routing;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 class SourceDestPair {
     public final String sourcevaddress;

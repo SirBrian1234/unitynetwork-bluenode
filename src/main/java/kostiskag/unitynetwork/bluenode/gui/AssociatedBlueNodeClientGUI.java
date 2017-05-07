@@ -13,6 +13,10 @@ import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
 
+/**
+ * 
+ * @author Konstantinos Kagiampakis
+ */
 public class AssociatedBlueNodeClientGUI {
 
 	private JFrame frmAssociatedBlueNode;

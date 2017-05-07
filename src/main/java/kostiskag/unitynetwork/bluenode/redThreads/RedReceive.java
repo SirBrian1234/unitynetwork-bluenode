@@ -17,7 +17,7 @@ import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
  * down service runs differently for every rednode and every associated blue
  * node
  * 
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class RedReceive extends Thread {
 

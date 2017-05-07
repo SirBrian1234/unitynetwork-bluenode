@@ -10,8 +10,7 @@ import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
 /**
  *
- * @author kostis
- *  
+ * @author Konstantinos Kagiampakis
  */
 class TrackingFunctions {        
 

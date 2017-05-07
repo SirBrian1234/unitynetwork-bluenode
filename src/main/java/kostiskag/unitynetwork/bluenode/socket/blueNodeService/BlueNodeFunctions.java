@@ -15,7 +15,7 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class BlueNodeFunctions {
 

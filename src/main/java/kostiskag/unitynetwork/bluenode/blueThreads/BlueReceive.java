@@ -19,7 +19,7 @@ import kostiskag.unitynetwork.bluenode.App;
  * may be defined. However, as the class suggests despite being run either as server or as client this 
  * class will always receive.
  * 
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class BlueReceive extends Thread {
 

@@ -2,7 +2,7 @@ package kostiskag.unitynetwork.bluenode.functions;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class GetTime {
     public static String getFullTimestamp(){

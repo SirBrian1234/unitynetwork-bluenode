@@ -16,7 +16,7 @@ import javax.swing.JTextField;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class TrackerLookupGUI extends javax.swing.JFrame {
 

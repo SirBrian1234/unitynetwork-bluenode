@@ -2,7 +2,7 @@ package kostiskag.unitynetwork.bluenode.RunData;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class IpPoll {
     

@@ -18,7 +18,7 @@ import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
  * This service runs for every user it opens a UDP socket and waits a row to
  * fill then it sends the packets
  * 
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class RedlSend extends Thread {
 

@@ -13,7 +13,7 @@ import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
  * queue. Since every instance has its own router the thread may wait for the target 
  * queue to have available space.
  * 
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class Router extends Thread {
 

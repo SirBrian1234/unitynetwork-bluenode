@@ -16,7 +16,7 @@ import javax.swing.JLabel;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
 

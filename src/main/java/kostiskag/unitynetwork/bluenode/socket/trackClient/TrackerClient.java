@@ -9,6 +9,10 @@ import java.net.Socket;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
+/**
+ * 
+ * @author Konstantinos Kagiampakis
+ */
 public class TrackerClient {
 
 	private final String pre = "^TrackerClient ";

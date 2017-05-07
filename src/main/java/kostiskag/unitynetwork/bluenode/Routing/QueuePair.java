@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class QueuePair extends Thread {
     private final int maxCapacity;

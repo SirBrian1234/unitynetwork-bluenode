@@ -15,6 +15,10 @@ import kostiskag.unitynetwork.bluenode.socket.blueNodeService.BlueNodeServer;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerTimeBuilder;
 
+/**
+ * 
+ * @author Konstantinos Kagiampakis
+ */
 public class BlueNode extends Thread{
 	private static final String pre = "^BlueNode ";
 	// Initial settings

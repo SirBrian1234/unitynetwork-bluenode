@@ -9,7 +9,7 @@ import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class BlueNodeService extends Thread {
 

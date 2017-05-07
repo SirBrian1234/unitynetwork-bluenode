@@ -7,7 +7,7 @@ import kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class QueueManager extends Thread {
 	private final int maxCapacity;

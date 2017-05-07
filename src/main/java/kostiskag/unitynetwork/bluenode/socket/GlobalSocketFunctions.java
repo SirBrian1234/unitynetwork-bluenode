@@ -9,6 +9,10 @@ import java.util.LinkedList;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 
+/**
+ * 
+ * @author Konstantinos Kagiampakis
+ */
 public class GlobalSocketFunctions {
 
 	public static void sendLocalRedNodes(PrintWriter socketWriter) {

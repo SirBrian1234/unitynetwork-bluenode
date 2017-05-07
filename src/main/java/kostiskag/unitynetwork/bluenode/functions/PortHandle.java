@@ -5,7 +5,7 @@ import kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class PortHandle {
 

@@ -16,7 +16,7 @@ import kostiskag.unitynetwork.bluenode.redThreads.RedlSend;
  * user registering user's uplink port fishing and it stays alive as long as the
  * user is connected
  * 
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class LocalRedNodeInstance {
 

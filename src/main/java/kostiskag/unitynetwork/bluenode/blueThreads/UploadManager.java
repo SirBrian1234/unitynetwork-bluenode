@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class UploadManager {
 

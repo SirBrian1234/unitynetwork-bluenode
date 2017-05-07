@@ -18,7 +18,7 @@ import kostiskag.unitynetwork.bluenode.redThreads.RedlSend;
 
 /**
  *
- * @author kostis
+ * @author Konstantinos Kagiampakis
  */
 public class BlueSend extends Thread {
 
