@@ -38,15 +38,24 @@ UnityNetwork is composed by three software applications which may be found on th
 # unitynetwork-bluenode
 Bluenode hosts are responsible to forward the network traffic from rednode to bluenode and from bluenode to bluenode. All the bluenodes use a main network tracker to authenticate.
 
-## Requirements
+## Option A - Build from source code
 In order to build this project, Java JDK 1.7 or greater and Apache Maven have to already be installed on your system.
-
-## Build
 ```
 git clone https://github.com/kostiskag/unitynetwork-bluenode.git
 cd unitynetwork-bluenode
 mvn package
 ```
+
+## Option B - Download and use a pre-built version
+You can download, unzip and use a pre-built version of Red Node from this url:
+https://drive.google.com/file/d/0BzPrI7NjFz2SRU03MFZGZF9Da28/view?usp=sharing
+
+In order to establish data integrity, you should verify the zip file's signature to be:
+
+| Algorithm | Hash Signature |
+| --- | --- |
+| MD5 | e9941fd212cc0d4a161ea1610be4acd7 |
+| SHA256 | 1efcc96c158a1e52a0caa4391c66d511dc3235007e828a57c99513310d09f21e |
 
 ## Run
 ```
@@ -56,6 +65,9 @@ Edit **bluenode.conf** file with a text editor to define the bluenode's behaviou
 ```
 java -jar UnityNetwork_BlueNode-1.0.jar 
 ```
+
+## Authorship
+The source code was written by Konstantinos Kagiampakis
 
 ## License
 The project's article and source code are licensed under Creative Commons Atribution 4.0 International: https://creativecommons.org/licenses/by/4.0/
