@@ -19,6 +19,9 @@ import javax.swing.table.DefaultTableModel;
 import kostiskag.unitynetwork.bluenode.App;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.JCheckBox;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 /**
  * This is the main bluenode window. 
@@ -161,7 +164,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Terminal"));
 
-        jButton2.setText("Clean Terminal");
+        jButton2.setText("Clear Terminal");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
@@ -172,28 +175,41 @@ public class MainWindow extends javax.swing.JFrame {
         jTextArea1.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
         jTextArea1.setRows(5);
         jScrollPane5.setViewportView(jTextArea1);
+        
+        checkBox = new JCheckBox();
+        checkBox.addChangeListener(new ChangeListener() {
+        	public void stateChanged(ChangeEvent arg0) {
+        		autoScrollDownConsole = checkBox.isSelected();
+        	}
+        });
+        checkBox.setText("Keep Scrolled Down");
+        checkBox.setSelected(true);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane5)
-                    .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+        	jPanel4Layout.createParallelGroup(Alignment.TRAILING)
+        		.addGroup(jPanel4Layout.createSequentialGroup()
+        			.addGap(287)
+        			.addComponent(checkBox, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
+        			.addComponent(jButton2, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)
+        			.addContainerGap())
+        		.addGroup(Alignment.LEADING, jPanel4Layout.createSequentialGroup()
+        			.addContainerGap()
+        			.addComponent(jScrollPane5, GroupLayout.PREFERRED_SIZE, 553, GroupLayout.PREFERRED_SIZE)
+        			.addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(6, 6, 6))
+        	jPanel4Layout.createParallelGroup(Alignment.LEADING)
+        		.addGroup(Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+        			.addComponent(jScrollPane5, GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addGroup(jPanel4Layout.createParallelGroup(Alignment.BASELINE)
+        				.addComponent(jButton2, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+        				.addComponent(checkBox))
+        			.addGap(6))
         );
+        jPanel4.setLayout(jPanel4Layout);
 
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Info"));
 
@@ -359,7 +375,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel8.setBorder(javax.swing.BorderFactory.createTitledBorder("Traffic"));
 
-        jButton1.setText("Clean");
+        jButton1.setText("Clear");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -819,6 +835,7 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton7;
+    private JCheckBox checkBox;
     private javax.swing.JCheckBox jCheckBox10;
     private javax.swing.JCheckBox jCheckBox11;
     private javax.swing.JCheckBox jCheckBox12;
