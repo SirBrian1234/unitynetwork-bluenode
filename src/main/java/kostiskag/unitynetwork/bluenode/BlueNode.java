@@ -39,6 +39,7 @@ public class BlueNode extends Thread{
 	public PortHandle UDPports;	
 	// timings
 	// tracker
+	public final int keepAliveSec = 10;
 	public final int trackerCheckSec = 20;
 	public final int trackerMaxIdleTime = 5;
 	// bluenodes

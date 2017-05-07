@@ -9,7 +9,6 @@ import kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import kostiskag.unitynetwork.bluenode.Routing.Router;
 import kostiskag.unitynetwork.bluenode.RunData.tables.RemoteRedNodeTable;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueReceive;
-import kostiskag.unitynetwork.bluenode.blueThreads.BlueKeepAlive;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueSend;
 import kostiskag.unitynetwork.bluenode.blueThreads.UploadManager;
@@ -33,7 +32,6 @@ public class BlueNodeInstance {
     public AtomicInteger idleTime = new AtomicInteger(0);
     //threads, objects
     public RemoteRedNodeTable table;    
-    private final BlueKeepAlive ka;
     private QueueManager sendQueue;
     private QueueManager receiveQueue;
     private BlueNodeTimeBuilder timeBuilder;
@@ -59,8 +57,7 @@ public class BlueNodeInstance {
     	this.remoteAuthPort = 7000;
     	this.pre = "^BlueNodeInstance "+name+" ";
     	this.state = 0;                  
-        this.ka = new BlueKeepAlive(this);
-        this.sendQueue = new QueueManager(20);
+        this.sendQueue = new QueueManager(20, App.bn.trackerMaxIdleTime);
         this.uploadMan = new UploadManager();
         this.table = new RemoteRedNodeTable(this);    
         this.timestamp = GetTime.getSmallTimestamp();
@@ -78,14 +75,13 @@ public class BlueNodeInstance {
     	this.phAddressStr = phAddressStr;
     	this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
         this.table = new RemoteRedNodeTable(this);
-        this.ka = new BlueKeepAlive(this);
         this.timestamp = GetTime.getSmallTimestamp();
         
         //setting upload manager
         this.uploadMan = new UploadManager();
         //setting queues
-        this.sendQueue = new QueueManager(20);   
-        this.receiveQueue = new QueueManager(20);   
+        this.sendQueue = new QueueManager(20, App.bn.keepAliveSec);   
+        this.receiveQueue = new QueueManager(20, App.bn.keepAliveSec);   
         this.router  = new Router(getName(), receiveQueue);
         //setting down as server
         this.receive = new BlueReceive(this);
@@ -95,7 +91,6 @@ public class BlueNodeInstance {
         //starting all threads
         this.receive.start();
         this.send.start();
-        this.ka.start();
         this.router.start();
 
         //hold the thread a bit to catch up the started threads
@@ -116,14 +111,13 @@ public class BlueNodeInstance {
         this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
         this.remoteAuthPort = authPort;
         this.table = new RemoteRedNodeTable(this);
-        this.ka = new BlueKeepAlive(this);
         this.timestamp = GetTime.getSmallTimestamp();
         
         //setting upload manager
         this.uploadMan = new UploadManager();
         //setting queues
-        this.sendQueue = new QueueManager(20);   
-        this.receiveQueue = new QueueManager(20); 
+        this.sendQueue = new QueueManager(20, App.bn.keepAliveSec);   
+        this.receiveQueue = new QueueManager(20, App.bn.keepAliveSec); 
         this.router  = new Router(getName(), receiveQueue);
         //setting down as client
         this.send = new BlueSend(this, upPort);
@@ -135,7 +129,6 @@ public class BlueNodeInstance {
         //starting all threads
         this.send.start();
         this.receive.start();
-        this.ka.start();
         this.router.start();
         this.timeBuilder.start(); 
         
@@ -249,7 +242,7 @@ public class BlueNodeInstance {
 	}
 
     public void killtasks() { 
-        ka.kill();
+        //ka.kill();
         send.kill();
         receive.kill();
         router.kill();

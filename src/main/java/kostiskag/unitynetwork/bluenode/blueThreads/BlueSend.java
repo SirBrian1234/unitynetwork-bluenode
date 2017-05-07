@@ -92,23 +92,26 @@ public class BlueSend extends Thread {
         while (!kill.get()) {        	
         	byte packet[];
             try {
-                packet = blueNode.getSendQueue().poll();
+                packet = blueNode.getSendQueue().pollWithTimeout();
             } catch (java.lang.NullPointerException ex1) {
                 continue;
             } catch (java.util.NoSuchElementException ex) {
                 continue;
             } catch (Exception e) {
-            	e.printStackTrace();
-            	break;
-            }
+            	//this means that wait has exceeded the maximum wait time
+				//in which case keep alive messages are going to be served
+				packet = UnityPacket.buildKeepAlivePacket();
+			} 
 
             DatagramPacket sendUDPPacket = new DatagramPacket(packet, packet.length, blueNodePhAddress, portToSend);
             try {
             	if (UnityPacket.isUnity(packet)) {
 					if (UnityPacket.isKeepAlive(packet)) {
-						//keep alive
-						socket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 1);
+						//send three keep alive packets
+						for (int i=0; i<3; i++) {
+							socket.send(sendUDPPacket);
+							App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 1);
+						}						
 					} else if (UnityPacket.isUping(packet)) {
 						//blue node uping!
 						socket.send(sendUDPPacket);

@@ -3,15 +3,18 @@ package kostiskag.unitynetwork.bluenode.Routing;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import kostiskag.unitynetwork.bluenode.App;
+
 /**
  *
  * @author kostis
  */
 public class QueueManager extends Thread {
 	private final int maxCapacity;
+	private final int maxWaitTime;
 	private final LinkedList<byte[]> queue;
 	private final AtomicBoolean kill = new AtomicBoolean(false);
-
+	
 	/**
 	 * This constructor can be used from the bluenode and for each local rednode
 	 * or bluenode instance.
@@ -19,8 +22,9 @@ public class QueueManager extends Thread {
 	 * @param blueNode
 	 * @param maxCapacity
 	 */
-	public QueueManager(int maxCapacity) {
+	public QueueManager(int maxCapacity, int maxWaitTimeSec) {
 		this.maxCapacity = maxCapacity;
+		this.maxWaitTime = maxWaitTimeSec * 1000;
 		queue = new LinkedList<byte[]>();
 	}
 
@@ -110,6 +114,27 @@ public class QueueManager extends Thread {
 				wait();
 			} catch (InterruptedException ex) {
 				ex.printStackTrace();
+			}
+		}
+
+		if (kill.get()) {
+			return null;
+		}
+
+		byte[] data = queue.poll();
+		notify();
+		return data;
+	}
+	
+	public synchronized byte[] pollWithTimeout() throws Exception {
+		while (queue.isEmpty() && !kill.get()) {
+			try {
+				wait(maxWaitTime);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if (queue.isEmpty()) {
+				throw new Exception("empty");
 			}
 		}
 

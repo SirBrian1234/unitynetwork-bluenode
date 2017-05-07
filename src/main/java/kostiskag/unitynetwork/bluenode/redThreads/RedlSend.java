@@ -107,11 +107,14 @@ public class RedlSend extends Thread {
          */
         while (!kill.get()) {
             byte[] packet = null;
-            try {
-            	packet = rn.getSendQueue().poll();                   
-            } catch (Exception ex1) {
-                continue;
-            }
+            
+        	try {
+				packet = rn.getSendQueue().pollWithTimeout();
+			} catch (Exception e1) {
+				//this means that wait has exceeded the maximum wait time
+				//in which case keep alive messages are going to be served
+				packet = UnityPacket.buildKeepAlivePacket();
+			}                   
             
             if (kill.get()) {
             	break;
@@ -126,21 +129,28 @@ public class RedlSend extends Thread {
 
             DatagramPacket sendUDPPacket = new DatagramPacket(packet, packet.length, clientAddress, clientPort);
             try {
-                serverSocket.send(sendUDPPacket);
+               
                 if (UnityPacket.isUnity(packet)) {
 					if (UnityPacket.isKeepAlive(packet)) {
-						App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 0);
+						for (int i=0; i<3; i++) {
+							serverSocket.send(sendUDPPacket);
+							App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 0);
+						}
 					} else if (UnityPacket.isDping(packet)) {
+						serverSocket.send(sendUDPPacket);
 						App.bn.TrafficPrint(pre + "DPING SENT", 1, 0);
 					} else if (UnityPacket.isShortRoutedAck(packet)) {
-                    	App.bn.TrafficPrint(pre + "SHORT ACK SENT", 1, 0);
+						serverSocket.send(sendUDPPacket);
+						App.bn.TrafficPrint(pre + "SHORT ACK SENT", 1, 0);
                     } else if (UnityPacket.isLongRoutedAck(packet)) {
-						try {
+                    	serverSocket.send(sendUDPPacket);
+                    	try {
 							App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet)+" SENT", 2, 0);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					} else if (UnityPacket.isMessage(packet)) {
+						serverSocket.send(sendUDPPacket);
 						try {
 							App.bn.TrafficPrint(pre + "MESSAGE -> "+UnityPacket.getDestAddress(packet)+" SENT", 3, 0);
 						} catch (Exception e) {
@@ -148,6 +158,7 @@ public class RedlSend extends Thread {
 						}
 					}
 				} else if (IPv4Packet.isIPv4(packet)) {
+					serverSocket.send(sendUDPPacket);
 					App.bn.TrafficPrint(pre + "IPV4 SENT", 3, 0);
 				}
                 if (App.bn.gui && !trigger) {
