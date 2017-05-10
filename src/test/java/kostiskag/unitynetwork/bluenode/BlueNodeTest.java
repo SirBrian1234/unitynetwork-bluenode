@@ -35,6 +35,7 @@ public class BlueNodeTest {
 
 		String name = "pakis1";
 		int authPort = 7000;
+		/*
 		BlueNode bn = new BlueNode(
 				network, 
 				trackerAddress, 
@@ -52,6 +53,6 @@ public class BlueNodeTest {
 				accounts,
 				keys);
 		App.bn = bn;
-		bn.run();
+		bn.run();*/
 	}
 }

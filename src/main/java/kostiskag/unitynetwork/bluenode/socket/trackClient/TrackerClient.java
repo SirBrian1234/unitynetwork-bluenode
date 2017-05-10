@@ -1,6 +1,7 @@
 package kostiskag.unitynetwork.bluenode.socket.trackClient;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -204,6 +205,9 @@ public class TrackerClient {
      */
 	public void getPubKey() {
 		if (connected) {
+			String[] args = TCPSocketFunctions.sendData("GETPUB", writer, reader);        
+	        App.bn.trackerPublicKey = (PublicKey) CryptoMethods.base64StringRepresentationToObject(args[0]);
+	        CryptoMethods.objectToFile(App.bn.trackerPublicKey, new File(App.trackerPublicKeyFileName));
 			closeCon();
 		}
 	}

@@ -40,7 +40,7 @@ public class BlueNode extends Thread{
 	public final boolean log;
 	public final AccountsTable accounts;
 	public final KeyPair bluenodeKeys;
-	public final PublicKey trackerPublicKey;
+	public PublicKey trackerPublicKey;
 	// tracker data
 	public String echoAddress;
 	// run data
