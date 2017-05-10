@@ -28,6 +28,7 @@ public class MultipleBlueNodesWithRedNodesScenario {
 		String name = "Pakis1";
 		int authPort = 7000;
 		
+		/*
 		BlueNode bn = new BlueNode(
 				network, 
 				trackerAddress, 
@@ -47,13 +48,14 @@ public class MultipleBlueNodesWithRedNodesScenario {
 		App.bn = bn;
 		
 		bn.start();
-		
+		*/
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
 		
+		/*
 		LocalRedNodeInstance rn = new LocalRedNodeInstance("ouiou1", "10.0.0.1");
 		try {
 			bn.localRedNodesTable.lease(rn);
@@ -82,11 +84,13 @@ public class MultipleBlueNodesWithRedNodesScenario {
 					keys);
 			a.start();
 			
+			
 			try {
 				Thread.sleep(1);
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
-		}			
+		}
+		*/			
 	}
 }

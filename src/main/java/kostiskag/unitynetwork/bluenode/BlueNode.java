@@ -1,6 +1,7 @@
 package kostiskag.unitynetwork.bluenode;
 
 import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import kostiskag.unitynetwork.bluenode.Routing.FlyRegister;
@@ -39,6 +40,7 @@ public class BlueNode extends Thread{
 	public final boolean log;
 	public final AccountsTable accounts;
 	public final KeyPair bluenodeKeys;
+	public final PublicKey trackerPublicKey;
 	// tracker data
 	public String echoAddress;
 	// run data
@@ -88,6 +90,7 @@ public class BlueNode extends Thread{
 	 * @param log
 	 * @param accounts
 	 * @param bluenodeKeys
+	 * @param trackerPublicKey
 	 */
 	public BlueNode(
 		boolean network,
@@ -104,7 +107,8 @@ public class BlueNode extends Thread{
 		boolean soutTraffic,        
 		boolean log,
 		AccountsTable accounts,
-		KeyPair bluenodeKeys
+		KeyPair bluenodeKeys,
+		PublicKey trackerPublicKey
 	) {
 		this.network = network;
 		this.trackerAddress = trackerAddress;
@@ -121,6 +125,7 @@ public class BlueNode extends Thread{
 		this.log = log;
 		this.accounts = accounts;
 		this.bluenodeKeys = bluenodeKeys;
+		this.trackerPublicKey = trackerPublicKey;
 	}
 	
 	@Override

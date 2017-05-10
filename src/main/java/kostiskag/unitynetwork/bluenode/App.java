@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyPair;
+import java.security.PublicKey;
 
 import javax.swing.UIManager;
 
@@ -37,6 +38,7 @@ public class App extends Thread {
 	public static final String hostlistFileName = "host.list";
 	public static final String logFileName = "bluenode.log";
 	public static final String keyPairFileName = "public_private.keypair";
+	public static final String trackerPublicKeyFileName = "tracker_public.key";
 	// files
 	public static final File logFile =  new File(logFileName);
 	// user
@@ -57,6 +59,7 @@ public class App extends Thread {
 	public static boolean log;
 	public static AccountsTable accounts;	
 	public static KeyPair bluenodeKeys;
+	public static PublicKey trackerPublicKey;
 	// bluenode
 	public static BlueNode bn;
 	
@@ -137,6 +140,12 @@ public class App extends Thread {
 			System.out.println(pre+
 					"Your public key is:\n" + CryptoMethods.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
 		}
+		
+		// tracker's public
+		File trackerPublic = new File(trackerPublicKeyFileName);
+		if (trackerPublic.exists()) {
+			trackerPublicKey = (PublicKey) CryptoMethods.fileToObject(trackerPublic);
+		} 
 
 		// generating hostlist file if not existing
 	    System.out.println(pre+"Checking file " + hostlistFileName + "...");
@@ -220,7 +229,8 @@ public class App extends Thread {
 				soutTraffic, 
 				log, 
 				accounts,
-				bluenodeKeys);
+				bluenodeKeys,
+				trackerPublicKey);
 		bn.run();
 	}
 }

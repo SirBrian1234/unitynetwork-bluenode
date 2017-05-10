@@ -26,7 +26,7 @@ public class MultipleBlueNodesScenario {
 
 		String name = "Pakis1";
 		int authPort = 7000;
-		
+		/*
 		BlueNode bn = new BlueNode(
 				network, 
 				trackerAddress, 
@@ -45,7 +45,7 @@ public class MultipleBlueNodesScenario {
 				keys);
 		App.bn = bn;
 		bn.start();
-		
+		*/
 		try {
 			Thread.sleep(1500);
 		} catch (InterruptedException e1) {
@@ -53,6 +53,7 @@ public class MultipleBlueNodesScenario {
 			e1.printStackTrace();
 		}
 		
+		/*
 		for (int i=2; i<10; i++) {
 			name = "Pakis"+i;
 			authPort = 7000+i;
@@ -80,6 +81,7 @@ public class MultipleBlueNodesScenario {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		}			
+		}
+		*/			
 	}
 }

@@ -195,4 +195,16 @@ public class TrackerClient {
     	}
     	return null;
     }
+
+    /**
+     * Collect's a tracker's public key
+     * It's a bit hardwired as after collection
+     * it writes a file and updates bn's tracker public key
+     * to use.
+     */
+	public void getPubKey() {
+		if (connected) {
+			closeCon();
+		}
+	}
 }

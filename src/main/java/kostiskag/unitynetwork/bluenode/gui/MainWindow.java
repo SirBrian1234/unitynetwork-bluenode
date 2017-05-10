@@ -53,7 +53,9 @@ public class MainWindow extends javax.swing.JFrame {
     	setTitle("Blue Node");
     	initComponents(); 
         if (!App.bn.network) {
-    		jTabbedPane1.remove(2);    		
+    		jTabbedPane1.remove(2); 
+    		btnNewButton_1.setEnabled(false);
+    		btnCollectTrackersPublic.setEnabled(false);
     	}
         
         jTable1.setDefaultEditor(Object.class, null);
@@ -255,10 +257,17 @@ public class MainWindow extends javax.swing.JFrame {
         	}
         });
         
-        JButton btnNewButton_1 = new JButton("Offer Public Key");
+        btnNewButton_1 = new JButton("Offer BlueNode's Public Key");
         btnNewButton_1.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		new uploadKeyGUI().setVisible();
+        	}
+        });
+        
+        btnCollectTrackersPublic = new JButton("Collect Tracker's Public Key");
+        btnCollectTrackersPublic.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent arg0) {
+        		new collectTrackerKeyGUI().setVisible();
         	}
         });
 
@@ -269,21 +278,20 @@ public class MainWindow extends javax.swing.JFrame {
         			.addContainerGap()
         			.addGroup(jPanel3Layout.createParallelGroup(Alignment.LEADING)
         				.addComponent(btnNewButton, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
-        				.addComponent(jTextField1, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(lblOperationMode)
-        				.addComponent(jLabel1)
         				.addComponent(txtOpMode, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(btnNewButton_1, GroupLayout.PREFERRED_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(jLabel1)
+        				.addComponent(jTextField1, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(lblEchoAddress)
         				.addComponent(textField, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
-        				.addComponent(jTextField5, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
-        				.addGroup(jPanel3Layout.createSequentialGroup()
-        					.addComponent(jLabel2)
-        					.addGap(46))
+        				.addComponent(jLabel2)
         				.addComponent(jTextField2, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
-        				.addComponent(jLabel4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(jLabel5)
-        				.addComponent(jTextField4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
-        				.addComponent(btnNewButton_1, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE))
+        				.addComponent(jTextField5, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(jLabel4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(btnCollectTrackersPublic)
+        				.addComponent(jTextField4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE))
         			.addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -293,29 +301,31 @@ public class MainWindow extends javax.swing.JFrame {
         			.addComponent(lblOperationMode)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(txtOpMode, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addGap(18)
+        			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jLabel1)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jTextField1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addGap(18)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(lblEchoAddress)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addGap(18)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(jLabel2)
-        			.addGap(8)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addGap(18)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(jLabel5)
-        			.addPreferredGap(ComponentPlacement.RELATED)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(jTextField5, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addGap(18)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(jLabel4)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jTextField4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addGap(18)
+        			.addGap(13)
+        			.addComponent(btnCollectTrackersPublic)
+        			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(btnNewButton_1)
-        			.addPreferredGap(ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
+        			.addPreferredGap(ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
         			.addComponent(btnNewButton)
         			.addContainerGap())
         );
@@ -899,6 +909,8 @@ public class MainWindow extends javax.swing.JFrame {
     private JLabel lblEchoAddress;
     private JTextField textField;
     private JButton btnNewButton;
+    private JButton btnCollectTrackersPublic;
+    private JButton btnNewButton_1;
     
     public void setBlueNodeInfo() {    
         jTextField1.setText(App.bn.name);
