@@ -254,11 +254,18 @@ public class MainWindow extends javax.swing.JFrame {
 				}
         	}
         });
+        
+        JButton btnNewButton_1 = new JButton("Offer Public Key");
+        btnNewButton_1.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		new uploadKeyGUI().setVisible();
+        	}
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3Layout.setHorizontalGroup(
-        	jPanel3Layout.createParallelGroup(Alignment.TRAILING)
-        		.addGroup(Alignment.LEADING, jPanel3Layout.createSequentialGroup()
+        	jPanel3Layout.createParallelGroup(Alignment.LEADING)
+        		.addGroup(jPanel3Layout.createSequentialGroup()
         			.addContainerGap()
         			.addGroup(jPanel3Layout.createParallelGroup(Alignment.LEADING)
         				.addComponent(btnNewButton, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
@@ -275,7 +282,8 @@ public class MainWindow extends javax.swing.JFrame {
         				.addComponent(jTextField2, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(jLabel4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(jLabel5)
-        				.addComponent(jTextField4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE))
+        				.addComponent(jTextField4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(btnNewButton_1, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE))
         			.addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -305,7 +313,9 @@ public class MainWindow extends javax.swing.JFrame {
         			.addComponent(jLabel4)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jTextField4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        			.addPreferredGap(ComponentPlacement.RELATED, 83, Short.MAX_VALUE)
+        			.addGap(18)
+        			.addComponent(btnNewButton_1)
+        			.addPreferredGap(ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
         			.addComponent(btnNewButton)
         			.addContainerGap())
         );

@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.security.PublicKey;
 
 import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
 /**
@@ -180,6 +182,16 @@ public class TrackerClient {
 	        } else {
 	            return args[1];
 	        }        
+    	}
+    	return null;
+    }
+    
+    public String offerPubKey(String ticket) {
+    	if (connected) {
+	    	PublicKey pub = App.bn.bluenodeKeys.getPublic(); 
+	    	String[] args = TCPSocketFunctions.sendData("OFFERPUB"+" "+ticket+" "+CryptoMethods.objectToBase64StringRepresentation(pub), writer, reader);        
+	        closeCon();	        
+	        return args[0];
     	}
     	return null;
     }
