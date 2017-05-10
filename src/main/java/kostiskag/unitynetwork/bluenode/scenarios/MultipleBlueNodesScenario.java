@@ -1,8 +1,11 @@
 package kostiskag.unitynetwork.bluenode.scenarios;
 
+import java.security.KeyPair;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.BlueNode;
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
+import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 
 public class MultipleBlueNodesScenario {
 	
@@ -19,6 +22,7 @@ public class MultipleBlueNodesScenario {
 		boolean soutTraffic = false;
 		boolean log = false;
 		AccountsTable accounts = null;
+		KeyPair keys = CryptoMethods.generateRSAkeyPair();
 
 		String name = "Pakis1";
 		int authPort = 7000;
@@ -37,7 +41,8 @@ public class MultipleBlueNodesScenario {
 				gui, 
 				soutTraffic, 
 				log, 
-				accounts);
+				accounts,
+				keys);
 		App.bn = bn;
 		bn.start();
 		
@@ -65,7 +70,8 @@ public class MultipleBlueNodesScenario {
 					gui, 
 					soutTraffic, 
 					log, 
-					accounts);
+					accounts,
+					keys);
 			a.start();
 			
 			try {

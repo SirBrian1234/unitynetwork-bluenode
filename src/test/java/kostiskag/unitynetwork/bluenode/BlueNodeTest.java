@@ -2,10 +2,13 @@ package kostiskag.unitynetwork.bluenode;
 
 import static org.junit.Assert.assertTrue;
 
+import java.security.KeyPair;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
+import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 
 public class BlueNodeTest {
 	
@@ -28,6 +31,7 @@ public class BlueNodeTest {
 		boolean soutTraffic = true;
 		boolean log = false;
 		AccountsTable accounts = null;
+		KeyPair keys = CryptoMethods.generateRSAkeyPair();
 
 		String name = "pakis1";
 		int authPort = 7000;
@@ -45,7 +49,8 @@ public class BlueNodeTest {
 				gui, 
 				soutTraffic, 
 				log, 
-				accounts);
+				accounts,
+				keys);
 		App.bn = bn;
 		bn.run();
 	}

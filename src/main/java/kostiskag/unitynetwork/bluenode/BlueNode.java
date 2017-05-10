@@ -1,5 +1,6 @@
 package kostiskag.unitynetwork.bluenode;
 
+import java.security.KeyPair;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import kostiskag.unitynetwork.bluenode.Routing.FlyRegister;
@@ -8,6 +9,7 @@ import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.LocalRedNodeTable;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
+import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 import kostiskag.unitynetwork.bluenode.functions.PortHandle;
 import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeSonarService;
@@ -36,6 +38,7 @@ public class BlueNode extends Thread{
 	public final boolean soutTraffic;	
 	public final boolean log;
 	public final AccountsTable accounts;
+	public final KeyPair bluenodeKeys;
 	// tracker data
 	public String echoAddress;
 	// run data
@@ -84,6 +87,7 @@ public class BlueNode extends Thread{
 	 * @param soutTraffic
 	 * @param log
 	 * @param accounts
+	 * @param bluenodeKeys
 	 */
 	public BlueNode(
 		boolean network,
@@ -99,7 +103,8 @@ public class BlueNode extends Thread{
 		boolean gui,
 		boolean soutTraffic,        
 		boolean log,
-		AccountsTable accounts	
+		AccountsTable accounts,
+		KeyPair bluenodeKeys
 	) {
 		this.network = network;
 		this.trackerAddress = trackerAddress;
@@ -115,6 +120,7 @@ public class BlueNode extends Thread{
 		this.soutTraffic = soutTraffic;
 		this.log = log;
 		this.accounts = accounts;
+		this.bluenodeKeys = bluenodeKeys;
 	}
 	
 	@Override
@@ -130,6 +136,9 @@ public class BlueNode extends Thread{
 			window.setVisible(true);
 			window.setBlueNodeInfo();
 		}
+		
+		//rsa public key
+		ConsolePrint("Your public key is:\n" + CryptoMethods.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
 		
 		/*
 		 *  2. Initialize tables

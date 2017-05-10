@@ -5,11 +5,13 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyPair;
 
 import javax.swing.UIManager;
 
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 import kostiskag.unitynetwork.bluenode.functions.GetTime;
+import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 
 /**
  * This class keeps the application's main method. 
@@ -34,6 +36,7 @@ public class App extends Thread {
 	public static final String configFileName = "bluenode.conf";
 	public static final String hostlistFileName = "host.list";
 	public static final String logFileName = "bluenode.log";
+	public static final String keyPairFileName = "public_private.keypair";
 	// files
 	public static final File logFile =  new File(logFileName);
 	// user
@@ -53,6 +56,7 @@ public class App extends Thread {
 	public static boolean soutTraffic;        
 	public static boolean log;
 	public static AccountsTable accounts;	
+	public static KeyPair bluenodeKeys;
 	// bluenode
 	public static BlueNode bn;
 	
@@ -111,6 +115,27 @@ public class App extends Thread {
 				e.printStackTrace();
 				System.exit(1);
 			}
+		}
+		
+		// 3. rsa key pair
+		File keyPairFile = new File(keyPairFileName);
+		if (keyPairFile.exists()) {
+			// the tracker has key pair
+			System.out.println(pre+"Loading RSA key pair from file...");
+			bluenodeKeys = (KeyPair) CryptoMethods.fileToObject(keyPairFile);
+			System.out.println(pre+
+					"Your public key is:\n" + CryptoMethods.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
+
+		} else {
+			// the tracker does not have a public private key pair
+			// generating...
+			System.out.println(pre+"Generating RSA key pair...");
+			bluenodeKeys = CryptoMethods.generateRSAkeyPair();
+			// and storing
+			System.out.println(pre+"Generating key file...");
+			CryptoMethods.objectToFile(bluenodeKeys, keyPairFile);
+			System.out.println(pre+
+					"Your public key is:\n" + CryptoMethods.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
 		}
 
 		// generating hostlist file if not existing
@@ -194,7 +219,8 @@ public class App extends Thread {
 				gui, 
 				soutTraffic, 
 				log, 
-				accounts);
+				accounts,
+				bluenodeKeys);
 		bn.run();
 	}
 }
