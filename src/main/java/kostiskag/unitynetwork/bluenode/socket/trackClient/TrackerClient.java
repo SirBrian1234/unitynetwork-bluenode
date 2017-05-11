@@ -197,18 +197,39 @@ public class TrackerClient {
     	return null;
     }
 
+    public String revokePubKey() {
+		if (connected) {
+			String[] args = TCPSocketFunctions.sendData("REVOKEPUB", writer, reader);        
+	        closeCon();
+	        return args[0];
+		}
+		return null;
+	}
+    
     /**
      * Collect's a tracker's public key
      * It's a bit hardwired as after collection
      * it writes a file and updates bn's tracker public key
      * to use.
      */
-	public void getPubKey() {
-		if (connected) {
-			String[] args = TCPSocketFunctions.sendData("GETPUB", writer, reader);        
-	        App.bn.trackerPublicKey = (PublicKey) CryptoMethods.base64StringRepresentationToObject(args[0]);
-	        CryptoMethods.objectToFile(App.bn.trackerPublicKey, new File(App.trackerPublicKeyFileName));
-			closeCon();
+	public static void getPubKey() {
+		InetAddress addr = TCPSocketFunctions.getAddress(App.bn.trackerAddress);
+		int port = App.bn.trackerPort;
+		Socket socket = TCPSocketFunctions.absoluteConnect(addr, port);
+		if (socket == null) {
+			return;
 		}
+		BufferedReader reader = TCPSocketFunctions.makeReadWriter(socket);
+		PrintWriter writer = TCPSocketFunctions.makeWriteWriter(socket);
+		String args[] = TCPSocketFunctions.readData(reader);
+		
+		args = TCPSocketFunctions.sendData("GETPUB", writer, reader);        
+        App.bn.trackerPublicKey = (PublicKey) CryptoMethods.base64StringRepresentationToObject(args[0]);
+        CryptoMethods.objectToFile(App.bn.trackerPublicKey, new File(App.trackerPublicKeyFileName));
+		try {
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	
 	}
 }

@@ -200,7 +200,7 @@ public class BlueNode extends Thread{
 					trackerTimeBuilder = new TrackerTimeBuilder();
 					trackerTimeBuilder.start();
 				} else {
-					die();
+					ConsolePrint("This bluenode is not connected in the network.");
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -237,7 +237,12 @@ public class BlueNode extends Thread{
 	}
 
 	public boolean joinNetwork() throws Exception {
-		if (network && !name.isEmpty() && authPort > 0 && authPort <= 65535) {
+		if (trackerPublicKey == null) {
+			ConsolePrint("You do not have an availlable public key for the given tracker.");
+			ConsolePrint("In order to download the key press the Collect Tracker Key button and follow the guide.");
+			ConsolePrint("After you have a Public Key for the provided tracker you may restart the bluenode.");
+			return false;
+		} else if (network && !name.isEmpty() && authPort > 0 && authPort <= 65535) {
 			TrackerClient tr = new TrackerClient();			
 			boolean leased = tr.leaseBn(authPort);
 			if (tr.isConnected() && leased) {

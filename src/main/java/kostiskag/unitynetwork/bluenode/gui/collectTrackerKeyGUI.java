@@ -80,8 +80,7 @@ public class collectTrackerKeyGUI {
 	}
 
 	protected void collect() {
-		TrackerClient tr = new TrackerClient();
-		tr.getPubKey();
+		TrackerClient.getPubKey();
 		if (App.bn.trackerPublicKey != null) {
 			txtpnWii.setText(CryptoMethods.bytesToBase64String(App.bn.trackerPublicKey.getEncoded()));
 			txtNotSet.setText("Key is set");

@@ -189,22 +189,23 @@ public class MainWindow extends javax.swing.JFrame {
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4Layout.setHorizontalGroup(
-        	jPanel4Layout.createParallelGroup(Alignment.TRAILING)
+        	jPanel4Layout.createParallelGroup(Alignment.LEADING)
         		.addGroup(jPanel4Layout.createSequentialGroup()
-        			.addGap(287)
-        			.addComponent(checkBox, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE)
-        			.addPreferredGap(ComponentPlacement.UNRELATED)
-        			.addComponent(jButton2, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)
-        			.addContainerGap())
-        		.addGroup(Alignment.LEADING, jPanel4Layout.createSequentialGroup()
-        			.addContainerGap()
-        			.addComponent(jScrollPane5, GroupLayout.PREFERRED_SIZE, 553, GroupLayout.PREFERRED_SIZE)
-        			.addContainerGap())
+        			.addGroup(jPanel4Layout.createParallelGroup(Alignment.LEADING)
+        				.addGroup(jPanel4Layout.createSequentialGroup()
+        					.addGap(263)
+        					.addComponent(checkBox)
+        					.addPreferredGap(ComponentPlacement.UNRELATED)
+        					.addComponent(jButton2, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE))
+        				.addGroup(jPanel4Layout.createSequentialGroup()
+        					.addContainerGap()
+        					.addComponent(jScrollPane5, GroupLayout.PREFERRED_SIZE, 553, GroupLayout.PREFERRED_SIZE)))
+        			.addGap(92))
         );
         jPanel4Layout.setVerticalGroup(
-        	jPanel4Layout.createParallelGroup(Alignment.LEADING)
-        		.addGroup(Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-        			.addComponent(jScrollPane5, GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+        	jPanel4Layout.createParallelGroup(Alignment.TRAILING)
+        		.addGroup(jPanel4Layout.createSequentialGroup()
+        			.addComponent(jScrollPane5, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addGroup(jPanel4Layout.createParallelGroup(Alignment.BASELINE)
         				.addComponent(jButton2, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
@@ -257,7 +258,7 @@ public class MainWindow extends javax.swing.JFrame {
         	}
         });
         
-        btnNewButton_1 = new JButton("Offer BlueNode's Public Key");
+        btnNewButton_1 = new JButton("Manage BlueNode's Public Key");
         btnNewButton_1.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		new uploadKeyGUI().setVisible();
