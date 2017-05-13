@@ -38,7 +38,24 @@ public class TrackerClient {
 		this.reader = TCPSocketFunctions.makeReadWriter(socket);
 		this.writer = TCPSocketFunctions.makeWriteWriter(socket);
 		String args[] = TCPSocketFunctions.readData(reader);
-		args = TCPSocketFunctions.sendData("BLUENODE"+" "+name, writer, reader);
+		writer.println("BLUENODE"+" "+name);
+		
+		//collect question
+		String encq = null;
+		try {			
+			encq = reader.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		//decode question
+		byte[] question = CryptoMethods.base64StringTobytes(encq);
+		
+		//decrypt with private
+		String answer = CryptoMethods.decryptWithPrivate(question, App.bn.bluenodeKeys.getPrivate());
+		
+		//send back plain answer
+		args = TCPSocketFunctions.sendData(answer, writer, reader);
 
 		if (args[0].equals("OK")) {
 			connected = true;
