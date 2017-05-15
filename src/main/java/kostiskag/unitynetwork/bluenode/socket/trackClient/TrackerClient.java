@@ -124,6 +124,7 @@ public class TrackerClient {
 			String[] args = null;
 			try {
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("LEASE"+" "+authport, reader, writer, sessionKey);
+				closeCon();
 				if (args[0].equals("LEASED")) {
 					App.bn.echoAddress = args[1];
 					App.bn.window.setEchoIpAddress(args[1]);
@@ -145,6 +146,7 @@ public class TrackerClient {
 			String[] args;
 			try {
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("RELEASE", reader, writer, sessionKey);
+				closeCon();
 				if (args[0].equals("RELEASED")) {
 					return true;
 				} else {
@@ -169,6 +171,7 @@ public class TrackerClient {
 			String[] args;
 			try {
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("GETPH"+" "+BNHostname, reader, writer, sessionKey);
+				closeCon();
 				if (!args[0].equals("NOT_FOUND")) {
 					return args;
 				} else {
@@ -197,19 +200,17 @@ public class TrackerClient {
 	    	String[] args;
 			try {
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("LEASE_RN"+" "+Hostname+" "+Username+" "+Password, reader, writer, sessionKey);
+				closeCon();
+		        if (args[0].equals("LEASED")) {
+		            return args[1];
+		        } else {
+		            return args[0];
+		        }
 			} catch (Exception e) {
 				e.printStackTrace();
-				closeCon();
-				return null;
 			}
-	    	closeCon();
-	
-	        if (args[0].equals("LEASED")) {
-	            return args[1];
-	        } else {
-	            return args[0];
-	        }
-		}
+			closeCon();
+	    }
 		return null;
     }    
 
@@ -241,18 +242,16 @@ public class TrackerClient {
 	    	String[] args;
 			try {
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("CHECK_RN"+" "+hostanme, reader, writer, sessionKey);
+				closeCon();
+		        if (args[0].equals("OFFLINE")) {
+		            return null;
+		        } else {
+		            return args[1];
+		        }
 			} catch (Exception e) {
 				e.printStackTrace();
-				closeCon();
-				return null;
 			}
-	        closeCon();
-	        
-	        if (args[0].equals("OFFLINE")) {
-	            return null;
-	        } else {
-	            return args[1];
-	        }
+			closeCon();
     	}
     	return null;
     }
@@ -269,19 +268,17 @@ public class TrackerClient {
 	        String[] args = null;
 			try {
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("CHECK_RNA"+" "+vaddress, reader, writer, sessionKey);
+				closeCon();
+				if (args[0].equals("OFFLINE")) {
+		            return null;
+		        } else {
+		            return args[1];
+		        }
 			} catch (Exception e) {
 				e.printStackTrace();
-				closeCon();
-				return null;
 			}        
 	        closeCon();
-	        
-	        if (args[0].equals("OFFLINE")) {
-	            return null;
-	        } else {
-	            return args[1];
-	        }        
-    	}
+	    }
     	return null;
     }
     
@@ -290,13 +287,13 @@ public class TrackerClient {
 			String[] args = null;
 			try {
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("REVOKEPUB", reader, writer, sessionKey);
+				closeCon();
+				return args[0];
 			} catch (Exception e) {
 				e.printStackTrace();
-				closeCon();
-				return null;
 			}        
 	        closeCon();
-	        return args[0];
+	        return null;
 		}
 		return reason;
 	}
@@ -331,12 +328,13 @@ public class TrackerClient {
 	        
 		} catch (Exception e1) {
 			e1.printStackTrace();
-			try {
-				socket.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}		
+		}
+		
+		try {
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
