@@ -13,7 +13,7 @@ import kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
- * @author Konstantinos Kagiampakis
+ * @author kostis
  */
 public class TCPSocketFunctions {
     //socket stuff

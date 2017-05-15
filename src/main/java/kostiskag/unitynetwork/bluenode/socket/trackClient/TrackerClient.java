@@ -1,16 +1,19 @@
 package kostiskag.unitynetwork.bluenode.socket.trackClient;
 
-import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.PublicKey;
+
+import javax.crypto.SecretKey;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
-import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
+import kostiskag.unitynetwork.bluenode.socket.SocketFunctions;
 
 /**
  * 
@@ -19,47 +22,87 @@ import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 public class TrackerClient {
 
 	private final String pre = "^TrackerClient ";
+	private final PublicKey trackerPublic;
 	private final String name;
-	private final InetAddress addr;
-	private final int port;
-	private final Socket socket;
-	private BufferedReader reader;
-	private PrintWriter writer;
+	private InetAddress addr;
+	private int port;
+	private Socket socket;
+	private SecretKey sessionKey;
+	private DataInputStream reader;
+	private DataOutputStream writer;
+	private String reason;
 	private boolean connected = false;
 
 	public TrackerClient() {
 		this.name = App.bn.name;
-		this.addr = TCPSocketFunctions.getAddress(App.bn.trackerAddress);
-		this.port = App.bn.trackerPort;
-		this.socket = TCPSocketFunctions.absoluteConnect(addr, port);
-		if (socket == null) {
+		this.trackerPublic = App.bn.trackerPublicKey;
+		
+		if (trackerPublic == null) {
+			System.err.println(pre+"no tracker public key was set.");
 			return;
 		}
-		this.reader = TCPSocketFunctions.makeReadWriter(socket);
-		this.writer = TCPSocketFunctions.makeWriteWriter(socket);
-		String args[] = TCPSocketFunctions.readData(reader);
-		writer.println("BLUENODE"+" "+name);
 		
-		//collect question
-		String encq = null;
-		try {			
-			encq = reader.readLine();
-		} catch (IOException e) {
-			e.printStackTrace();
+		this.port = App.bn.trackerPort;
+		try {
+			this.addr = SocketFunctions.getAddress(App.bn.trackerAddress);
+		} catch (UnknownHostException e2) {
+			e2.printStackTrace();
+			return;
 		}
 		
-		//decode question
-		byte[] question = CryptoMethods.base64StringTobytes(encq);
-		
-		//decrypt with private
-		String answer = CryptoMethods.decryptWithPrivate(question, App.bn.bluenodeKeys.getPrivate());
-		
-		//send back plain answer
-		args = TCPSocketFunctions.sendData(answer, writer, reader);
-
-		if (args[0].equals("OK")) {
-			connected = true;
+		try {
+			this.socket = SocketFunctions.absoluteConnect(addr, port);
+			
+			this.reader = SocketFunctions.makeDataReader(socket);
+			this.writer = SocketFunctions.makeDataWriter(socket);
+			
+			sessionKey = CryptoMethods.generateAESSessionkey();
+			if (sessionKey == null) {
+				reason = "NO_SESSION_KEY";
+				throw new Exception();
+			}
+			
+			String keyStr = CryptoMethods.objectToBase64StringRepresentation(sessionKey);
+			SocketFunctions.sendRSAEncryptedStringData(keyStr, writer, App.bn.trackerPublicKey);
+			
+			String[] args = SocketFunctions.receiveAESEncryptedStringData(reader, sessionKey);
+			System.out.println(args[0]);
+			
+			if(!args[0].equals("UnityTracker")) {
+				reason = "WELLCOME_MSG_ERROR";
+				throw new Exception();
+			}
+			
+			args = SocketFunctions.sendReceiveAESEncryptedStringData("BLUENODE"+" "+name, reader, writer, sessionKey);
+			
+			if (args[0].equals("PUBLIC_NOT_SET")) {
+				SocketFunctions.sendAESEncryptedStringData("EXIT", writer, sessionKey);
+				reason = "KEY_NOT_SET";
+				throw new Exception("This BN's public key is not set.");
+			}
+			
+			//decode question
+			byte[] question = CryptoMethods.base64StringTobytes(args[0]);
+			
+			//decrypt with private
+			String answer = CryptoMethods.decryptWithPrivate(question, App.bn.bluenodeKeys.getPrivate());
+			
+			//send back plain answer
+			args = SocketFunctions.sendReceiveAESEncryptedStringData(answer, reader, writer, sessionKey);
+			
+			if (args[0].equals("OK")) {
+				connected = true;
+			} else {
+				throw new Exception();
+			}
+			
+		} catch (Exception e2) {
+			e2.printStackTrace();
+			closeCon();
+			connected = false;
+			return;
 		}
+		System.out.println("connected "+connected);
 	}
 	
 	public boolean isConnected() {
@@ -78,31 +121,39 @@ public class TrackerClient {
 
 	public boolean leaseBn(int authport) {
 		if (connected) {
-			String[] args = TCPSocketFunctions.sendData("LEASE"+" "+authport, writer, reader);
-			closeCon();
-			
-			if (args[0].equals("LEASED")) {
-				App.bn.echoAddress = args[1];
-				App.bn.window.setEchoIpAddress(args[1]);
-				App.bn.ConsolePrint(pre + "ECHO ADDRESS IS " + App.bn.echoAddress);
-				return true;
-			} else {
-				return false;
+			String[] args = null;
+			try {
+				args = SocketFunctions.sendReceiveAESEncryptedStringData("LEASE"+" "+authport, reader, writer, sessionKey);
+				if (args[0].equals("LEASED")) {
+					App.bn.echoAddress = args[1];
+					App.bn.window.setEchoIpAddress(args[1]);
+					App.bn.ConsolePrint(pre + "ECHO ADDRESS IS " + App.bn.echoAddress);
+					return true;
+				} else {
+					return false;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
+			closeCon();			
 		}
 		return false;
 	}
 
 	public boolean releaseBn() {
 		if (connected) {
-			String[] args = TCPSocketFunctions.sendData("RELEASE", writer, reader);
-			closeCon();
-			
-			if (args[0].equals("RELEASED")) {
-				return true;
-			} else {
-				return false;
+			String[] args;
+			try {
+				args = SocketFunctions.sendReceiveAESEncryptedStringData("RELEASE", reader, writer, sessionKey);
+				if (args[0].equals("RELEASED")) {
+					return true;
+				} else {
+					return false;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
+			closeCon();
 		}
 		return false;
 	}
@@ -115,13 +166,18 @@ public class TrackerClient {
 	 */
 	public String[] getPhysicalBn(String BNHostname) {
 		if (connected) {
-			String[] args = TCPSocketFunctions.sendData("GETPH"+" "+BNHostname, writer, reader);
-			closeCon();
-			if (!args[0].equals("NOT_FOUND")) {
-				return args;
-			} else {
-				return null;
+			String[] args;
+			try {
+				args = SocketFunctions.sendReceiveAESEncryptedStringData("GETPH"+" "+BNHostname, reader, writer, sessionKey);
+				if (!args[0].equals("NOT_FOUND")) {
+					return args;
+				} else {
+					return null;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
+			closeCon();
 		}
 		return null;
 	}
@@ -138,7 +194,14 @@ public class TrackerClient {
 	 */
 	public String leaseRn(String Hostname, String Username, String Password) {
 		if (connected) {
-	    	String[] args = TCPSocketFunctions.sendData("LEASE_RN"+" "+Hostname+" "+Username+" "+Password, writer, reader);
+	    	String[] args;
+			try {
+				args = SocketFunctions.sendReceiveAESEncryptedStringData("LEASE_RN"+" "+Hostname+" "+Username+" "+Password, reader, writer, sessionKey);
+			} catch (Exception e) {
+				e.printStackTrace();
+				closeCon();
+				return null;
+			}
 	    	closeCon();
 	
 	        if (args[0].equals("LEASED")) {
@@ -157,7 +220,11 @@ public class TrackerClient {
 	 */
     public void releaseRnByHostname(String hostname) {
     	if (connected) {
-	        TCPSocketFunctions.sendFinalData("RELEASE_RN"+" "+hostname, writer);       
+	        try {
+				SocketFunctions.sendAESEncryptedStringData("RELEASE_RN"+" "+hostname, writer, sessionKey);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}       
 	        closeCon();
     	}
     }
@@ -171,7 +238,14 @@ public class TrackerClient {
      */
     public String checkRnOnlineByHostname(String hostanme) {
     	if (connected) {
-	    	String[] args = TCPSocketFunctions.sendData("CHECK_RN"+" "+hostanme, writer, reader);
+	    	String[] args;
+			try {
+				args = SocketFunctions.sendReceiveAESEncryptedStringData("CHECK_RN"+" "+hostanme, reader, writer, sessionKey);
+			} catch (Exception e) {
+				e.printStackTrace();
+				closeCon();
+				return null;
+			}
 	        closeCon();
 	        
 	        if (args[0].equals("OFFLINE")) {
@@ -192,7 +266,14 @@ public class TrackerClient {
      */
     public String checkRnOnlineByVaddr(String vaddress) {            
     	if (connected) {
-	        String[] args = TCPSocketFunctions.sendData("CHECK_RNA"+" "+vaddress, writer, reader);        
+	        String[] args = null;
+			try {
+				args = SocketFunctions.sendReceiveAESEncryptedStringData("CHECK_RNA"+" "+vaddress, reader, writer, sessionKey);
+			} catch (Exception e) {
+				e.printStackTrace();
+				closeCon();
+				return null;
+			}        
 	        closeCon();
 	        
 	        if (args[0].equals("OFFLINE")) {
@@ -204,49 +285,130 @@ public class TrackerClient {
     	return null;
     }
     
-    public String offerPubKey(String ticket) {
-    	if (connected) {
-	    	PublicKey pub = App.bn.bluenodeKeys.getPublic(); 
-	    	String[] args = TCPSocketFunctions.sendData("OFFERPUB"+" "+ticket+" "+CryptoMethods.objectToBase64StringRepresentation(pub), writer, reader);        
-	        closeCon();	        
-	        return args[0];
-    	}
-    	return null;
-    }
-
     public String revokePubKey() {
 		if (connected) {
-			String[] args = TCPSocketFunctions.sendData("REVOKEPUB", writer, reader);        
+			String[] args = null;
+			try {
+				args = SocketFunctions.sendReceiveAESEncryptedStringData("REVOKEPUB", reader, writer, sessionKey);
+			} catch (Exception e) {
+				e.printStackTrace();
+				closeCon();
+				return null;
+			}        
 	        closeCon();
 	        return args[0];
 		}
-		return null;
+		return reason;
 	}
     
     /**
-     * Collect's a tracker's public key
+     * Collect's a tracker's public key needs a plain connection
      * It's a bit hardwired as after collection
      * it writes a file and updates bn's tracker public key
      * to use.
      */
 	public static void getPubKey() {
-		InetAddress addr = TCPSocketFunctions.getAddress(App.bn.trackerAddress);
 		int port = App.bn.trackerPort;
-		Socket socket = TCPSocketFunctions.absoluteConnect(addr, port);
-		if (socket == null) {
+		InetAddress addr;
+		try {
+			addr = SocketFunctions.getAddress(App.bn.trackerAddress);
+		} catch (UnknownHostException e1) {
+			e1.printStackTrace();
 			return;
 		}
-		BufferedReader reader = TCPSocketFunctions.makeReadWriter(socket);
-		PrintWriter writer = TCPSocketFunctions.makeWriteWriter(socket);
-		String args[] = TCPSocketFunctions.readData(reader);
 		
-		args = TCPSocketFunctions.sendData("GETPUB", writer, reader);        
-        App.bn.trackerPublicKey = (PublicKey) CryptoMethods.base64StringRepresentationToObject(args[0]);
-        CryptoMethods.objectToFile(App.bn.trackerPublicKey, new File(App.trackerPublicKeyFileName));
+		Socket socket = null;
 		try {
-			socket.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}	
+			socket = SocketFunctions.absoluteConnect(addr, port);
+			
+			DataInputStream reader = SocketFunctions.makeDataReader(socket);
+			DataOutputStream writer = SocketFunctions.makeDataWriter(socket);
+			
+			String[] args = SocketFunctions.sendReceivePlainStringData("GETPUB", reader, writer);
+			     
+			App.bn.trackerPublicKey = (PublicKey) CryptoMethods.base64StringRepresentationToObject(args[0]);
+	        CryptoMethods.objectToFile(App.bn.trackerPublicKey, new File(App.trackerPublicKeyFileName));
+	        
+		} catch (Exception e1) {
+			e1.printStackTrace();
+			try {
+				socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}		
+	}
+	
+	/**
+	 * Offer public key needs an rsa connection based on tracker's public
+	 * but no authentication for the bluenode's part
+	 *  
+	 * @param ticket
+	 * @return
+	 */
+	public static String offerPubKey(String ticket) {
+		String pre = "^OFFERPUB ";
+		String name = App.bn.name;
+		PublicKey trackerPublic = App.bn.trackerPublicKey;
+		
+		if (trackerPublic == null) {
+			System.err.println(pre+"no tracker public key was set.");
+			return null;
+		}
+		
+		int port = App.bn.trackerPort;
+		InetAddress addr;
+		try {
+			addr = SocketFunctions.getAddress(App.bn.trackerAddress);
+		} catch (UnknownHostException e2) {
+			e2.printStackTrace();
+			return null;
+		}
+		
+		Socket socket = null;
+		try {
+			socket = SocketFunctions.absoluteConnect(addr, port);
+			
+			DataInputStream reader = SocketFunctions.makeDataReader(socket);
+			DataOutputStream writer = SocketFunctions.makeDataWriter(socket);
+			
+			SecretKey sessionKey = CryptoMethods.generateAESSessionkey();
+			if (sessionKey == null) {
+				throw new Exception();
+			}
+			
+			String keyStr = CryptoMethods.objectToBase64StringRepresentation(sessionKey);
+			SocketFunctions.sendRSAEncryptedStringData(keyStr, writer, App.bn.trackerPublicKey);
+			
+			String[] args = SocketFunctions.receiveAESEncryptedStringData(reader, sessionKey);
+			System.out.println(args[0]);
+			
+			if(!args[0].equals("UnityTracker")) {
+				throw new Exception();
+			}
+			
+			args = SocketFunctions.sendReceiveAESEncryptedStringData("BLUENODE"+" "+name, reader, writer, sessionKey);
+		
+			if (!args[0].equals("PUBLIC_NOT_SET")) {
+				SocketFunctions.sendAESEncryptedStringData("EXIT", writer, sessionKey);
+				socket.close();
+				return "KEY_IS_SET";
+			}
+			
+			PublicKey pub = App.bn.bluenodeKeys.getPublic(); 
+	    	args = SocketFunctions.sendReceiveAESEncryptedStringData("OFFERPUB"+" "+ticket+" "+CryptoMethods.objectToBase64StringRepresentation(pub), reader, writer, sessionKey);
+			
+	    	socket.close();
+	    	return args[0];
+	    	
+			} catch (Exception e) {
+				e.printStackTrace();
+				try {
+					socket.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}   
+			}        
+	        return "NOT_CONNECTED";
 	}
 }
