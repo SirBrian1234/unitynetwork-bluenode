@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 
 public class uploadKeyGUI {
@@ -36,7 +37,7 @@ public class uploadKeyGUI {
 	private void initialize() {
 		frmUploadPublicKey = new JFrame();
 		frmUploadPublicKey.setTitle("Offer/Revoke Public Key to Tracker");
-		frmUploadPublicKey.setBounds(100, 100, 450, 448);
+		frmUploadPublicKey.setBounds(100, 100, 450, 491);
 		frmUploadPublicKey.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frmUploadPublicKey.getContentPane().setLayout(null);
 		
@@ -54,12 +55,12 @@ public class uploadKeyGUI {
 		frmUploadPublicKey.getContentPane().add(btnNewButton);
 		
 		textField = new JTextField();
-		textField.setBounds(157, 366, 154, 20);
+		textField.setBounds(155, 411, 154, 20);
 		frmUploadPublicKey.getContentPane().add(textField);
 		textField.setColumns(10);
 		
 		JLabel lblNewLabel_1 = new JLabel("Tracker response");
-		lblNewLabel_1.setBounds(12, 369, 133, 14);
+		lblNewLabel_1.setBounds(10, 414, 133, 14);
 		frmUploadPublicKey.getContentPane().add(lblNewLabel_1);
 		
 		JLabel lblNewLabel_2 = new JLabel("Paste your session ticket here:");
@@ -81,19 +82,29 @@ public class uploadKeyGUI {
 			}
 		});
 		btnNewButton_1.setBackground(new Color(153, 51, 0));
-		btnNewButton_1.setBounds(195, 319, 229, 25);
+		btnNewButton_1.setBounds(195, 362, 229, 25);
 		frmUploadPublicKey.getContentPane().add(btnNewButton_1);
 		
-		JLabel lblif = new JLabel("<html>If you believe that your private key might be compromised you may revoke this bluenode's public key from the server in order to generate a new keypair and upload a new public key. When the public key is revoked the present bluenode may not be operational until a new one is set. In order to remove the public key you may click the button below.</html>");
-		lblif.setBounds(10, 208, 410, 98);
+		JLabel lblif = new JLabel(""
+				+ "<html>If you believe that your private key might be compromised "
+				+ "you may revoke this bluenode's public key from the tracker in order "
+				+ "to generate a new keypair and upload a new public key under the same process. "
+				+ "When the public "
+				+ "key is revoked the present bluenode is going to disconnect from the network "
+				+ "and may not be operational until a new public key is generated and uploaded to the tracker. "
+				+ "In order to remove the public key you may click the button below. "
+				+ "On a succesful key removal this bluenode is going to disconnect.</html>");
+		lblif.setBounds(10, 208, 410, 141);
 		frmUploadPublicKey.getContentPane().add(lblif);
 	}
 
 	private void upload() {
 		if (!textArea.getText().isEmpty()) {
-			TrackerClient tr = new TrackerClient();
-			String responce = tr.offerPubKey(textArea.getText());
+			String responce = TrackerClient.offerPubKey(textArea.getText());
 			textField.setText(responce);
+			if (responce.equals("KEY_SET") || responce.equals("KEY_IS_SET")) {
+				App.bn.ConsolePrint("Your public key has been uploaded to the tracker.\nPlease restart this BlueNode in order to connect.");
+			}
 		}
 	}
 	
@@ -101,5 +112,12 @@ public class uploadKeyGUI {
 		TrackerClient tr = new TrackerClient();
 		String responce = tr.revokePubKey();
 		textField.setText(responce);
+		if (responce.equals("KEY_REVOKED")){
+			try {
+				App.bn.leaveNetworkAfterRevoke();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

@@ -249,11 +249,7 @@ public class BlueNode extends Thread{
 				ConsolePrint("^SUCCESFULLY REGISTERED WITH THE NETWORK");
 				return true;
 			} else {
-				if (!tr.isConnected()) {
-					ConsolePrint("^FAILED TO REGISTER WITH THE NETWORK, HOST NOT FOUND");
-				} else {
-					ConsolePrint("^FAILED TO REGISTER WITH THE NETWORK, LEASE FAILED");
-				}
+				ConsolePrint("^FAILED TO REGISTER WITH THE NETWORK");
 				return false;
 			}
 		} else {
@@ -266,6 +262,18 @@ public class BlueNode extends Thread{
 			//release from tracker
 			TrackerClient tr = new TrackerClient();	
 			tr.releaseBn();			
+			//release from bns
+			blueNodesTable.sendKillSigsAndReleaseForAll();
+			joined = false;
+			trackerTimeBuilder.Kill();
+			die();
+		} else {
+			throw new Exception("called leaveNetwork whithout join first.");
+		}
+	}
+	
+	public void leaveNetworkAfterRevoke() throws Exception {
+		if (joined) {
 			//release from bns
 			blueNodesTable.sendKillSigsAndReleaseForAll();
 			joined = false;
