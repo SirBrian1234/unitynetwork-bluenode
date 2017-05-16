@@ -1,6 +1,7 @@
 package kostiskag.unitynetwork.bluenode.RunData.instances;
 
 import java.net.InetAddress;
+import java.security.PublicKey;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -12,6 +13,7 @@ import kostiskag.unitynetwork.bluenode.blueThreads.BlueReceive;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueSend;
 import kostiskag.unitynetwork.bluenode.blueThreads.UploadManager;
+import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 import kostiskag.unitynetwork.bluenode.functions.GetTime;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
@@ -23,6 +25,7 @@ public class BlueNodeInstance {
 
     private final String pre;
     private final String name;
+    private final PublicKey pub;
     private final String phAddressStr;
     private final InetAddress phAddress;
     private final int remoteAuthPort;
@@ -51,6 +54,7 @@ public class BlueNodeInstance {
      */
     public BlueNodeInstance(String name) {
     	this.name = name;    
+    	this.pub =  CryptoMethods.generateRSAkeyPair().getPublic();
     	this.isServer = false;
     	this.phAddressStr = "1.1.1.1";
     	this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
@@ -67,9 +71,10 @@ public class BlueNodeInstance {
      * This is the server constructor.
      * 
      */
-    public BlueNodeInstance(String name, String phAddressStr, int authPort) throws Exception {
+    public BlueNodeInstance(String name, PublicKey pub, String phAddressStr, int authPort) throws Exception {
     	this.isServer = true;
     	this.name = name;
+    	this.pub = pub;
     	this.remoteAuthPort = authPort;
     	this.pre = "^BLUENODE "+name+" ";
     	this.phAddressStr = phAddressStr;
@@ -103,9 +108,10 @@ public class BlueNodeInstance {
      * This is the client constructor.
      * 
      */
-    public BlueNodeInstance(String name, String phAddress, int authPort, int upPort, int downPort) throws Exception {
+    public BlueNodeInstance(String name, PublicKey pub, String phAddress, int authPort, int upPort, int downPort) throws Exception {
     	this.isServer = false;
     	this.name = name;
+    	this.pub = pub;
         this.pre = "^BLUENODE "+name+" ";
         this.phAddressStr = phAddress;
         this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
@@ -140,6 +146,10 @@ public class BlueNodeInstance {
 
     public String getName() {
 		return name;
+	}
+    
+    public PublicKey getPub() {
+		return pub;
 	}
     
     /**

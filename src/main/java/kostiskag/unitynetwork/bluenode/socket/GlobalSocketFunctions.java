@@ -35,7 +35,7 @@ public class GlobalSocketFunctions {
 		}            
     }
 	
-	public static void getRemoteRedNodes(BlueNodeInstance bn, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {
+	public static void getRemoteRedNodes(BlueNodeInstance bn, DataInputStream socketReader, SecretKey sessionKey) {
 		try {
 			String[] args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
 			int count = Integer.parseInt(args[1]);

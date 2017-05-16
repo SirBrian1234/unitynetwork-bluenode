@@ -16,6 +16,7 @@ import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
 import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
 
 /**
+ * TODO
  * 
  * @author Konstantinos Kagiampakis
  */
@@ -114,7 +115,7 @@ public class BlueNodeClient {
 	        //build the object
 	    	BlueNodeInstance node;
 			try {
-				node = new BlueNodeInstance(name, phAddressStr, authPort, upport, downport);	        
+				//node = new BlueNodeInstance(name, phAddressStr, authPort, upport, downport);	        
 			} catch (Exception e) {
 				e.printStackTrace();
 				bn.killtasks();
@@ -123,7 +124,7 @@ public class BlueNodeClient {
 			}       
 			
 			//lease to local bn table
-			App.bn.blueNodesTable.leaseBn(node);
+			//App.bn.blueNodesTable.leaseBn(node);
 			closeConnection();
 			App.bn.ConsolePrint(pre + "LEASED REMOTE BN "+name);
 		}
