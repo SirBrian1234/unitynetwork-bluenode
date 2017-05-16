@@ -1,18 +1,21 @@
 package kostiskag.unitynetwork.bluenode.gui;
 
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.GroupLayout;
-import javax.swing.JRadioButton;
-import javax.swing.ButtonGroup;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.security.PublicKey;
 
-import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
+import javax.swing.ButtonGroup;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import javax.swing.JTextField;
+import javax.swing.JTextArea;
+import javax.swing.LayoutStyle.ComponentPlacement;
+
+import kostiskag.unitynetwork.bluenode.App;
+import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
+import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
+import java.awt.Font;
 
 /**
  *
@@ -21,6 +24,10 @@ import javax.swing.JTextField;
 public class TrackerLookupGUI extends javax.swing.JFrame {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 2134450119636073406L;
+	/**
      * Creates new form AddRemoteRedNode
      */
     public TrackerLookupGUI() {
@@ -30,13 +37,12 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
 
     private void initComponents() {
         jLabel2 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
         jTextField2 = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jLabel2.setText("TrackerClient");
+        jLabel2.setText("input:");
 
         jButton1.setText("checkRnOnlineByHostname(rnhostname)");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -54,11 +60,49 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
         
         label = new JLabel("Please fill in the respective fields for each option and press the button");
         
-        textField = new JTextField();
+        textField = new JTextArea();
+        textField.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        textField.setLineWrap(true);
         textField.setEditable(false);
         textField.setColumns(10);
         
         lblResponce = new JLabel("Responce");
+        
+        JButton btnNewButton_1 = new JButton("GETBNPUB");
+        btnNewButton_1.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent arg0) {
+        		if (App.bn.joined) {
+                	String bnName = jTextField2.getText();
+                	if (!bnName.isEmpty() && bnName.length() < App.max_str_len_small_size) {
+                		TrackerClient tr = new TrackerClient();
+                		PublicKey key = tr.getBlueNodesPubKey(bnName);
+                		if (key != null) {
+                			textField.setText(CryptoMethods.objectToBase64StringRepresentation(key));
+                		} else {
+                			textField.setText("null");
+                		}
+                	}
+        	    }
+        	}
+        });
+        
+        JButton btnNewButton_2 = new JButton("GETRNPUB");
+        btnNewButton_2.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		if (App.bn.joined) {
+                	String hostname = jTextField2.getText();
+                	if (!hostname.isEmpty() && hostname.length() < App.max_str_len_small_size) {
+                		TrackerClient tr = new TrackerClient();
+                		PublicKey key = tr.getRedNodesPubKey(hostname);
+                		if (key != null) {
+                			textField.setText(CryptoMethods.objectToBase64StringRepresentation(key));
+                		} else {
+                			textField.setText("null");
+                		}
+                	}
+        	    }
+        	}
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         layout.setHorizontalGroup(
@@ -67,45 +111,51 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
         			.addContainerGap()
         			.addGroup(layout.createParallelGroup(Alignment.LEADING)
         				.addGroup(layout.createSequentialGroup()
-        					.addGap(16)
+        					.addGroup(layout.createParallelGroup(Alignment.LEADING)
+        						.addComponent(jButton1)
+        						.addGroup(layout.createSequentialGroup()
+        							.addComponent(jLabel2)
+        							.addGap(18)
+        							.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, 173, GroupLayout.PREFERRED_SIZE))
+        						.addComponent(btnNewButton))
+        					.addGap(848))
+        				.addGroup(layout.createSequentialGroup()
+        					.addGroup(layout.createParallelGroup(Alignment.TRAILING)
+        						.addComponent(btnNewButton_2, GroupLayout.DEFAULT_SIZE, 261, Short.MAX_VALUE)
+        						.addComponent(btnNewButton_1, GroupLayout.DEFAULT_SIZE, 261, Short.MAX_VALUE))
+        					.addGap(854))
+        				.addGroup(layout.createSequentialGroup()
         					.addComponent(lblResponce)
-        					.addPreferredGap(ComponentPlacement.UNRELATED)
-        					.addComponent(textField, GroupLayout.PREFERRED_SIZE, 327, GroupLayout.PREFERRED_SIZE)
+        					.addContainerGap(1060, Short.MAX_VALUE))
+        				.addGroup(layout.createSequentialGroup()
+        					.addComponent(label, GroupLayout.PREFERRED_SIZE, 437, GroupLayout.PREFERRED_SIZE)
         					.addContainerGap())
         				.addGroup(layout.createSequentialGroup()
-        					.addGroup(layout.createParallelGroup(Alignment.LEADING)
-        						.addGroup(layout.createSequentialGroup()
-        							.addComponent(jButton1)
-        							.addPreferredGap(ComponentPlacement.UNRELATED)
-        							.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, 173, GroupLayout.PREFERRED_SIZE))
-        						.addGroup(layout.createSequentialGroup()
-        							.addComponent(btnNewButton)
-        							.addPreferredGap(ComponentPlacement.UNRELATED)
-        							.addComponent(jTextField1))
-        						.addComponent(jLabel2)
-        						.addComponent(label, GroupLayout.DEFAULT_SIZE, 448, Short.MAX_VALUE))
-        					.addGap(51))))
+        					.addComponent(textField, GroupLayout.PREFERRED_SIZE, 762, GroupLayout.PREFERRED_SIZE)
+        					.addContainerGap())))
         );
         layout.setVerticalGroup(
-        	layout.createParallelGroup(Alignment.LEADING)
-        		.addGroup(layout.createSequentialGroup()
+        	layout.createParallelGroup(Alignment.TRAILING)
+        		.addGroup(Alignment.LEADING, layout.createSequentialGroup()
         			.addGap(15)
-        			.addComponent(jLabel2)
-        			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(jButton1)
+        				.addComponent(jLabel2)
         				.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
         			.addPreferredGap(ComponentPlacement.UNRELATED)
-        			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(btnNewButton)
-        				.addComponent(jTextField1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+        			.addComponent(jButton1)
         			.addPreferredGap(ComponentPlacement.UNRELATED)
-        			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
-        				.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        				.addComponent(lblResponce))
-        			.addPreferredGap(ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
+        			.addComponent(btnNewButton)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
+        			.addComponent(btnNewButton_1)
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
+        			.addComponent(btnNewButton_2)
+        			.addGap(18)
+        			.addComponent(lblResponce)
+        			.addGap(18)
+        			.addComponent(textField, GroupLayout.PREFERRED_SIZE, 144, GroupLayout.PREFERRED_SIZE)
+        			.addGap(18)
         			.addComponent(label)
-        			.addContainerGap())
+        			.addContainerGap(44, Short.MAX_VALUE))
         );
         getContentPane().setLayout(layout);
 
@@ -128,7 +178,7 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
     }
 	
 	private void jButton2ActionPerformed(ActionEvent evt) {
-		String vaddress = jTextField1.getText();
+		String vaddress = jTextField2.getText();
     	if (!vaddress.isEmpty() && vaddress.length() < App.max_str_len_small_size) {
     		TrackerClient tr = new TrackerClient();
     		String bluenode = tr.checkRnOnlineByVaddr(vaddress);	 
@@ -142,11 +192,10 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
 
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private final ButtonGroup buttonGroup = new ButtonGroup();
     private JButton btnNewButton;
     private JLabel label;
-    private JTextField textField;
+    private JTextArea textField;
     private JLabel lblResponce;
 }
