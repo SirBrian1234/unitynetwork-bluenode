@@ -120,16 +120,16 @@ public class BlueNodeFunctions {
     }
     
     public static void getLRNs(BlueNodeInstance bn, BufferedReader socketReader, PrintWriter socketWriter) {
-		GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, socketWriter);
+		//GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, socketWriter);
 	}
     
     static void giveLRNs(PrintWriter outputWriter) {
-    	GlobalSocketFunctions.sendLocalRedNodes(outputWriter);
+    	//GlobalSocketFunctions.sendLocalRedNodes(outputWriter);
     }
 
     static void exchangeRNs(BlueNodeInstance bn, BufferedReader inFromClient, PrintWriter outputWriter) {
-    	GlobalSocketFunctions.sendLocalRedNodes(outputWriter);	
-    	GlobalSocketFunctions.getRemoteRedNodes(bn, inFromClient, outputWriter);                
+    	//GlobalSocketFunctions.sendLocalRedNodes(outputWriter);	
+    	//GlobalSocketFunctions.getRemoteRedNodes(bn, inFromClient, outputWriter);                
     }
 
     static void getLocalRnVaddressByHostname(String hostname, PrintWriter outputWriter) {

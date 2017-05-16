@@ -198,7 +198,7 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				TCPSocketFunctions.sendFinalData("GET_RED_NODES", socketWriter);   
-				GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, socketWriter);
+				//GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, socketWriter);
 				closeConnection();
 			}
 		}
@@ -232,7 +232,7 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				TCPSocketFunctions.sendFinalData("GIVE_RED_NODES", socketWriter);   
-				GlobalSocketFunctions.sendLocalRedNodes(socketWriter);
+				//GlobalSocketFunctions.sendLocalRedNodes(socketWriter);
 				closeConnection();
 			}
 		}
@@ -242,8 +242,8 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				TCPSocketFunctions.sendFinalData("EXCHANGE_RED_NODES", socketWriter);
-		        GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, socketWriter);
-		        GlobalSocketFunctions.sendLocalRedNodes(socketWriter);	    
+		        //GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, socketWriter);
+		        //GlobalSocketFunctions.sendLocalRedNodes(socketWriter);	    
 		        closeConnection();
 			}
 		}

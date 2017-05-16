@@ -1,11 +1,15 @@
 package kostiskag.unitynetwork.bluenode.socket.blueNodeService;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import javax.crypto.SecretKey;
+
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
+import kostiskag.unitynetwork.bluenode.socket.SocketFunctions;
 
 /**
  *
@@ -15,27 +19,35 @@ public class BlueNodeService extends Thread {
 
     private final String pre = "^SERVER ";
     private final Socket sessionSocket;
-    private final BufferedReader socketReader;
-    private final PrintWriter socketWriter;
+    private DataInputStream socketReader;
+    private DataOutputStream socketWriter;
+    private SecretKey sessionKey;
 
     BlueNodeService(Socket sessionSocket) throws IOException {
         this.sessionSocket = sessionSocket;
-        socketReader = new BufferedReader(new InputStreamReader(sessionSocket.getInputStream()));
-        socketWriter = new PrintWriter(sessionSocket.getOutputStream(), true);
+    }
+    
+    private void close() {
+    	try {
+			sessionSocket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
 
     @Override
     public void run() {
         App.bn.ConsolePrint(pre +"STARTING AN AUTH AT "+Thread.currentThread().getName());
         try {
-            String[] args;
-            
-            socketWriter.println("BLUENODE "+App.bn.name+" ");
+        	socketReader = SocketFunctions.makeDataReader(sessionSocket);
+			socketWriter = SocketFunctions.makeDataWriter(sessionSocket);
 
-            String clientSentence = socketReader.readLine();
-            App.bn.ConsolePrint(pre + clientSentence);
-            args = clientSentence.split("\\s+");
+			String[] args = SocketFunctions.receiveRSAEncryptedStringData(socketReader, App.bn.bluenodeKeys.getPrivate());
 
+			sessionKey = (SecretKey) CryptoMethods.base64StringRepresentationToObject(args[0]);
+			args = SocketFunctions.sendReceiveAESEncryptedStringData("BLUENODE "+App.bn.name, socketReader, socketWriter, sessionKey);
+
+			App.bn.ConsolePrint(pre +args[0]);
             if (args.length == 2 && args[0].equals("BLUENODE")) {
                 blueNodeService(args[1]);
             } else if (args.length == 2 && args[0].equals("REDNODE")) {
@@ -43,20 +55,16 @@ public class BlueNodeService extends Thread {
             } else if (args.length == 1 && args[0].equals("TRACKER")) {
                 trackingService();
             } else {
-                socketWriter.println("WRONG_COMMAND");                
+            	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);                
             }
-            sessionSocket.close();            
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            try {
-				sessionSocket.close();
-			} catch (IOException e) {
-				
-			}
-        }
-    }
+        } catch (Exception e) {
+			e.printStackTrace();
+		}
+    	close();
+	}
 
     private void blueNodeService(String blueNodeName) {
+    	/*
         try {
             socketWriter.println("OK ");
             String clientSentence = socketReader.readLine();
@@ -113,9 +121,11 @@ public class BlueNodeService extends Thread {
 				
 			}
         }
+        */
     }
 
     private void redNodeService(String hostname) {
+    	/*
         try {
         	socketWriter.println("OK");
             String clientSentence = socketReader.readLine();
@@ -136,32 +146,46 @@ public class BlueNodeService extends Thread {
 				
 			}
         }
+        */
     }
 
     private void trackingService() {
-        try {
-            socketWriter.println("OK");
-            String clientSentence = socketReader.readLine();
-            App.bn.ConsolePrint(pre + clientSentence);
-            String[] args = clientSentence.split("\\s+");
-
-            if (args.length == 1 && args[0].equals("CHECK")) {
-                TrackingFunctions.check(socketWriter);
-            } else if (args.length == 1 && args[0].equals("GETREDNODES")) {
-                TrackingFunctions.getrns(socketWriter);
-            } else if (args.length == 1 && args[0].equals("KILLSIG")) {
-                TrackingFunctions.killsig(socketWriter);
-            } else {
-            	socketWriter.println("WRONG_COMMAND");                
-            }
-            sessionSocket.close();
-        } catch (IOException ex) {
-        	ex.printStackTrace();
-            try {
-				sessionSocket.close();
-			} catch (IOException e) {
-				
+    	try {
+	    	// generate a random question
+	    	String question = CryptoMethods.generateQuestion();
+	
+	    	// encrypt question with target's public
+	    	byte[] questionb = CryptoMethods.encryptWithPublic(question, App.bn.trackerPublicKey);
+	
+	    	// encode it to base 64
+	    	String encq = CryptoMethods.bytesToBase64String(questionb);
+	
+	    	// send it, wait for response
+	    	String args[] = SocketFunctions.sendReceiveAESEncryptedStringData(encq, socketReader, socketWriter, sessionKey);
+	    	
+	    	System.out.println("received " + args[0]);
+			if (args[0].equals(question)) {
+				// now this is a proper RSA authentication
+				SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
+			} else {
+				SocketFunctions.sendAESEncryptedStringData("NOT_ALLOWED", socketWriter, sessionKey);
+				throw new Exception("RSA auth for Tracker in "+sessionSocket.getInetAddress().getHostAddress()+" has failed.");
 			}
+    	
+    		args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
+    		App.bn.ConsolePrint(pre +args[0]);
+			//options
+            if (args.length == 1 && args[0].equals("CHECK")) {
+                TrackingFunctions.check(socketWriter, sessionKey);
+            } else if (args.length == 1 && args[0].equals("GETREDNODES")) {
+                TrackingFunctions.getrns(socketWriter, sessionKey);
+            } else if (args.length == 1 && args[0].equals("KILLSIG")) {
+                TrackingFunctions.killsig(socketWriter, sessionKey);
+            } else {
+            	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);  
+            }
+        } catch (Exception ex) {
+        	ex.printStackTrace();
         }
     }
 }

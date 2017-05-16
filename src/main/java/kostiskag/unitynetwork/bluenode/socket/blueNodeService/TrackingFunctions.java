@@ -1,12 +1,12 @@
 package kostiskag.unitynetwork.bluenode.socket.blueNodeService;
 
-import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.io.DataOutputStream;
+
+import javax.crypto.SecretKey;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
-import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
+import kostiskag.unitynetwork.bluenode.socket.SocketFunctions;
 
 /**
  *
@@ -14,17 +14,25 @@ import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
  */
 class TrackingFunctions {        
 
-    public static void check(PrintWriter outputWriter) {
-        TCPSocketFunctions.sendFinalData("OK", outputWriter);
-        App.bn.trackerRespond.set(0);
+    public static void check(DataOutputStream outputWriter, SecretKey sessionKey) {
+        try {
+			SocketFunctions.sendAESEncryptedStringData("OK", outputWriter, sessionKey);
+			 App.bn.trackerRespond.set(0);
+        } catch (Exception e) {
+			e.printStackTrace();
+		}
     }
 
-    public static void getrns(PrintWriter outputWriter) {
-    	GlobalSocketFunctions.sendLocalRedNodes(outputWriter);
+    public static void getrns(DataOutputStream outputWriter, SecretKey sessionKey) {
+    	GlobalSocketFunctions.sendLocalRedNodes(outputWriter, sessionKey);
     }
     
-    public static void killsig(PrintWriter outputWriter) {
-        TCPSocketFunctions.sendFinalData("OK", outputWriter);
+    public static void killsig(DataOutputStream outputWriter, SecretKey sessionKey) {
+    	try {
+			SocketFunctions.sendAESEncryptedStringData("OK", outputWriter, sessionKey);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
         App.bn.localRedNodesTable.exitAll();
         App.bn.die();
     }
