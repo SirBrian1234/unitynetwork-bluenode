@@ -45,25 +45,35 @@ public class BlueNodeService extends Thread {
         	socketReader = SocketFunctions.makeDataReader(sessionSocket);
 			socketWriter = SocketFunctions.makeDataWriter(sessionSocket);
 
-			String[] args = SocketFunctions.receiveRSAEncryptedStringData(socketReader, App.bn.bluenodeKeys.getPrivate());
-
-			sessionKey = (SecretKey) CryptoMethods.base64StringRepresentationToObject(args[0]);
-			args = SocketFunctions.sendReceiveAESEncryptedStringData("BLUENODE "+App.bn.name, socketReader, socketWriter, sessionKey);
-
-			App.bn.ConsolePrint(pre +args[0]);
-            if (args.length == 2 && args[0].equals("REDNODE")) {
-                redNodeService(args[1]);
-            } else if (App.bn.network) {
-            	if (args.length == 2 && args[0].equals("BLUENODE")) {
-                    blueNodeService(args[1]);
-                } else if (args.length == 1 && args[0].equals("TRACKER")) {
-                    trackingService();
-                } else {
-                	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);                
-                }
-            } else {
-            	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);                
-            }
+			byte[] received = SocketFunctions.receiveData(socketReader);
+			String receivedStr = new String(received, "utf-8");
+			String[] args = receivedStr.split("\\s+");
+			
+			if (!App.bn.network && args[0].equals("GETPUB")) {
+				// if this bluenode is standalone it is allowed to distribute its public
+				SocketFunctions.sendPlainStringData(CryptoMethods.objectToBase64StringRepresentation(App.bn.bluenodeKeys.getPublic()), socketWriter);
+			} else {
+				//client uses server's public key collected from the network to send a session key
+				String decrypted = CryptoMethods.decryptWithPrivate(received, App.bn.bluenodeKeys.getPrivate());
+				sessionKey = (SecretKey) CryptoMethods.base64StringRepresentationToObject(decrypted);
+				args = SocketFunctions.sendReceiveAESEncryptedStringData("BLUENODE "+App.bn.name, socketReader, socketWriter, sessionKey);
+	
+				App.bn.ConsolePrint(pre +args[0]);
+	            if (args.length == 2 && args[0].equals("REDNODE")) {
+	                redNodeService(args[1]);
+	            } else if (App.bn.network) {
+	            	if (args.length == 2 && args[0].equals("BLUENODE")) {
+	                    blueNodeService(args[1]);
+	                } else if (args.length == 1 && args[0].equals("TRACKER")) {
+	                    trackingService();
+	                } else {
+	                	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);                
+	                }
+	            } else {
+	            	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);                
+	            }
+			}
+            
         } catch (Exception e) {
 			e.printStackTrace();
 		}
