@@ -64,6 +64,7 @@ public class LocalRedNodeInstance {
     public LocalRedNodeInstance(String hostname, String vAddress, String phAddress, int port, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {
     	this.Hostname = hostname;
         this.Vaddress = vAddress;
+        this.sessionKey = sessionKey;
         
         this.socketReader = socketReader;
     	this.socketWriter = socketWriter;

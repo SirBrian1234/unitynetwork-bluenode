@@ -58,8 +58,7 @@ public class BlueNodeService extends Thread {
 				sessionKey = (SecretKey) CryptoMethods.base64StringRepresentationToObject(decrypted);
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("BLUENODE "+App.bn.name, socketReader, socketWriter, sessionKey);
 	
-				App.bn.ConsolePrint(pre +args[0]);
-	            if (args.length == 2 && args[0].equals("REDNODE")) {
+				if (args.length == 2 && args[0].equals("REDNODE")) {
 	                redNodeService(args[1]);
 	            } else if (App.bn.network) {
 	            	if (args.length == 2 && args[0].equals("BLUENODE")) {
@@ -103,8 +102,7 @@ public class BlueNodeService extends Thread {
 		    	// send it, wait for response
 		    	args = SocketFunctions.sendReceiveAESEncryptedStringData(encq, socketReader, socketWriter, sessionKey);
 		    	
-		    	System.out.println("received " + args[0]);
-				if (args[0].equals(question)) {
+		    	if (args[0].equals(question)) {
 					// now this is a proper RSA authentication
 					SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 				} else {
