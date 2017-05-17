@@ -170,7 +170,6 @@ public class BlueNodeFunctions {
     static void getFeedReturnRoute(BlueNodeInstance bn, String hostname, String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {        
         try {
 			App.bn.blueNodesTable.leaseRRn(bn, hostname, vaddress);
-			SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);   
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -179,7 +178,6 @@ public class BlueNodeFunctions {
 	public static void getRRNToBeReleasedByHn(BlueNodeInstance bn, String hostname, DataOutputStream socketWriter, SecretKey sessionKey) {
 		try {
 			bn.table.releaseByHostname(hostname);
-			SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);   
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -188,7 +186,6 @@ public class BlueNodeFunctions {
 	public static void getRRNToBeReleasedByVaddr(BlueNodeInstance bn, String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
 		try {
 			bn.table.releaseByVaddr(vaddress);
-			SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);   
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -201,10 +198,14 @@ public class BlueNodeFunctions {
 				BlueNodeInstance bn = App.bn.blueNodesTable.getBlueNodeInstanceByName(blueNodeName);
 				bn.resetIdleTime();
 				bn.updateTime();
-				SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+		try {
+			SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }	

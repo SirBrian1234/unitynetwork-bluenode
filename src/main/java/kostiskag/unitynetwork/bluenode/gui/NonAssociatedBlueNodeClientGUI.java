@@ -6,10 +6,12 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.security.PublicKey;
 import java.awt.event.ActionEvent;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
@@ -107,20 +109,34 @@ public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
 	private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         if (App.bn.joined) {
 	    	if (!jTextField1.getText().isEmpty() && jTextField1.getText().length() <= App.max_str_len_small_size) {      
+	    		String bnName = jTextField1.getText();
 	    		TrackerClient tr = new TrackerClient();	
-	        	String[] args = tr.getPhysicalBn(jTextField1.getText());	        	
-	            if (args != null) {
-		        	BlueNodeClient cl = new BlueNodeClient(jTextField1.getText(), args[0], Integer.parseInt(args[1]));
-		            try {
-		            	boolean check = cl.checkBlueNode();
-		            	if (check) textField.setText("BLUE NODE "+jTextField1.getText()+" ONLINE");
-						else textField.setText("BLUE NODE "+jTextField1.getText()+" OFFLINE");
-					} catch (Exception e) {
-						e.printStackTrace();
-					}                  
-	            } else {
-	            	textField.setText("BLUE NODE "+jTextField1.getText()+" OFFLINE");
+	        	String[] args = tr.getPhysicalBn(bnName);	 
+	        	if (args[0].equals("OFFLINE")) {
+	        		textField.setText("BLUE NODE "+bnName+" IS OFFLINE");
+	        		return;
+	        	}
+	        	String addr = args[0];
+	        	int port = Integer.parseInt(args[1]);
+	        	System.out.println("collected address "+addr+" "+port);
+	        	
+	        	tr = new TrackerClient();	
+	        	PublicKey pub = tr.getBlueNodesPubKey(bnName);
+	            if (pub == null) {
+	            	textField.setText("BLUE NODE "+bnName+" NULL PUBKEY");
+	            	return;
 	            }
+	            System.out.println("collected key "+CryptoMethods.objectToBase64StringRepresentation(pub));
+	        	
+	        	BlueNodeClient cl = new BlueNodeClient(bnName, pub, addr, port);
+	            try {
+	            	boolean check = cl.checkBlueNode();
+	            	if (check) textField.setText("BLUE NODE "+bnName+" ONLINE");
+					else textField.setText("BLUE NODE "+bnName+" OFFLINE");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}                  
+	           
 	        }
         }
     }
@@ -129,18 +145,26 @@ public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
 		if (App.bn.joined) {
 	    	if (!jTextField1.getText().isEmpty() && jTextField1.getText().length() <= App.max_str_len_small_size) {      
 	    		TrackerClient tr = new TrackerClient();	
-	        	String[] args = tr.getPhysicalBn(jTextField1.getText());	        	
-	            if (args != null) {
-	            	textField.setText("ADDING BLUE NODE "+jTextField1.getText()+" on address "+args[0]);
-		            BlueNodeClient cl = new BlueNodeClient(jTextField1.getText(), args[0], Integer.parseInt(args[1]));
-		            try {
-						cl.associateClient();						
-					} catch (Exception e) {
-						e.printStackTrace();
-					}                  
-	            } else {
-	            	textField.setText("BLUE NODE "+jTextField1.getText()+" OFFLINE");
+	        	String[] args = tr.getPhysicalBn(jTextField1.getText());	 
+	        	if (args[0].equals("OFFLINE")) {
+	        		textField.setText("BLUE NODE "+jTextField1.getText()+" IS OFFLINE");
+	        		return;
+	        	}
+	        	
+	        	tr = new TrackerClient();	
+	        	PublicKey pub = tr.getBlueNodesPubKey(jTextField1.getText());
+	            if (pub == null) {
+	            	textField.setText("BLUE NODE "+jTextField1.getText()+" NULL PUBKEY");
+	            	return;
 	            }
+	        	
+            	textField.setText("ADDING BLUE NODE "+jTextField1.getText()+" on address "+args[0]);
+	            BlueNodeClient cl = new BlueNodeClient(jTextField1.getText(), pub, args[0], Integer.parseInt(args[1]));
+	            try {
+					cl.associateClient();						
+				} catch (Exception e) {
+					e.printStackTrace();
+				}                  	            
 	        }
         }
 	}

@@ -109,7 +109,9 @@ public class BlueNodeService extends Thread {
 			
     		//options
             if (args.length == 1 && args[0].equals("CHECK")) {
+            	System.out.println("inside check");
             	BlueNodeFunctions.check(blueNodeName,socketWriter, sessionKey);
+            	System.out.println("check done");
             } else if (args.length == 1 && args[0].equals("ASSOCIATE")) {
                 BlueNodeFunctions.associate(blueNodeName, bnPub, sessionSocket,socketReader,socketWriter, sessionKey);
             } else if (associated) {            	

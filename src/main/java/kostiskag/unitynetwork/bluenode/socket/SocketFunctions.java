@@ -38,7 +38,7 @@ public class SocketFunctions {
         Socket socket = null;
         try {
             socket = new Socket(IPaddress, authPort);
-            socket.setSoTimeout(3000);
+            socket.setSoTimeout(8000);
         } catch (java.net.NoRouteToHostException ex) {
             App.bn.ConsolePrint(pre + "NO ROUTE FOR "+IPaddress.getHostAddress()+" "+authPort);
             throw ex;
@@ -71,18 +71,24 @@ public class SocketFunctions {
     }
     
     public static byte[] receiveData(DataInputStream reader) throws IOException {
-    	byte[] byteT = null;
-    	while (true) {
-	    	byte[] bytes = new byte[2048];
-			int read = reader.read(bytes);
-			byteT = new byte[read];
+    	byte[] byteT = new byte[]{0x00};
+    	byte[] bytes = new byte[2048];
+    	int read = reader.read(bytes);
+		if (read > 0) {
+	    	byteT = new byte[read];
 			System.arraycopy(bytes, 0, byteT, 0, read);
 		
-			if (byteT[0] != (int)13 && byteT[0] != (int)10) {
-				break;
+			if (byteT[0] == (int)13) {
+				App.bn.ConsolePrint(pre + "RECEIVED new line");
+			} else if (byteT[0] == (int)10) {
+				App.bn.ConsolePrint(pre+ "received return char");
 			}
-    	}
-		return byteT;		
+		} else if (read == 0){
+			App.bn.ConsolePrint(pre + "RECEIVED zero");
+		} else {
+			App.bn.ConsolePrint(pre + "RECEIVED "+read);
+		}
+    	return byteT;		
     }
     
     public static byte[] sendReceiveData(byte[] toSend, DataInputStream reader, DataOutputStream writer) throws Exception  {
@@ -100,7 +106,7 @@ public class SocketFunctions {
         	message = "\n\r";
         }        
     	//include a line feed and a return char
-    	message += "\n\r";
+    	//message += "\n\r";
     	byte[] toSend = message.getBytes();        
         sendData(toSend, writer);
     }
@@ -127,7 +133,7 @@ public class SocketFunctions {
         	message = "\n";
         }        
     	//include a line feed and a return char
-    	message += "\n\r";
+    	//message += "\n\r";
     	byte[] chiphered = CryptoMethods.aesEncrypt(message, sessionKey);
         sendData(chiphered, writer);
     }
@@ -150,10 +156,10 @@ public class SocketFunctions {
             throw new Exception(pre+"NO DATA TO SEND");
         } else if (message.isEmpty()) {
         	//line feed
-        	message = "\n";
+        	message = "\n\r";
         }        
     	//include a line feed and a return char
-    	message += "\n\r";
+    	//message += "\n\r";
     	byte[] chiphered = CryptoMethods.encryptWithPublic(message, key);
         sendData(chiphered, writer);
     }

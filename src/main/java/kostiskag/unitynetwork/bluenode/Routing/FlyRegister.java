@@ -1,5 +1,6 @@
 package kostiskag.unitynetwork.bluenode.Routing;
 
+import java.security.PublicKey;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import kostiskag.unitynetwork.bluenode.App;
@@ -64,12 +65,26 @@ public class FlyRegister extends Thread {
 						}   
 					} else {
 						//if he is not associated at all, then associate
+						//first collect its ip address and port
                     	tr = new TrackerClient();
                         String[] args = tr.getPhysicalBn(BNHostname);
+                        if (args[0].equals("OFFLINE")) {
+                        	App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE, OFFLINE " + BNHostname, 3, 1);
+                        	continue;
+                        }
                         String address = args[0];
                         int port = Integer.parseInt(args[1]);
                         
-                        BlueNodeClient cl = new BlueNodeClient(BNHostname, address, port);
+                        //then, collect its public key
+                        tr = new TrackerClient();
+                        PublicKey pub = tr.getBlueNodesPubKey(BNHostname);
+                        if (pub == null) {
+                        	App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE, NO PUBLIC KEY " + BNHostname, 3, 1);
+                        	continue;
+                        }
+                        
+                        //use the above data to connect
+                        BlueNodeClient cl = new BlueNodeClient(BNHostname, pub, address, port);
                         try {
 							cl.associateClient();
 						} catch (Exception e) {
