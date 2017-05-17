@@ -1,6 +1,7 @@
 package kostiskag.unitynetwork.bluenode.RunData.instances;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.PublicKey;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -15,7 +16,7 @@ import kostiskag.unitynetwork.bluenode.blueThreads.BlueSend;
 import kostiskag.unitynetwork.bluenode.blueThreads.UploadManager;
 import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 import kostiskag.unitynetwork.bluenode.functions.GetTime;
-import kostiskag.unitynetwork.bluenode.socket.TCPSocketFunctions;
+import kostiskag.unitynetwork.bluenode.socket.SocketFunctions;
 
 /**
  *
@@ -49,15 +50,16 @@ public class BlueNodeInstance {
     
     /**
      * This object constructor is mainly used for testing.
+     * @throws UnknownHostException 
      * 
      * @throws Exception 
      */
-    public BlueNodeInstance(String name) {
+    public BlueNodeInstance(String name) throws UnknownHostException {
     	this.name = name;    
     	this.pub =  CryptoMethods.generateRSAkeyPair().getPublic();
     	this.isServer = false;
     	this.phAddressStr = "1.1.1.1";
-    	this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
+    	this.phAddress = SocketFunctions.getAddress(phAddressStr);
     	this.remoteAuthPort = 7000;
     	this.pre = "^BlueNodeInstance "+name+" ";
     	this.state = 0;                  
@@ -78,7 +80,7 @@ public class BlueNodeInstance {
     	this.remoteAuthPort = authPort;
     	this.pre = "^BLUENODE "+name+" ";
     	this.phAddressStr = phAddressStr;
-    	this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
+    	this.phAddress = SocketFunctions.getAddress(phAddressStr);
         this.table = new RemoteRedNodeTable(this);
         this.timestamp = GetTime.getSmallTimestamp();
         
@@ -114,7 +116,7 @@ public class BlueNodeInstance {
     	this.pub = pub;
         this.pre = "^BLUENODE "+name+" ";
         this.phAddressStr = phAddress;
-        this.phAddress = TCPSocketFunctions.getAddress(phAddressStr);
+        this.phAddress = SocketFunctions.getAddress(phAddressStr);
         this.remoteAuthPort = authPort;
         this.table = new RemoteRedNodeTable(this);
         this.timestamp = GetTime.getSmallTimestamp();

@@ -51,12 +51,16 @@ public class BlueNodeService extends Thread {
 			args = SocketFunctions.sendReceiveAESEncryptedStringData("BLUENODE "+App.bn.name, socketReader, socketWriter, sessionKey);
 
 			App.bn.ConsolePrint(pre +args[0]);
-            if (args.length == 2 && args[0].equals("BLUENODE")) {
-                blueNodeService(args[1]);
-            } else if (args.length == 2 && args[0].equals("REDNODE")) {
+            if (args.length == 2 && args[0].equals("REDNODE")) {
                 redNodeService(args[1]);
-            } else if (args.length == 1 && args[0].equals("TRACKER")) {
-                trackingService();
+            } else if (App.bn.network) {
+            	if (args.length == 2 && args[0].equals("BLUENODE")) {
+                    blueNodeService(args[1]);
+                } else if (args.length == 1 && args[0].equals("TRACKER")) {
+                    trackingService();
+                } else {
+                	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);                
+                }
             } else {
             	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);                
             }
@@ -66,6 +70,56 @@ public class BlueNodeService extends Thread {
     	close();
 	}
 
+    private void redNodeService(String hostname) {
+    	String[] args;
+    	try {
+	    	if (App.bn.network) {
+	       		//when bluenode is in network mode, it offers an auth question based on rn's pub key and then is verified
+	       		//with usrer credentials
+	       		
+	       		//first collect rn's public from tracker
+				TrackerClient tr = new TrackerClient();
+				PublicKey rnPub = tr.getRedNodesPubKey(hostname);
+				
+		    	// generate a random question
+		    	String question = CryptoMethods.generateQuestion();
+		
+		    	// encrypt question with target's public
+		    	byte[] questionb = CryptoMethods.encryptWithPublic(question, rnPub);
+		
+		    	// encode it to base 64
+		    	String encq = CryptoMethods.bytesToBase64String(questionb);
+		
+		    	// send it, wait for response
+		    	args = SocketFunctions.sendReceiveAESEncryptedStringData(encq, socketReader, socketWriter, sessionKey);
+		    	
+		    	System.out.println("received " + args[0]);
+				if (args[0].equals(question)) {
+					// now this is a proper RSA authentication
+					SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
+				} else {
+					SocketFunctions.sendAESEncryptedStringData("NOT_ALLOWED", socketWriter, sessionKey);
+					throw new Exception("RSA auth for Tracker in "+sessionSocket.getInetAddress().getHostAddress()+" has failed.");
+				}
+	    	} else {
+	    		//there is AES connection started from bn's public and the red node is later verified with user credentials
+	    		SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
+			}
+			
+			args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
+			App.bn.ConsolePrint(pre +args[0]);
+			
+			//options
+	        if (args.length == 3 && args[0].equals("LEASE")) {
+	            RedNodeFunctions.lease(hostname, args[1], args[2], sessionSocket, socketReader, socketWriter, sessionKey);
+	        } else {
+	        	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey); 
+	        }
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    }
+    
     private void blueNodeService(String blueNodeName) {
     	try {
     		//collect bn's public either from tracker of from table
@@ -148,31 +202,6 @@ public class BlueNodeService extends Thread {
         } catch (Exception ex) {
         	ex.printStackTrace();
         }
-    }
-
-    private void redNodeService(String hostname) {
-    	/*
-        try {
-        	socketWriter.println("OK");
-            String clientSentence = socketReader.readLine();
-            App.bn.ConsolePrint(pre + clientSentence);
-            String[] args = clientSentence.split("\\s+");
-
-            if (args.length == 3 && args[0].equals("LEASE")) {
-                RedNodeFunctions.lease(sessionSocket, socketReader, socketWriter, hostname, args[1], args[2]);
-            } else {
-            	socketWriter.println("WRONG_COMMAND"); 
-            }
-            sessionSocket.close();
-        } catch (IOException ex) {
-        	ex.printStackTrace();
-            try {
-				sessionSocket.close();
-			} catch (IOException e) {
-				
-			}
-        }
-        */
     }
 
     private void trackingService() {
