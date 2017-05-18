@@ -157,8 +157,7 @@ public class BlueNodeService extends Thread {
 	    	// send it, wait for response
 	    	String args[] = SocketFunctions.sendReceiveAESEncryptedStringData(encq, socketReader, socketWriter, sessionKey);
 	    	
-	    	System.out.println("received " + args[0]);
-			if (args[0].equals(question)) {
+	    	if (args[0].equals(question)) {
 				// now this is a proper RSA authentication
 				SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 			} else {
@@ -226,8 +225,8 @@ public class BlueNodeService extends Thread {
 	    	// send it, wait for response
 	    	String args[] = SocketFunctions.sendReceiveAESEncryptedStringData(encq, socketReader, socketWriter, sessionKey);
 	    	
-	    	System.out.println("received " + args[0]);
-			if (args[0].equals(question)) {
+
+	    	if (args[0].equals(question)) {
 				// now this is a proper RSA authentication
 				SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 			} else {
