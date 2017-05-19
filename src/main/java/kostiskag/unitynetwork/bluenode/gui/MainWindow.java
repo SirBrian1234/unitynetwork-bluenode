@@ -54,9 +54,11 @@ public class MainWindow extends javax.swing.JFrame {
     	initComponents(); 
         if (!App.bn.network) {
     		jTabbedPane1.remove(2); 
-    		btnNewButton_1.setEnabled(false);
     		btnCollectTrackersPublic.setEnabled(false);
-    	}
+    		btnNewButton_1.setEnabled(false);    		
+        } else if (App.bn.trackerPublicKey == null) {
+			btnNewButton_1.setEnabled(false);
+		}
         
         jTable1.setDefaultEditor(Object.class, null);
         jTable2.setDefaultEditor(Object.class, null);
@@ -912,6 +914,10 @@ public class MainWindow extends javax.swing.JFrame {
     private JButton btnNewButton;
     private JButton btnCollectTrackersPublic;
     private JButton btnNewButton_1;
+    
+    public void enableUploadKey () {
+    	btnNewButton_1.setEnabled(true);
+    }
     
     public void setBlueNodeInfo() {    
         jTextField1.setText(App.bn.name);

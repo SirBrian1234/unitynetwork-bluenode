@@ -19,12 +19,23 @@ public class uploadKeyGUI {
 	private JFrame frmUploadPublicKey;
 	private JTextField textField;
 	private JTextArea textArea;
+	JButton btnNewButton;
+	JButton btnNewButton_1;
 
 	/**
 	 * Create the application.
 	 */
 	public uploadKeyGUI() {
 		initialize();
+		if (App.bn.joined) {
+			textArea.setEditable(false);
+			btnNewButton.setEnabled(false);
+			btnNewButton_1.setEnabled(true);
+		} else {
+			textArea.setEditable(true);
+			btnNewButton.setEnabled(true);
+			btnNewButton_1.setEnabled(false);
+		}
 	}
 	
 	public void setVisible() {
@@ -45,7 +56,7 @@ public class uploadKeyGUI {
 		lblNewLabel.setBounds(10, 11, 414, 56);
 		frmUploadPublicKey.getContentPane().add(lblNewLabel);
 		
-		JButton btnNewButton = new JButton("Upload Public Key");
+		btnNewButton = new JButton("Upload Public Key");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				upload();
@@ -75,7 +86,7 @@ public class uploadKeyGUI {
 		textArea.setBounds(10, 91, 414, 70);
 		frmUploadPublicKey.getContentPane().add(textArea);
 		
-		JButton btnNewButton_1 = new JButton("Revoke this Blue Node's Public Key");
+		btnNewButton_1 = new JButton("Revoke this Blue Node's Public Key");
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				revoke();
