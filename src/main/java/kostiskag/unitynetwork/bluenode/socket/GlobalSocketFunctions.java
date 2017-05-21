@@ -29,8 +29,7 @@ public class GlobalSocketFunctions {
 	        	String toSend = it.next();
 	        	SocketFunctions.sendAESEncryptedStringData(toSend, socketWriter, sessionKey);
 	        }     
-	        SocketFunctions.sendAESEncryptedStringData("", socketWriter, sessionKey);
-        } catch (Exception e) {
+	    } catch (Exception e) {
 			e.printStackTrace();
 		}            
     }
@@ -47,8 +46,7 @@ public class GlobalSocketFunctions {
 					
 				}				
 	        }
-	        SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
-		} catch (IOException e1) {
+	   } catch (IOException e1) {
 			e1.printStackTrace();
 		}
     }

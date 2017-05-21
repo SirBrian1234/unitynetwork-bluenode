@@ -59,7 +59,7 @@ public class TrackerClient {
 			sessionKey = CryptoMethods.generateAESSessionkey();
 			if (sessionKey == null) {
 				reason = "NO_SESSION_KEY";
-				throw new Exception();
+				throw new Exception("NO_SESSION_KEY");
 			}
 			
 			String keyStr = CryptoMethods.objectToBase64StringRepresentation(sessionKey);
@@ -70,7 +70,7 @@ public class TrackerClient {
 			
 			if(!args[0].equals("UnityTracker")) {
 				reason = "WELLCOME_MSG_ERROR";
-				throw new Exception();
+				throw new Exception("WELLCOME_MSG_ERROR");
 			}
 			
 			args = SocketFunctions.sendReceiveAESEncryptedStringData("BLUENODE"+" "+name, reader, writer, sessionKey);
@@ -93,7 +93,7 @@ public class TrackerClient {
 			if (args[0].equals("OK")) {
 				connected = true;
 			} else {
-				throw new Exception();
+				throw new Exception("Bluenode could not be authenticated from tracker.");
 			}
 			
 		} catch (Exception e2) {
