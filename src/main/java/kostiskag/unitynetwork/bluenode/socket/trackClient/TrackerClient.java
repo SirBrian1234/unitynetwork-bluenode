@@ -97,12 +97,12 @@ public class TrackerClient {
 			}
 			
 		} catch (Exception e2) {
+			App.bn.ConsolePrint(pre+"Connection dropped for tracker at "+socket.getInetAddress().getHostAddress());
 			e2.printStackTrace();
 			closeCon();
 			connected = false;
 			return;
-		}
-		System.out.println("connected "+connected);
+		}		
 	}
 	
 	public boolean isConnected() {
@@ -123,6 +123,7 @@ public class TrackerClient {
 		if (connected) {
 			String[] args = null;
 			try {
+				App.bn.ConsolePrint(pre+"LEASE"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("LEASE"+" "+authport, reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("LEASED")) {
@@ -145,6 +146,7 @@ public class TrackerClient {
 		if (connected) {
 			String[] args;
 			try {
+				App.bn.ConsolePrint(pre+"RELEASE"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("RELEASE", reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("RELEASED")) {
@@ -170,6 +172,7 @@ public class TrackerClient {
 		if (connected) {
 			String[] args;
 			try {
+				App.bn.ConsolePrint(pre+"GETPH"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("GETPH"+" "+BNHostname, reader, writer, sessionKey);
 				closeCon();
 				if (!args[0].equals("NOT_FOUND")) {
@@ -199,6 +202,7 @@ public class TrackerClient {
 		if (connected) {
 	    	String[] args;
 			try {
+				App.bn.ConsolePrint(pre+"LEASE_RN"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("LEASE_RN"+" "+Hostname+" "+Username+" "+Password, reader, writer, sessionKey);
 				closeCon();
 		        if (args[0].equals("LEASED")) {
@@ -222,6 +226,7 @@ public class TrackerClient {
     public void releaseRnByHostname(String hostname) {
     	if (connected) {
 	        try {
+	        	App.bn.ConsolePrint(pre+"RELEASE_RN"+" at "+socket.getInetAddress().getHostAddress());
 				SocketFunctions.sendAESEncryptedStringData("RELEASE_RN"+" "+hostname, writer, sessionKey);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -241,6 +246,7 @@ public class TrackerClient {
     	if (connected) {
 	    	String[] args;
 			try {
+				App.bn.ConsolePrint(pre+"CHECK_RN"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("CHECK_RN"+" "+hostanme, reader, writer, sessionKey);
 				closeCon();
 		        if (args[0].equals("OFFLINE")) {
@@ -267,6 +273,7 @@ public class TrackerClient {
     	if (connected) {
 	        String[] args = null;
 			try {
+				App.bn.ConsolePrint(pre+"CHECK_RNA"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("CHECK_RNA"+" "+vaddress, reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("OFFLINE")) {
@@ -286,6 +293,7 @@ public class TrackerClient {
     	if (connected) {
 	        String[] args = null;
 			try {
+				App.bn.ConsolePrint(pre+"GETBNPUB"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("GETBNPUB"+" "+name, reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("NONE")) {
@@ -305,6 +313,7 @@ public class TrackerClient {
     	if (connected) {
 	        String[] args = null;
 			try {
+				App.bn.ConsolePrint(pre+"GETRNPUB"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("GETRNPUB"+" "+hostname, reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("NONE")) {
@@ -324,6 +333,7 @@ public class TrackerClient {
 		if (connected) {
 			String[] args = null;
 			try {
+				App.bn.ConsolePrint(pre+"REVOKEPUB"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketFunctions.sendReceiveAESEncryptedStringData("REVOKEPUB", reader, writer, sessionKey);
 				closeCon();
 				return args[0];
@@ -359,6 +369,7 @@ public class TrackerClient {
 			DataInputStream reader = SocketFunctions.makeDataReader(socket);
 			DataOutputStream writer = SocketFunctions.makeDataWriter(socket);
 			
+			App.bn.ConsolePrint("Tracker "+"GETPUB"+" at "+socket.getInetAddress().getHostAddress());
 			String[] args = SocketFunctions.sendReceivePlainStringData("GETPUB", reader, writer);
 			     
 			App.bn.trackerPublicKey = (PublicKey) CryptoMethods.base64StringRepresentationToObject(args[0]);
@@ -383,7 +394,7 @@ public class TrackerClient {
 	 * @return
 	 */
 	public static String offerPubKey(String ticket) {
-		String pre = "^OFFERPUB ";
+		String pre = "^offerPubKey ";
 		String name = App.bn.name;
 		PublicKey trackerPublic = App.bn.trackerPublicKey;
 		
@@ -432,6 +443,7 @@ public class TrackerClient {
 			}
 			
 			PublicKey pub = App.bn.bluenodeKeys.getPublic(); 
+			App.bn.ConsolePrint(pre+"OFFERPUB"+" at "+socket.getInetAddress().getHostAddress());
 	    	args = SocketFunctions.sendReceiveAESEncryptedStringData("OFFERPUB"+" "+ticket+" "+CryptoMethods.objectToBase64StringRepresentation(pub), reader, writer, sessionKey);
 			
 	    	socket.close();
