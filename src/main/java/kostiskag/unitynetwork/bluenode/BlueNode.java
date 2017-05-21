@@ -285,11 +285,7 @@ public class BlueNode extends Thread{
 	}
 
 	public void die() {
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException ex) {
-			ex.printStackTrace();
-		}
+		App.bn.ConsolePrint("Blue Node "+name+" is going to die.");
 		System.exit(1);
 	}
 }

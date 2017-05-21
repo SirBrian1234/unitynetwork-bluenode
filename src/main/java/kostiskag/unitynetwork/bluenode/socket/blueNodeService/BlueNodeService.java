@@ -20,7 +20,10 @@ import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
  */
 public class BlueNodeService extends Thread {
 
-    private final String pre = "^SERVER ";
+    private final String pre = "^BlueNodeService ";
+    private final String prebn = "BlueNode ";
+    private final String prern = "RedNode ";
+    private final String pretr = "Tracker ";
     private final Socket sessionSocket;
     private DataInputStream socketReader;
     private DataOutputStream socketWriter;
@@ -115,12 +118,12 @@ public class BlueNodeService extends Thread {
 			}
 			
 			args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
-			App.bn.ConsolePrint(pre +args[0]);
-			
 			//options
 	        if (args.length == 3 && args[0].equals("LEASE")) {
+	        	App.bn.ConsolePrint(pre+prern+"LEASE"+" from "+sessionSocket.getInetAddress().getHostAddress());
 	            RedNodeFunctions.lease(hostname, args[1], args[2], sessionSocket, socketReader, socketWriter, sessionKey);
 	        } else {
+	        	App.bn.ConsolePrint(pre+prern+"WRONG_COMMAND "+args[0]+" from "+sessionSocket.getInetAddress().getHostAddress());
 	        	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey); 
 	        }
     	} catch (Exception e) {
@@ -166,44 +169,55 @@ public class BlueNodeService extends Thread {
 			}
     	
     		args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
-    		App.bn.ConsolePrint(pre +args[0]);
-			
     		//options
             if (args.length == 1 && args[0].equals("CHECK")) {
-            	System.out.println("inside check");
+            	App.bn.ConsolePrint(pre+prebn+"CHECK"+" from bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
             	BlueNodeFunctions.check(blueNodeName,socketWriter, sessionKey);
-            	System.out.println("check done");
             } else if (args.length == 1 && args[0].equals("ASSOCIATE")) {
+            	App.bn.ConsolePrint(pre+prebn+"ASSOCIATE"+" from bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
                 BlueNodeFunctions.associate(blueNodeName, bnPub, sessionSocket,socketReader,socketWriter, sessionKey);
             } else if (associated) {            	
             	//these options are only for leased bns
             	BlueNodeInstance bn = App.bn.blueNodesTable.getBlueNodeInstanceByName(blueNodeName);
 				if (args.length == 1 && args[0].equals("UPING")) {
+					App.bn.ConsolePrint(pre+prebn+"UPING"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.Uping(bn, socketWriter, sessionKey);
 	            } else if (args.length == 1 && args[0].equals("DPING")) {
+	            	App.bn.ConsolePrint(pre+prebn+"DPING"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.Dping(bn);
 	            } else if (args.length == 1 && args[0].equals("RELEASE")) {
+	            	App.bn.ConsolePrint(pre+prebn+"RELEASE"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.releaseBn(blueNodeName);
 	            } else if (args.length == 1 && args[0].equals("GET_RED_NODES")) {
+	            	App.bn.ConsolePrint(pre+prebn+"GET_RED_NODES"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.giveLRNs(socketWriter, sessionKey);
 	            } else if (args.length == 1 && args[0].equals("GIVE_RED_NODES")) {
+	            	App.bn.ConsolePrint(pre+prebn+"GIVE_RED_NODES"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.getLRNs(bn, socketReader, sessionKey);
 	            } else if (args.length == 1 && args[0].equals("EXCHANGE_RED_NODES")) {
+	            	App.bn.ConsolePrint(pre+prebn+"EXCHANGE_RED_NODES"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.exchangeRNs(bn, socketReader, socketWriter, sessionKey);
 	            } else if (args.length == 2 && args[0].equals("GET_RED_HOSTNAME")) {
+	            	App.bn.ConsolePrint(pre+prebn+"GET_RED_HOSTNAME"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.getLocalRnHostnameByVaddress(args[1], socketWriter, sessionKey);
 	            } else if (args.length == 2 && args[0].equals("GET_RED_VADDRESS")) {
+	            	App.bn.ConsolePrint(pre+prebn+"GET_RED_VADDRESS"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.getLocalRnVaddressByHostname(args[1], socketWriter, sessionKey);
 	            } else if (args.length == 2 && args[0].equals("RELEASE_REMOTE_REDNODE_BY_HN")) {
+	            	App.bn.ConsolePrint(pre+prebn+"RELEASE_REMOTE_REDNODE_BY_HN"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.getRRNToBeReleasedByHn(bn, args[1], socketWriter, sessionKey);
 	            } else if (args.length == 2 && args[0].equals("RELEASE_REMOTE_REDNODE_BY_VADDRESS")) {
+	            	App.bn.ConsolePrint(pre+prebn+"RELEASE_REMOTE_REDNODE_BY_VADDRESS"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.getRRNToBeReleasedByVaddr(bn, args[1], socketWriter, sessionKey);
 	            } else if (args.length == 3 && args[0].equals("LEASE_REMOTE_REDNODE")) {
+	            	App.bn.ConsolePrint(pre+prebn+"LEASE_REMOTE_REDNODE"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.getFeedReturnRoute(bn, args[1], args[2], socketWriter, sessionKey);
 	            } else {
+	            	App.bn.ConsolePrint(pre+prebn+"WRONG_COMMAND "+args[0]+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	            	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey); 
 	            }
             } else {            
+            	App.bn.ConsolePrint(pre+prebn+"WRONG_COMMAND "+args[0]+" from bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
             	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);           
             }
         } catch (Exception ex) {
@@ -235,15 +249,18 @@ public class BlueNodeService extends Thread {
 			}
     	
     		args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
-    		App.bn.ConsolePrint(pre +args[0]);
-			//options
+    		//options
             if (args.length == 1 && args[0].equals("CHECK")) {
+            	App.bn.ConsolePrint(pre+pretr+"CHECK"+" from "+sessionSocket.getInetAddress().getHostAddress());
                 TrackingFunctions.check(socketWriter, sessionKey);
             } else if (args.length == 1 && args[0].equals("GETREDNODES")) {
+            	App.bn.ConsolePrint(pre+pretr+"GETREDNODES"+" from "+sessionSocket.getInetAddress().getHostAddress());
                 TrackingFunctions.getrns(socketWriter, sessionKey);
             } else if (args.length == 1 && args[0].equals("KILLSIG")) {
+            	App.bn.ConsolePrint(pre+pretr+"KILLSIG"+" from "+sessionSocket.getInetAddress().getHostAddress());
                 TrackingFunctions.killsig(socketWriter, sessionKey);
             } else {
+            	App.bn.ConsolePrint(pre+pretr+"WRONG_COMMAND: "+args[0]+" from "+sessionSocket.getInetAddress().getHostAddress());
             	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);  
             }
         } catch (Exception ex) {

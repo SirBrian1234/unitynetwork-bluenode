@@ -28,12 +28,7 @@ class TrackingFunctions {
     }
     
     public static void killsig(DataOutputStream outputWriter, SecretKey sessionKey) {
-    	try {
-			SocketFunctions.sendAESEncryptedStringData("OK", outputWriter, sessionKey);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-        App.bn.localRedNodesTable.exitAll();
+    	App.bn.localRedNodesTable.exitAll();
         App.bn.die();
     }
 }
