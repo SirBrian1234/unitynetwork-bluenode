@@ -143,6 +143,13 @@ public class BlueNodeClient {
 	
 	public void associateClient() throws Exception {
 		if (connected) {
+			
+			if (name.equals(App.bn.name)) {
+				closeConnection();
+				App.bn.ConsolePrint(pre + "BNs are not allowed to create a u-turn association");
+				throw new Exception(pre+"BNs are not allowed to create a u-turn association");
+			}
+			
 			//ports
 			int downport = 0;
 			int upport = 0;

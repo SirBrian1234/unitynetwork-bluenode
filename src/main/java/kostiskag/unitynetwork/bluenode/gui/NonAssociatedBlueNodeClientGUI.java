@@ -164,6 +164,7 @@ public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
 					cl.associateClient();						
 				} catch (Exception e) {
 					e.printStackTrace();
+					textField.setText("Could not establish association.");
 				}                  	            
 	        }
         }

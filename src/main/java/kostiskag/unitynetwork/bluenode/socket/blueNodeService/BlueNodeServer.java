@@ -7,12 +7,12 @@ import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 
 /**
+ * A proper bluenode server should have one port to listen for every request.
  *
  * @author Konstantinos Kagiampakis
  */
 public class BlueNodeServer extends Thread{
 
-	// a bluenode server should have only one port to listen
 	public final String pre = "^AUTH SERVER ";    
 	public final int authPort;
 	public Boolean didTrigger = false;
@@ -25,14 +25,14 @@ public class BlueNodeServer extends Thread{
     public void run() {
         App.bn.ConsolePrint(pre+"started at thread "+Thread.currentThread().getName()+" on port "+authPort);
         try {
-            ServerSocket welcomeSocket = new ServerSocket(authPort);            
-            if (App.bn.gui && didTrigger==false){
+            ServerSocket serverSocket = new ServerSocket(authPort);            
+            if (!didTrigger && App.bn.gui){
                 MainWindow.jCheckBox8.setSelected(true);
                 didTrigger = true;
             }            
             
             while (true) {    
-                Socket connectionSocket = welcomeSocket.accept();                
+                Socket connectionSocket = serverSocket.accept();                
                 BlueNodeService service = new BlueNodeService(connectionSocket);
                 service.start();
             }        
