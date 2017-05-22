@@ -281,32 +281,8 @@ public class BlueNodeClient {
 		}
 	}
 	
-	/**
-	 * The difference of this method from getRemoteRedNodes is that the former requests and
-	 * then internally leases the returned results although this method requests but returns the 
-	 * results as a built object.
-	 * 
-	 * @return a linked list with all the retrieved RemoteRedNodeInstance
-	 */
 	public LinkedList<RemoteRedNodeInstance> getRemoteRedNodesObj() {
-		LinkedList<RemoteRedNodeInstance> fetched = new LinkedList<RemoteRedNodeInstance>();
-		if (bn != null) {
-			if (connected) {
-				try {
-					String[] args = SocketFunctions.sendReceiveAESEncryptedStringData("GET_RED_NODES", socketReader, socketWriter, sessionKey);
-					int count = Integer.parseInt(args[1]);
-			        for (int i = 0; i < count; i++) {
-			            args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
-			            RemoteRedNodeInstance r =  new RemoteRedNodeInstance(args[0], args[1], bn);                    
-			            fetched.add(r); 
-			        }
-				} catch (Exception e) {
-					e.printStackTrace();
-				}        
-		        closeConnection();
-			}
-		}
-		return fetched;
+		return GlobalSocketFunctions.getRemoteRedNodesObj(bn, socketReader, sessionKey);
 	}
 	
 	public void giveLocalRedNodes() {
