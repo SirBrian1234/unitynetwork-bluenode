@@ -2,7 +2,6 @@ package kostiskag.unitynetwork.bluenode.socket;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 
