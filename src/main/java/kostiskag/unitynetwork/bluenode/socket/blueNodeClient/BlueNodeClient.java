@@ -148,6 +148,10 @@ public class BlueNodeClient {
 				closeConnection();
 				App.bn.ConsolePrint(pre + "BNs are not allowed to create a u-turn association");
 				throw new Exception(pre+"BNs are not allowed to create a u-turn association");
+			} else if (App.bn.blueNodesTable.checkBlueNode(name)) {
+				closeConnection();
+				App.bn.ConsolePrint(pre+"BN is already an associated memeber.");
+				throw new Exception(pre+"BN is already an associated memeber.");
 			}
 			
 			//ports
