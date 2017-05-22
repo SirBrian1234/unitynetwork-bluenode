@@ -36,15 +36,13 @@ public class GlobalSocketFunctions {
 	public static void getRemoteRedNodes(BlueNodeInstance bn, DataInputStream socketReader, SecretKey sessionKey) {
 		try {
 			String received = SocketFunctions.receiveAESEncryptedString(socketReader, sessionKey);
-			System.out.println("received:"+received);
 			String[] lines = received.split("\n+"); //split into sentences
 			String[] args = lines[0].split("\\s+"); //the first sentence contains the number
 			int count = Integer.parseInt(args[1]);  //for the given number read the rest sentences
 	        for (int i = 1; i < count+1; i++) {        	
 				args = lines[i].split("\\s+");
 	            try {
-	            	System.out.println(args[0]+" "+args[1]);
-					App.bn.blueNodesTable.leaseRRn(bn, args[0], args[1]);
+	            	App.bn.blueNodesTable.leaseRRn(bn, args[0], args[1]);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}				
