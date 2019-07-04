@@ -8,10 +8,10 @@ import java.util.logging.Logger;
 
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.redThreads.RedReceive;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import org.kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
+import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
 /**
  * In matters of communication this class it tricky. Do not expect BlueReceive to be a client or server

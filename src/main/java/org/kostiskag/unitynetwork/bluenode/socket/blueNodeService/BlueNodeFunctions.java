@@ -11,10 +11,10 @@ import java.security.PublicKey;
 import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import org.kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
 import org.kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
+import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 /**

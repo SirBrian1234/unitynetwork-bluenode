@@ -2,11 +2,13 @@ package org.kostiskag.unitynetwork.bluenode.RunData.tables;
 
 import static org.junit.Assert.*;
 
+import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 
 import org.junit.Test;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.HashUtilities;
 
 public class AccountsTableTest {
@@ -71,7 +73,7 @@ public class AccountsTableTest {
 	}
 	
 	@Test
-	public void getvaddrTest() {
+	public void getvaddrTest() throws UnknownHostException {
 		AccountsTable table = new AccountsTable();
 		try {
 			table.insert("pakis", "1234", "pakis-1", 2);
@@ -84,7 +86,7 @@ public class AccountsTableTest {
 		System.out.println(table.toString());
 		try {
 			String pass = HashUtilities.SHA256(HashUtilities.SHA256(App.SALT) +  HashUtilities.SHA256("pakis") + HashUtilities.SHA256(App.SALT + "1234"));
-			assertEquals(table.getVaddrIfExists("pakis-3", "pakis", pass), "10.0.0.5");
+			assertEquals(table.getVaddrIfExists("pakis-3", "pakis", pass), VirtualAddress.numberTo10ipAddr(4));
 		} catch ( GeneralSecurityException e) {
 			e.printStackTrace();
 		}

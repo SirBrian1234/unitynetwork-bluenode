@@ -14,9 +14,9 @@ import java.util.LinkedList;
 import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import org.kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.RunData.instances.RemoteRedNodeInstance;
+import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 

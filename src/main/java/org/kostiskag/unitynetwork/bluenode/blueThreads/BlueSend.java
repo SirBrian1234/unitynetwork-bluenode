@@ -10,11 +10,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import org.kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.redThreads.RedlSend;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
+import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
+import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
 /**
  *

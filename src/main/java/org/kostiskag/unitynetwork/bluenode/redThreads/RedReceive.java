@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.net.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
+import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
+import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
 /**
  * down service listens for virtual packets then sends them to the target
@@ -77,7 +77,7 @@ public class RedReceive extends Thread {
                 if (len > 0 && len <= 1500) {
                     packet = new byte[len];
                     System.arraycopy(receivePacket.getData(), 0, packet, 0, len);                    
-                    if (UnityPacket.isUnity(packet)) {                                                
+                    if (UnityPacket.isUnity(packet)) {
                     	if (UnityPacket.isKeepAlive(packet)) {
                             //keep alive packet received
                             App.bn.TrafficPrint(pre +"KEEP ALIVE RECEIVED" ,0,0);
@@ -113,7 +113,7 @@ public class RedReceive extends Thread {
 								e.printStackTrace();
 							}
                         }                                                    
-                    } else if (IPv4Packet.isIPv4(packet)){             
+                    } else if (IPv4Packet.isIPv4(packet)){
                         App.bn.TrafficPrint(pre + "IPv4",3,0);
                         //now you have control over the buffer
 						// do stuff here

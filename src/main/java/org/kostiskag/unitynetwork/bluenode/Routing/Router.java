@@ -3,9 +3,9 @@ package org.kostiskag.unitynetwork.bluenode.Routing;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import org.kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
+import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
+import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
 /**
  * An object of this class can be owned either by a blue node or a red node instance

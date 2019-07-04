@@ -9,9 +9,9 @@ import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.Routing.QueueManager;
 import org.kostiskag.unitynetwork.bluenode.Routing.Router;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import org.kostiskag.unitynetwork.bluenode.redThreads.RedReceive;
 import org.kostiskag.unitynetwork.bluenode.redThreads.RedlSend;
+import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 /** 

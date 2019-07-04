@@ -9,10 +9,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.IPv4Packet;
-import org.kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
+import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
+import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
 /**
  * This service runs for every user it opens a UDP socket and waits a row to
