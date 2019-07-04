@@ -10,13 +10,13 @@ import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
 import kostiskag.unitynetwork.bluenode.RunData.tables.LocalRedNodeTable;
 import kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
-import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 import kostiskag.unitynetwork.bluenode.functions.PortHandle;
 import kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeSonarService;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeService.BlueNodeServer;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerTimeBuilder;
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 /**
  * 
@@ -143,7 +143,7 @@ public class BlueNode extends Thread{
 		}
 		
 		//rsa public key
-		ConsolePrint("Your public key is:\n" + CryptoMethods.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
+		ConsolePrint("Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
 		
 		/*
 		 *  2. Initialize tables

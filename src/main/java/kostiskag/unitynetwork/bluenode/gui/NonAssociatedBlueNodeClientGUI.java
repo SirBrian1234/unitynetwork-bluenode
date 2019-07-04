@@ -6,11 +6,13 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
-import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 import kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeClient;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
+
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.security.PublicKey;
 import java.awt.event.ActionEvent;
 import javax.swing.JTextField;
@@ -126,9 +128,13 @@ public class NonAssociatedBlueNodeClientGUI extends javax.swing.JFrame {
 	            	textField.setText("BLUE NODE "+bnName+" NULL PUBKEY");
 	            	return;
 	            }
-	            System.out.println("collected key "+CryptoMethods.objectToBase64StringRepresentation(pub));
-	        	
-	        	BlueNodeClient cl = new BlueNodeClient(bnName, pub, addr, port);
+				try {
+					System.out.println("collected key "+ CryptoUtilities.objectToBase64StringRepresentation(pub));
+				} catch (IOException e) {
+					return;
+				}
+
+				BlueNodeClient cl = new BlueNodeClient(bnName, pub, addr, port);
 	            try {
 	            	boolean check = cl.checkBlueNode();
 	            	if (check) textField.setText("BLUE NODE "+bnName+" ONLINE");

@@ -1,8 +1,8 @@
 package kostiskag.unitynetwork.bluenode.Routing.packets;
 
-import java.net.InetAddress;
+import org.kostiskag.unitynetwork.common.utilities.HashUtilities;
 
-import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
+import java.net.InetAddress;
 
 /**
  * The unity packet is a payload carried out with UDP in order to 
@@ -143,7 +143,7 @@ public class UnityPacket {
     	if (isLongRoutedAck(packet)) {
     		byte[] byteNum = new byte[2];
     		System.arraycopy(packet, 10, byteNum, 0, 2);
-    		return HashFunctions.bytesToUnsignedInt(byteNum);
+    		return HashUtilities.bytesToUnsignedInt(byteNum);
     	}
     	throw new Exception("The packet was not a long routed ack packet"); 
     }
@@ -152,7 +152,7 @@ public class UnityPacket {
     	if (isShortRoutedAck(packet)) {
     		byte[] byteNum = new byte[2];
     		System.arraycopy(packet, 2, byteNum, 0, 2);
-    		return HashFunctions.bytesToUnsignedInt(byteNum);
+    		return HashUtilities.bytesToUnsignedInt(byteNum);
     	}
     	throw new Exception("The packet was not an short routed ack packet"); 
     }
@@ -201,14 +201,14 @@ public class UnityPacket {
 	}
 	
 	public static byte[] buildShortRoutedAckPacket(int trackNumber) {
-		byte[] trackNumBytes = HashFunctions.UnsignedIntTo2Bytes(trackNumber);
+		byte[] trackNumBytes = HashUtilities.UnsignedIntTo2Bytes(trackNumber);
 		return buildPacket(ACK_S, trackNumBytes);
 	}
 	
 	public static byte[] buildLongRoutedAckPacket(InetAddress source, InetAddress dest, int trackNumber) {
 		byte[] sourceBytes = source.getAddress();
 		byte[] destBytes = dest.getAddress();
-		byte[] trackNumBytes = HashFunctions.UnsignedIntTo2Bytes(trackNumber);
+		byte[] trackNumBytes = HashUtilities.UnsignedIntTo2Bytes(trackNumber);
 		byte[] payload = new byte[10];
 		
 		System.arraycopy(sourceBytes,   0, payload, 0, 4);
@@ -231,8 +231,8 @@ public class UnityPacket {
 	
 	private static byte[] buildPacket(int type, byte[] payload) {
 		//build the payload before calling this one
-        byte[] version = new byte[]{HashFunctions.UnsignedIntTo1Byte(UNITYversion)};
-        byte[] typeBytes = HashFunctions.UnsignedIntToByteArray(type);
+        byte[] version = new byte[]{HashUtilities.UnsignedIntTo1Byte(UNITYversion)};
+        byte[] typeBytes = HashUtilities.UnsignedIntToByteArray(type);
 
         byte[] packet = new byte[version.length + typeBytes.length + payload.length];
         System.arraycopy(version, 0, packet, 0, version.length);

@@ -14,8 +14,8 @@ import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
-import kostiskag.unitynetwork.bluenode.socket.SocketFunctions;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
+import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 /**
  *
@@ -34,10 +34,10 @@ public class BlueNodeFunctions {
 	    	String[] args;
 	        
 	        if (App.bn.name.equals(name)) {
-	        	SocketFunctions.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
+	        	SocketUtilities.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
 	        	return;
 	        } else if (App.bn.blueNodesTable.checkBlueNode(name)) {
-	        	SocketFunctions.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
+	        	SocketUtilities.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
 	        	return;
 	        } else {
 	        	//tracker lookup
@@ -49,10 +49,10 @@ public class BlueNodeFunctions {
 	            phAddressStr = phAddress.getHostAddress(); 
 	            
 	            if (args[0].equals("OFFLINE")) {
-	            	SocketFunctions.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
+	            	SocketUtilities.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
 	            	return;
 	            } else if (!args[0].equals(phAddressStr)) {
-	            	SocketFunctions.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
+	            	SocketUtilities.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
 	            	return;
 	            }
 	        }
@@ -65,11 +65,11 @@ public class BlueNodeFunctions {
 			} catch (Exception e) {
 				e.printStackTrace();
 				bn.killtasks();
-				SocketFunctions.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
+				SocketUtilities.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
 				return;
 			}
 	        
-			SocketFunctions.sendAESEncryptedStringData("ASSOSIATING "+bn.getServerSendPort()+" "+bn.getServerReceivePort(), socketWriter, sessionKey);        
+			SocketUtilities.sendAESEncryptedStringData("ASSOSIATING "+bn.getServerSendPort()+" "+bn.getServerReceivePort(), socketWriter, sessionKey);        
 			App.bn.ConsolePrint(pre + "remote auth port "+bn.getRemoteAuthPort()+" upport "+bn.getServerSendPort()+" downport "+bn.getServerReceivePort());
 	    	
 	    	try {
@@ -90,7 +90,7 @@ public class BlueNodeFunctions {
     static void Uping(BlueNodeInstance bn, DataOutputStream outputWriter, SecretKey sessionKey) {
     	bn.setUping(false);
     	try {
-			SocketFunctions.sendAESEncryptedStringData("SET", outputWriter, sessionKey);
+			SocketUtilities.sendAESEncryptedStringData("SET", outputWriter, sessionKey);
 			try {
 	            sleep(2000);
 	        } catch (InterruptedException ex) {
@@ -98,9 +98,9 @@ public class BlueNodeFunctions {
 	        }
 	    	
 	        if (bn.getUPing()) {
-	        	SocketFunctions.sendAESEncryptedStringData("OK", outputWriter, sessionKey);
+	        	SocketUtilities.sendAESEncryptedStringData("OK", outputWriter, sessionKey);
 	        } else {
-	        	SocketFunctions.sendAESEncryptedStringData("FAILED", outputWriter, sessionKey);
+	        	SocketUtilities.sendAESEncryptedStringData("FAILED", outputWriter, sessionKey);
 	        }
     	} catch (Exception e) {
 			e.printStackTrace();
@@ -146,9 +146,9 @@ public class BlueNodeFunctions {
     static void getLocalRnHostnameByVaddress(String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
         try {
 	    	if (App.bn.localRedNodesTable.checkOnlineByVaddress(vaddress)) {
-	        	SocketFunctions.sendAESEncryptedStringData(App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getHostname(), socketWriter, sessionKey);
+	        	SocketUtilities.sendAESEncryptedStringData(App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getHostname(), socketWriter, sessionKey);
 	        } else {
-	        	SocketFunctions.sendAESEncryptedStringData("OFFLINE", socketWriter, sessionKey);
+	        	SocketUtilities.sendAESEncryptedStringData("OFFLINE", socketWriter, sessionKey);
 	        }
         } catch (Exception e) {
         	e.printStackTrace();
@@ -158,9 +158,9 @@ public class BlueNodeFunctions {
     static void getLocalRnVaddressByHostname(String hostname, DataOutputStream socketWriter, SecretKey sessionKey) {
     	try {
 	    	if (App.bn.localRedNodesTable.checkOnlineByHostname(hostname)) {
-	    		SocketFunctions.sendAESEncryptedStringData(App.bn.localRedNodesTable.getRedNodeInstanceByHn(hostname).getVaddress(), socketWriter, sessionKey);
+	    		SocketUtilities.sendAESEncryptedStringData(App.bn.localRedNodesTable.getRedNodeInstanceByHn(hostname).getVaddress(), socketWriter, sessionKey);
 	        } else {
-	        	SocketFunctions.sendAESEncryptedStringData("OFFLINE", socketWriter, sessionKey);
+	        	SocketUtilities.sendAESEncryptedStringData("OFFLINE", socketWriter, sessionKey);
 	        }
     	} catch (Exception e) {
         	e.printStackTrace();
@@ -203,7 +203,7 @@ public class BlueNodeFunctions {
 			}
 		}
 		try {
-			SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
+			SocketUtilities.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

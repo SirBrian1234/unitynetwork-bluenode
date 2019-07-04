@@ -9,8 +9,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -29,7 +29,7 @@ public class collectTrackerKeyGUI {
 		initialize();
 		if (App.bn.network && App.bn.trackerPublicKey != null) {
 			txtNotSet.setText("Key is set");
-			txtpnWii.setText(CryptoMethods.bytesToBase64String(App.bn.trackerPublicKey.getEncoded()));
+			txtpnWii.setText(CryptoUtilities.bytesToBase64String(App.bn.trackerPublicKey.getEncoded()));
 			btnCollectTrackersPublic.setEnabled(false);
 		} 
 	}
@@ -82,7 +82,7 @@ public class collectTrackerKeyGUI {
 	protected void collect() {
 		TrackerClient.getPubKey();
 		if (App.bn.trackerPublicKey != null) {
-			txtpnWii.setText(CryptoMethods.bytesToBase64String(App.bn.trackerPublicKey.getEncoded()));
+			txtpnWii.setText(CryptoUtilities.bytesToBase64String(App.bn.trackerPublicKey.getEncoded()));
 			txtNotSet.setText("Key is set");
 			btnCollectTrackersPublic.setEnabled(false);
 			App.bn.window.enableUploadKey();

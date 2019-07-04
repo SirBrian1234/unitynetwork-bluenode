@@ -3,10 +3,11 @@ package kostiskag.unitynetwork.bluenode.RunData.tables;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.AccountInstance;
-import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
-import kostiskag.unitynetwork.bluenode.functions.IpAddrFunctions;
+
 
 /**
  * When a local host.list is imported the data may be transfered
@@ -32,7 +33,7 @@ public class AccountsTable {
     		if (!username.isEmpty() && !password.isEmpty() && !hostname.isEmpty()) {
     			if (vadressNum > 0 && vadressNum <= (App.virtualNetworkAddressCapacity - App.systemReservedAddressNumber)) {
 	    			//check if unique
-	    			String effectveVaddress = IpAddrFunctions.numberTo10ipAddr(vadressNum);
+	    			String effectveVaddress = VirtualAddress.numberTo10ipAddr(vadressNum);
 	    			Iterator<AccountInstance> it = list.listIterator();
 	    	        while(it.hasNext()) {
 	    	        	AccountInstance element = it.next();

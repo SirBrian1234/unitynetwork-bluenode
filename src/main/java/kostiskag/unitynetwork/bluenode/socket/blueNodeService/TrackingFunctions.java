@@ -6,7 +6,7 @@ import javax.crypto.SecretKey;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
-import kostiskag.unitynetwork.bluenode.socket.SocketFunctions;
+import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 /**
  *
@@ -16,7 +16,7 @@ class TrackingFunctions {
 
     public static void check(DataOutputStream outputWriter, SecretKey sessionKey) {
         try {
-			SocketFunctions.sendAESEncryptedStringData("OK", outputWriter, sessionKey);
+			SocketUtilities.sendAESEncryptedStringData("OK", outputWriter, sessionKey);
 			App.bn.trackerRespond.set(0);
         } catch (Exception e) {
 			e.printStackTrace();

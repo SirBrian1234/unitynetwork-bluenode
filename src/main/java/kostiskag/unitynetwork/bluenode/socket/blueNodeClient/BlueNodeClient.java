@@ -13,13 +13,14 @@ import java.util.LinkedList;
 
 import javax.crypto.SecretKey;
 
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
+import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.RunData.instances.RemoteRedNodeInstance;
-import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 import kostiskag.unitynetwork.bluenode.socket.GlobalSocketFunctions;
-import kostiskag.unitynetwork.bluenode.socket.SocketFunctions;
 
 /**
  * 
@@ -58,7 +59,7 @@ public class BlueNodeClient {
 		this.pub = pub;
 		this.bn = null;
 		try {
-			this.phAddress = SocketFunctions.getAddress(phAddressStr);
+			this.phAddress = SocketUtilities.getAddress(phAddressStr);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
@@ -71,21 +72,21 @@ public class BlueNodeClient {
 
 	private void initConnection() {
 		try {
-    		sessionSocket = SocketFunctions.absoluteConnect(phAddress, authPort);
+    		sessionSocket = SocketUtilities.absoluteConnect(phAddress, authPort);
 			//socket.setSoTimeout(timeout);
 			
-			socketReader = SocketFunctions.makeDataReader(sessionSocket);
-			socketWriter = SocketFunctions.makeDataWriter(sessionSocket);
+			socketReader = SocketUtilities.makeDataReader(sessionSocket);
+			socketWriter = SocketUtilities.makeDataWriter(sessionSocket);
 			
-			sessionKey = CryptoMethods.generateAESSessionkey();
+			sessionKey = CryptoUtilities.generateAESSessionkey();
 			if (sessionKey == null) {
 				throw new Exception("Could not generate session key.");
 			}
 
-			String keyStr = CryptoMethods.objectToBase64StringRepresentation(sessionKey);
-			SocketFunctions.sendRSAEncryptedStringData(keyStr, socketWriter, pub);
+			String keyStr = CryptoUtilities.objectToBase64StringRepresentation(sessionKey);
+			SocketUtilities.sendRSAEncryptedStringData(keyStr, socketWriter, pub);
 			
-			String[] args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
+			String[] args = SocketUtilities.receiveAESEncryptedStringData(socketReader, sessionKey);
 			System.out.println(args[0]);
 			
 			if(!args[0].equals("BLUENODE") || !args[1].equals(name)) {
@@ -94,16 +95,16 @@ public class BlueNodeClient {
 			System.out.println(args[0]+" "+args[1]);
 			
 			//this bn is to be authenticated by the target bn
-			args = SocketFunctions.sendReceiveAESEncryptedStringData("BLUENODE "+App.bn.name, socketReader, socketWriter, sessionKey);
+			args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+App.bn.name, socketReader, socketWriter, sessionKey);
 			
 			//decode question
-			byte[] question = CryptoMethods.base64StringTobytes(args[0]);
+			byte[] question = CryptoUtilities.base64StringTobytes(args[0]);
 			
 			//decrypt with private
-			String answer = CryptoMethods.decryptWithPrivate(question, App.bn.bluenodeKeys.getPrivate());
+			String answer = CryptoUtilities.decryptWithPrivate(question, App.bn.bluenodeKeys.getPrivate());
 			
 			//send back plain answer
-			args = SocketFunctions.sendReceiveAESEncryptedStringData(answer, socketReader, socketWriter, sessionKey);
+			args = SocketUtilities.sendReceiveAESEncryptedStringData(answer, socketReader, socketWriter, sessionKey);
 			
 			if (args[0].equals("OK")) {
 				connected = true;
@@ -116,7 +117,7 @@ public class BlueNodeClient {
 
 	private void closeConnection() {
 		try {
-			SocketFunctions.connectionClose(sessionSocket);
+			SocketUtilities.connectionClose(sessionSocket);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -127,7 +128,7 @@ public class BlueNodeClient {
 		if (connected) {
 			String[] args;
 			try {
-				args = SocketFunctions.sendReceiveAESEncryptedStringData("CHECK", socketReader, socketWriter, sessionKey);
+				args = SocketUtilities.sendReceiveAESEncryptedStringData("CHECK", socketReader, socketWriter, sessionKey);
 				closeConnection();
 				System.out.println(args[0]);
 				if (args[0].equals("OK")) {			
@@ -159,7 +160,7 @@ public class BlueNodeClient {
 			int upport = 0;
 			
 			//lease
-	        String[] args = SocketFunctions.sendReceiveAESEncryptedStringData("ASSOCIATE", socketReader, socketWriter, sessionKey);
+	        String[] args = SocketUtilities.sendReceiveAESEncryptedStringData("ASSOCIATE", socketReader, socketWriter, sessionKey);
 	        if (args[0].equals("ERROR")) {
 	        	App.bn.ConsolePrint(pre + "Connection error");
 	            closeConnection();
@@ -193,7 +194,7 @@ public class BlueNodeClient {
 			if (connected) {
 				byte[] data = UnityPacket.buildUpingPacket();
 				try {
-					SocketFunctions.sendReceiveAESEncryptedStringData("UPING", socketReader, socketWriter, sessionKey);
+					SocketUtilities.sendReceiveAESEncryptedStringData("UPING", socketReader, socketWriter, sessionKey);
 					//wait to get set
 			        for (int i=0; i<3; i++) {
 			        	bn.getSendQueue().offer(data);
@@ -204,7 +205,7 @@ public class BlueNodeClient {
 						}
 			        }
 			        
-			        String[] args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);	
+			        String[] args = SocketUtilities.receiveAESEncryptedStringData(socketReader, sessionKey);
 			        closeConnection();
 			        
 			        if (args[0].equals("OK")) {
@@ -231,7 +232,7 @@ public class BlueNodeClient {
 			if (connected) {
 			    bn.setDping(false);
 			    try {
-					SocketFunctions.sendAESEncryptedStringData("DPING", socketWriter, sessionKey);
+					SocketUtilities.sendAESEncryptedStringData("DPING", socketWriter, sessionKey);
 					closeConnection();
 			        
 			        try {
@@ -258,7 +259,7 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				try {
-					SocketFunctions.sendAESEncryptedStringData("RELEASE", socketWriter, sessionKey);
+					SocketUtilities.sendAESEncryptedStringData("RELEASE", socketWriter, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}        
@@ -271,7 +272,7 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				try {
-					SocketFunctions.sendAESEncryptedStringData("GET_RED_NODES", socketWriter, sessionKey);
+					SocketUtilities.sendAESEncryptedStringData("GET_RED_NODES", socketWriter, sessionKey);
 					GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -289,7 +290,7 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				try {
-					SocketFunctions.sendAESEncryptedStringData("GIVE_RED_NODES", socketWriter, sessionKey);
+					SocketUtilities.sendAESEncryptedStringData("GIVE_RED_NODES", socketWriter, sessionKey);
 					GlobalSocketFunctions.sendLocalRedNodes(socketWriter, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -303,7 +304,7 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				try {
-					SocketFunctions.sendAESEncryptedStringData("EXCHANGE_RED_NODES", socketWriter, sessionKey);
+					SocketUtilities.sendAESEncryptedStringData("EXCHANGE_RED_NODES", socketWriter, sessionKey);
 					GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, sessionKey);
 			        GlobalSocketFunctions.sendLocalRedNodes(socketWriter, sessionKey);	    
 				} catch (Exception e) {
@@ -319,7 +320,7 @@ public class BlueNodeClient {
 			if (connected) {
 				String[] args;
 				try {
-					args = SocketFunctions.sendReceiveAESEncryptedStringData("GET_RED_VADDRESS "+hostname, socketReader, socketWriter, sessionKey);
+					args = SocketUtilities.sendReceiveAESEncryptedStringData("GET_RED_VADDRESS "+hostname, socketReader, socketWriter, sessionKey);
 					closeConnection();
 					if (args[0].equals("OFFLINE")) {
 			            return null;
@@ -339,7 +340,7 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				try {
-					String[] args = SocketFunctions.sendReceiveAESEncryptedStringData("GET_RED_HOSTNAME "+vaddress, socketReader, socketWriter, sessionKey);
+					String[] args = SocketUtilities.sendReceiveAESEncryptedStringData("GET_RED_HOSTNAME "+vaddress, socketReader, socketWriter, sessionKey);
 					closeConnection();
 					if (args[0].equals("OFFLINE")) {
 			            return null;
@@ -359,7 +360,7 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				try {
-					SocketFunctions.sendAESEncryptedStringData("RELEASE_REMOTE_REDNODE_BY_HN "+hostname, socketWriter, sessionKey);
+					SocketUtilities.sendAESEncryptedStringData("RELEASE_REMOTE_REDNODE_BY_HN "+hostname, socketWriter, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}     
@@ -372,7 +373,7 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				try {
-					SocketFunctions.sendAESEncryptedStringData("RELEASE_REMOTE_REDNODE_BY_VADDRESS "+vaddress, socketWriter, sessionKey);
+					SocketUtilities.sendAESEncryptedStringData("RELEASE_REMOTE_REDNODE_BY_VADDRESS "+vaddress, socketWriter, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}     
@@ -385,7 +386,7 @@ public class BlueNodeClient {
 		if (bn != null) {
 			if (connected) {
 				try {
-					SocketFunctions.sendAESEncryptedStringData("LEASE_REMOTE_REDNODE "+hostname+" "+vaddress, socketWriter, sessionKey);
+					SocketUtilities.sendAESEncryptedStringData("LEASE_REMOTE_REDNODE "+hostname+" "+vaddress, socketWriter, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}        

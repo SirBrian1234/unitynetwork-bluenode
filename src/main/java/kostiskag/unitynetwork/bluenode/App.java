@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
 
@@ -12,7 +13,7 @@ import javax.swing.UIManager;
 
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
 import kostiskag.unitynetwork.bluenode.functions.GetTime;
-import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 /**
  * This class keeps the application's main method. 
@@ -125,26 +126,44 @@ public class App extends Thread {
 		if (keyPairFile.exists()) {
 			// the tracker has key pair
 			System.out.println(pre+"Loading RSA key pair from file...");
-			bluenodeKeys = (KeyPair) CryptoMethods.fileToObject(keyPairFile);
-			System.out.println(pre+
-					"Your public key is:\n" + CryptoMethods.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
+			try {
+				bluenodeKeys = (KeyPair) CryptoUtilities.fileToObject(keyPairFile);
+				System.out.println(pre +
+						"Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
+			} catch (GeneralSecurityException | IOException e) {
+				System.out.println(pre+"could not load the RSA keypair from file");
+				System.out.println(e.getMessage());
+				System.exit(1);
+			}
 
 		} else {
 			// the tracker does not have a public private key pair
 			// generating...
-			System.out.println(pre+"Generating RSA key pair...");
-			bluenodeKeys = CryptoMethods.generateRSAkeyPair();
-			// and storing
-			System.out.println(pre+"Generating key file...");
-			CryptoMethods.objectToFile(bluenodeKeys, keyPairFile);
-			System.out.println(pre+
-					"Your public key is:\n" + CryptoMethods.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
+			try {
+				System.out.println(pre + "Generating RSA key pair...");
+				bluenodeKeys = CryptoUtilities.generateRSAkeyPair();
+				// and storing
+				System.out.println(pre + "Generating key file...");
+				CryptoUtilities.objectToFile(bluenodeKeys, keyPairFile);
+				System.out.println(pre +
+						"Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
+			} catch (GeneralSecurityException | IOException e) {
+				System.out.println(pre+"could not generate an RSA keypair");
+				System.out.println(e.getMessage());
+				System.exit(1);
+			}
 		}
 		
 		// tracker's public
 		File trackerPublic = new File(trackerPublicKeyFileName);
 		if (trackerPublic.exists()) {
-			trackerPublicKey = (PublicKey) CryptoMethods.fileToObject(trackerPublic);
+			try {
+				trackerPublicKey = (PublicKey) CryptoUtilities.fileToObject(trackerPublic);
+			} catch (GeneralSecurityException | IOException e) {
+				System.out.println(pre+"could not read public key");
+				System.out.println(e.getMessage());
+				System.exit(1);
+			}
 		} 
 
 		// generating hostlist file if not existing

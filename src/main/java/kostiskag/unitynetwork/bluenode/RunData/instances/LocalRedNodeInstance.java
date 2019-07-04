@@ -1,10 +1,7 @@
 package kostiskag.unitynetwork.bluenode.RunData.instances;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.PrintWriter;
-import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
@@ -15,7 +12,7 @@ import kostiskag.unitynetwork.bluenode.Routing.Router;
 import kostiskag.unitynetwork.bluenode.Routing.packets.UnityPacket;
 import kostiskag.unitynetwork.bluenode.redThreads.RedReceive;
 import kostiskag.unitynetwork.bluenode.redThreads.RedlSend;
-import kostiskag.unitynetwork.bluenode.socket.SocketFunctions;
+import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 /** 
  * RedAuthService runs every time for a single user only It is responsible for
@@ -155,7 +152,7 @@ public class LocalRedNodeInstance {
             while (true) {
                 String[] args = null;
                 try {
-                    args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
+                    args = SocketUtilities.receiveAESEncryptedStringData(socketReader, sessionKey);
                 } catch (Exception ex) {
                     break;
                 }
@@ -166,7 +163,7 @@ public class LocalRedNodeInstance {
                 
                 if (args[0].equals("PING")) {
                 	try {
-						SocketFunctions.sendAESEncryptedStringData("PING OK", socketWriter, sessionKey);
+                        SocketUtilities.sendAESEncryptedStringData("PING OK", socketWriter, sessionKey);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -174,7 +171,7 @@ public class LocalRedNodeInstance {
                 	setUPing(false);
                 	boolean set = false;
                 	try {
-						SocketFunctions.sendAESEncryptedStringData("SET", socketWriter, sessionKey);
+                        SocketUtilities.sendAESEncryptedStringData("SET", socketWriter, sessionKey);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -186,7 +183,7 @@ public class LocalRedNodeInstance {
                         }
                         if (getUPing()) {
                         	try {
-								SocketFunctions.sendAESEncryptedStringData("UPING OK", socketWriter, sessionKey);
+                                SocketUtilities.sendAESEncryptedStringData("UPING OK", socketWriter, sessionKey);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -196,7 +193,7 @@ public class LocalRedNodeInstance {
                     }
                     if (!set) {
                     	try {
-							SocketFunctions.sendAESEncryptedStringData("UPING FAILED", socketWriter, sessionKey);
+                            SocketUtilities.sendAESEncryptedStringData("UPING FAILED", socketWriter, sessionKey);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -226,7 +223,7 @@ public class LocalRedNodeInstance {
                 } else {
                     //not recognized command
                 	try {
-						SocketFunctions.sendAESEncryptedStringData("NRC", socketWriter, sessionKey);
+                        SocketUtilities.sendAESEncryptedStringData("NRC", socketWriter, sessionKey);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -248,7 +245,7 @@ public class LocalRedNodeInstance {
     
     private void whoami() {
     	try {
-			SocketFunctions.sendAESEncryptedStringData(Hostname + "/" + Vaddress + " ~ " + phAddressStr + ":" + send.getServerPort() + ":" + receive.getServerPort(), socketWriter, sessionKey);
+            SocketUtilities.sendAESEncryptedStringData(Hostname + "/" + Vaddress + " ~ " + phAddressStr + ":" + send.getServerPort() + ":" + receive.getServerPort(), socketWriter, sessionKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -264,7 +261,7 @@ public class LocalRedNodeInstance {
             ex.printStackTrace();
         }
         try {
-			SocketFunctions.sendAESEncryptedStringData("DREFRESH "+send.getServerPort(), socketWriter, sessionKey);
+            SocketUtilities.sendAESEncryptedStringData("DREFRESH "+send.getServerPort(), socketWriter, sessionKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -280,7 +277,7 @@ public class LocalRedNodeInstance {
             ex.printStackTrace();
         }
         try {
-			SocketFunctions.sendAESEncryptedStringData("UREFRESH "+receive.getServerPort(), socketWriter, sessionKey);
+            SocketUtilities.sendAESEncryptedStringData("UREFRESH "+receive.getServerPort(), socketWriter, sessionKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -288,7 +285,7 @@ public class LocalRedNodeInstance {
 
     public void exit() {
     	try {
-			SocketFunctions.sendAESEncryptedStringData("BYE", socketWriter, sessionKey);
+            SocketUtilities.sendAESEncryptedStringData("BYE", socketWriter, sessionKey);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

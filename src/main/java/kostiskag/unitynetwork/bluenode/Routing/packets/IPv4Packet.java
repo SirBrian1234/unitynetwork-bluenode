@@ -1,8 +1,8 @@
 package kostiskag.unitynetwork.bluenode.Routing.packets;
 
-import java.net.InetAddress;
+import org.kostiskag.unitynetwork.common.utilities.HashUtilities;
 
-import kostiskag.unitynetwork.bluenode.functions.HashFunctions;
+import java.net.InetAddress;
 
 /**
  *
@@ -16,7 +16,7 @@ public class IPv4Packet {
     public static boolean isIPv4(byte[] packet) {
     	if (packet != null) {
 	    	if (packet.length >= MIN_LEN) {
-		        int version = HashFunctions.bytesToUnsignedInt(new byte[] {packet[0]});
+		        int version = HashUtilities.bytesToUnsignedInt(new byte[] {packet[0]});
 		        if (version == IPversion) {
 		        	return true;
 		        }

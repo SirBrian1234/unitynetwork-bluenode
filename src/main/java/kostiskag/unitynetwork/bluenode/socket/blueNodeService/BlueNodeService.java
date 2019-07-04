@@ -10,9 +10,9 @@ import javax.crypto.SecretKey;
 
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
-import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
-import kostiskag.unitynetwork.bluenode.socket.SocketFunctions;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
+import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 /**
  *
@@ -45,21 +45,21 @@ public class BlueNodeService extends Thread {
     public void run() {
         App.bn.ConsolePrint(pre +"STARTING AN AUTH AT "+Thread.currentThread().getName());
         try {
-        	socketReader = SocketFunctions.makeDataReader(sessionSocket);
-			socketWriter = SocketFunctions.makeDataWriter(sessionSocket);
+        	socketReader = SocketUtilities.makeDataReader(sessionSocket);
+			socketWriter = SocketUtilities.makeDataWriter(sessionSocket);
 
-			byte[] received = SocketFunctions.receiveData(socketReader);
+			byte[] received = SocketUtilities.receiveData(socketReader);
 			String receivedStr = new String(received, "utf-8");
 			String[] args = receivedStr.split("\\s+");
 			
 			if (!App.bn.network && args[0].equals("GETPUB")) {
 				// if this bluenode is standalone it is allowed to distribute its public
-				SocketFunctions.sendPlainStringData(CryptoMethods.objectToBase64StringRepresentation(App.bn.bluenodeKeys.getPublic()), socketWriter);
+				SocketUtilities.sendPlainStringData(CryptoUtilities.objectToBase64StringRepresentation(App.bn.bluenodeKeys.getPublic()), socketWriter);
 			} else {
 				//client uses server's public key collected from the network to send a session key
-				String decrypted = CryptoMethods.decryptWithPrivate(received, App.bn.bluenodeKeys.getPrivate());
-				sessionKey = (SecretKey) CryptoMethods.base64StringRepresentationToObject(decrypted);
-				args = SocketFunctions.sendReceiveAESEncryptedStringData("BLUENODE "+App.bn.name, socketReader, socketWriter, sessionKey);
+				String decrypted = CryptoUtilities.decryptWithPrivate(received, App.bn.bluenodeKeys.getPrivate());
+				sessionKey = (SecretKey) CryptoUtilities.base64StringRepresentationToObject(decrypted);
+				args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+App.bn.name, socketReader, socketWriter, sessionKey);
 	
 				if (args.length == 2 && args[0].equals("REDNODE")) {
 	                redNodeService(args[1]);
@@ -69,10 +69,10 @@ public class BlueNodeService extends Thread {
 	                } else if (args.length == 1 && args[0].equals("TRACKER")) {
 	                    trackingService();
 	                } else {
-	                	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);                
+	                	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);                
 	                }
 	            } else {
-	            	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);                
+	            	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);                
 	            }
 			}
             
@@ -94,37 +94,37 @@ public class BlueNodeService extends Thread {
 				PublicKey rnPub = tr.getRedNodesPubKey(hostname);
 				
 		    	// generate a random question
-		    	String question = CryptoMethods.generateQuestion();
+		    	String question = CryptoUtilities.generateQuestion();
 		
 		    	// encrypt question with target's public
-		    	byte[] questionb = CryptoMethods.encryptWithPublic(question, rnPub);
+		    	byte[] questionb = CryptoUtilities.encryptWithPublic(question, rnPub);
 		
 		    	// encode it to base 64
-		    	String encq = CryptoMethods.bytesToBase64String(questionb);
+		    	String encq = CryptoUtilities.bytesToBase64String(questionb);
 		
 		    	// send it, wait for response
-		    	args = SocketFunctions.sendReceiveAESEncryptedStringData(encq, socketReader, socketWriter, sessionKey);
+		    	args = SocketUtilities.sendReceiveAESEncryptedStringData(encq, socketReader, socketWriter, sessionKey);
 		    	
 		    	if (args[0].equals(question)) {
 					// now this is a proper RSA authentication
-					SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
+					SocketUtilities.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 				} else {
-					SocketFunctions.sendAESEncryptedStringData("NOT_ALLOWED", socketWriter, sessionKey);
+					SocketUtilities.sendAESEncryptedStringData("NOT_ALLOWED", socketWriter, sessionKey);
 					throw new Exception("RSA auth for Tracker in "+sessionSocket.getInetAddress().getHostAddress()+" has failed.");
 				}
 	    	} else {
 	    		//there is AES connection started from bn's public and the red node is later verified with user credentials
-	    		SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
+	    		SocketUtilities.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 			}
 			
-			args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
+			args = SocketUtilities.receiveAESEncryptedStringData(socketReader, sessionKey);
 			//options
 	        if (args.length == 3 && args[0].equals("LEASE")) {
 	        	App.bn.ConsolePrint(pre+prern+"LEASE"+" from "+sessionSocket.getInetAddress().getHostAddress());
 	            RedNodeFunctions.lease(hostname, args[1], args[2], sessionSocket, socketReader, socketWriter, sessionKey);
 	        } else {
 	        	App.bn.ConsolePrint(pre+prern+"WRONG_COMMAND "+args[0]+" from "+sessionSocket.getInetAddress().getHostAddress());
-	        	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey); 
+	        	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey); 
 	        }
     	} catch (Exception e) {
     		e.printStackTrace();
@@ -149,26 +149,26 @@ public class BlueNodeService extends Thread {
     		}
     		
         	// generate a random question
-	    	String question = CryptoMethods.generateQuestion();
+	    	String question = CryptoUtilities.generateQuestion();
 	
 	    	// encrypt question with target's public
-	    	byte[] questionb = CryptoMethods.encryptWithPublic(question, bnPub);
+	    	byte[] questionb = CryptoUtilities.encryptWithPublic(question, bnPub);
 	
 	    	// encode it to base 64
-	    	String encq = CryptoMethods.bytesToBase64String(questionb);
+	    	String encq = CryptoUtilities.bytesToBase64String(questionb);
 	
 	    	// send it, wait for response
-	    	String args[] = SocketFunctions.sendReceiveAESEncryptedStringData(encq, socketReader, socketWriter, sessionKey);
+	    	String args[] = SocketUtilities.sendReceiveAESEncryptedStringData(encq, socketReader, socketWriter, sessionKey);
 	    	
 	    	if (args[0].equals(question)) {
 				// now this is a proper RSA authentication
-				SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
+				SocketUtilities.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 			} else {
-				SocketFunctions.sendAESEncryptedStringData("NOT_ALLOWED", socketWriter, sessionKey);
+				SocketUtilities.sendAESEncryptedStringData("NOT_ALLOWED", socketWriter, sessionKey);
 				throw new Exception("RSA auth for Tracker in "+sessionSocket.getInetAddress().getHostAddress()+" has failed.");
 			}
     	
-    		args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
+    		args = SocketUtilities.receiveAESEncryptedStringData(socketReader, sessionKey);
     		//options
             if (args.length == 1 && args[0].equals("CHECK")) {
             	App.bn.ConsolePrint(pre+prebn+"CHECK"+" from bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
@@ -214,11 +214,11 @@ public class BlueNodeService extends Thread {
 	                BlueNodeFunctions.getFeedReturnRoute(bn, args[1], args[2], socketWriter, sessionKey);
 	            } else {
 	            	App.bn.ConsolePrint(pre+prebn+"WRONG_COMMAND "+args[0]+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	            	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey); 
+	            	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey); 
 	            }
             } else {            
             	App.bn.ConsolePrint(pre+prebn+"WRONG_COMMAND "+args[0]+" from bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-            	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);           
+            	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);           
             }
         } catch (Exception ex) {
         	ex.printStackTrace();
@@ -228,27 +228,27 @@ public class BlueNodeService extends Thread {
     private void trackingService() {
     	try {
 	    	// generate a random question
-	    	String question = CryptoMethods.generateQuestion();
+	    	String question = CryptoUtilities.generateQuestion();
 	
 	    	// encrypt question with target's public
-	    	byte[] questionb = CryptoMethods.encryptWithPublic(question, App.bn.trackerPublicKey);
+	    	byte[] questionb = CryptoUtilities.encryptWithPublic(question, App.bn.trackerPublicKey);
 	
 	    	// encode it to base 64
-	    	String encq = CryptoMethods.bytesToBase64String(questionb);
+	    	String encq = CryptoUtilities.bytesToBase64String(questionb);
 	
 	    	// send it, wait for response
-	    	String args[] = SocketFunctions.sendReceiveAESEncryptedStringData(encq, socketReader, socketWriter, sessionKey);
+	    	String args[] = SocketUtilities.sendReceiveAESEncryptedStringData(encq, socketReader, socketWriter, sessionKey);
 	    	
 
 	    	if (args[0].equals(question)) {
 				// now this is a proper RSA authentication
-				SocketFunctions.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
+				SocketUtilities.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 			} else {
-				SocketFunctions.sendAESEncryptedStringData("NOT_ALLOWED", socketWriter, sessionKey);
+				SocketUtilities.sendAESEncryptedStringData("NOT_ALLOWED", socketWriter, sessionKey);
 				throw new Exception("RSA auth for Tracker in "+sessionSocket.getInetAddress().getHostAddress()+" has failed.");
 			}
     	
-    		args = SocketFunctions.receiveAESEncryptedStringData(socketReader, sessionKey);
+    		args = SocketUtilities.receiveAESEncryptedStringData(socketReader, sessionKey);
     		//options
             if (args.length == 1 && args[0].equals("CHECK")) {
             	App.bn.ConsolePrint(pre+pretr+"CHECK"+" from "+sessionSocket.getInetAddress().getHostAddress());
@@ -261,7 +261,7 @@ public class BlueNodeService extends Thread {
                 TrackingFunctions.killsig(socketWriter, sessionKey);
             } else {
             	App.bn.ConsolePrint(pre+pretr+"WRONG_COMMAND: "+args[0]+" from "+sessionSocket.getInetAddress().getHostAddress());
-            	SocketFunctions.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);  
+            	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);  
             }
         } catch (Exception ex) {
         	ex.printStackTrace();

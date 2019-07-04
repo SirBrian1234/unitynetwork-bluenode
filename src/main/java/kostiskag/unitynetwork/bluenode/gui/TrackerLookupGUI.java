@@ -2,6 +2,7 @@ package kostiskag.unitynetwork.bluenode.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.security.PublicKey;
 
 import javax.swing.ButtonGroup;
@@ -13,8 +14,9 @@ import javax.swing.JTextArea;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
 import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 import kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
+
 import java.awt.Font;
 
 /**
@@ -77,8 +79,12 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
                 		TrackerClient tr = new TrackerClient();
                 		PublicKey key = tr.getBlueNodesPubKey(bnName);
                 		if (key != null) {
-                			textField.setText(CryptoMethods.objectToBase64StringRepresentation(key));
-                		} else {
+							try {
+								textField.setText(CryptoUtilities.objectToBase64StringRepresentation(key));
+							} catch (IOException e) {
+								textField.setText("null");
+							}
+						} else {
                 			textField.setText("null");
                 		}
                 	}
@@ -95,8 +101,12 @@ public class TrackerLookupGUI extends javax.swing.JFrame {
                 		TrackerClient tr = new TrackerClient();
                 		PublicKey key = tr.getRedNodesPubKey(hostname);
                 		if (key != null) {
-                			textField.setText(CryptoMethods.objectToBase64StringRepresentation(key));
-                		} else {
+							try {
+								textField.setText(CryptoUtilities.objectToBase64StringRepresentation(key));
+							} catch (IOException ex) {
+								textField.setText("null");
+							}
+						} else {
                 			textField.setText("null");
                 		}
                 	}

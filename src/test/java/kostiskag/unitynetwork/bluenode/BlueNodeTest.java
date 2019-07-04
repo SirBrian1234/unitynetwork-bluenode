@@ -2,13 +2,14 @@ package kostiskag.unitynetwork.bluenode;
 
 import static org.junit.Assert.assertTrue;
 
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 
 import org.junit.Ignore;
 import org.junit.Test;
 
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
-import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 public class BlueNodeTest {
 	
@@ -18,7 +19,7 @@ public class BlueNodeTest {
 	}
 
 	@Ignore
-	public void initBlueNode() {		
+	public void initBlueNode() throws GeneralSecurityException {
 		boolean network = true;
 		String trackerAddress = "127.0.0.1";
 		int trackerPort = 8000;
@@ -31,7 +32,7 @@ public class BlueNodeTest {
 		boolean soutTraffic = true;
 		boolean log = false;
 		AccountsTable accounts = null;
-		KeyPair keys = CryptoMethods.generateRSAkeyPair();
+		KeyPair keys = CryptoUtilities.generateRSAkeyPair();
 
 		String name = "pakis1";
 		int authPort = 7000;

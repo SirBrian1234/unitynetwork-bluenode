@@ -7,6 +7,7 @@ import java.util.LinkedList;
 
 import javax.crypto.SecretKey;
 
+import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 import kostiskag.unitynetwork.bluenode.App;
 import kostiskag.unitynetwork.bluenode.RunData.instances.BlueNodeInstance;
 import kostiskag.unitynetwork.bluenode.RunData.instances.RemoteRedNodeInstance;
@@ -26,8 +27,8 @@ public class GlobalSocketFunctions {
         	Iterator<String> it = fetched.listIterator();			
 	        while(it.hasNext()) {
 	        	str.append(it.next()+"\n");	        	
-	        }   
-	        SocketFunctions.sendAESEncryptedStringData(str.toString(), socketWriter, sessionKey);
+	        }
+			SocketUtilities.sendAESEncryptedStringData(str.toString(), socketWriter, sessionKey);
 	    } catch (Exception e) {
 			e.printStackTrace();
 		}            
@@ -35,7 +36,7 @@ public class GlobalSocketFunctions {
 	
 	public static void getRemoteRedNodes(BlueNodeInstance bn, DataInputStream socketReader, SecretKey sessionKey) {
 		try {
-			String received = SocketFunctions.receiveAESEncryptedString(socketReader, sessionKey);
+			String received = SocketUtilities.receiveAESEncryptedString(socketReader, sessionKey);
 			String[] lines = received.split("\n+"); //split into sentences
 			String[] args = lines[0].split("\\s+"); //the first sentence contains the number
 			int count = Integer.parseInt(args[1]);  //for the given number read the rest sentences
@@ -62,7 +63,7 @@ public class GlobalSocketFunctions {
 	public static LinkedList<RemoteRedNodeInstance> getRemoteRedNodesObj(BlueNodeInstance bn, DataInputStream socketReader, SecretKey sessionKey) {
 		LinkedList<RemoteRedNodeInstance> fetched = new LinkedList<RemoteRedNodeInstance>();
 		try {
-			String received = SocketFunctions.receiveAESEncryptedString(socketReader, sessionKey);
+			String received = SocketUtilities.receiveAESEncryptedString(socketReader, sessionKey);
 			String[] lines = received.split("\n+"); //split into sentences
 			String[] args = lines[0].split("\\s+"); //the first sentence contains the number
 			int count = Integer.parseInt(args[1]);  //for the given number read the rest sentences

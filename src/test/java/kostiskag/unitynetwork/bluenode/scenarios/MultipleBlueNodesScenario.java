@@ -1,16 +1,14 @@
 package kostiskag.unitynetwork.bluenode.scenarios;
 
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 
-import kostiskag.unitynetwork.bluenode.App;
-import kostiskag.unitynetwork.bluenode.BlueNode;
-import kostiskag.unitynetwork.bluenode.RunData.instances.LocalRedNodeInstance;
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
-import kostiskag.unitynetwork.bluenode.functions.CryptoMethods;
 
-public class MultipleBlueNodesWithRedNodesScenario {
+public class MultipleBlueNodesScenario   {
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws GeneralSecurityException {
 		boolean network = true;
 		String trackerAddress = "127.0.0.1";
 		int trackerPort = 8000;
@@ -23,16 +21,15 @@ public class MultipleBlueNodesWithRedNodesScenario {
 		boolean soutTraffic = false;
 		boolean log = false;
 		AccountsTable accounts = null;
-		KeyPair keys = CryptoMethods.generateRSAkeyPair();
+		KeyPair keys = CryptoUtilities.generateRSAkeyPair();
 
 		String name = "Pakis1";
 		int authPort = 7000;
-		
 		/*
 		BlueNode bn = new BlueNode(
 				network, 
 				trackerAddress, 
-				trackerPort, 
+				trackerPort,
 				trackerTime,
 				name, 
 				useList, 
@@ -46,23 +43,16 @@ public class MultipleBlueNodesWithRedNodesScenario {
 				accounts,
 				keys);
 		App.bn = bn;
-		
 		bn.start();
 		*/
 		try {
-			Thread.sleep(5000);
+			Thread.sleep(1500);
 		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
 		/*
-		LocalRedNodeInstance rn = new LocalRedNodeInstance("ouiou1", "10.0.0.1");
-		try {
-			bn.localRedNodesTable.lease(rn);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
 		for (int i=2; i<10; i++) {
 			name = "Pakis"+i;
 			authPort = 7000+i;
@@ -84,10 +74,10 @@ public class MultipleBlueNodesWithRedNodesScenario {
 					keys);
 			a.start();
 			
-			
 			try {
 				Thread.sleep(1);
 			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
