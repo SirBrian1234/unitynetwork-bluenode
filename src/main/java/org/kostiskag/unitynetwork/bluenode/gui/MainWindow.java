@@ -263,14 +263,14 @@ public class MainWindow extends javax.swing.JFrame {
         btnNewButton_1 = new JButton("Manage BlueNode's Public Key");
         btnNewButton_1.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		new uploadKeyGUI().setVisible();
+        		new UploadKeyView().setVisible();
         	}
         });
         
         btnCollectTrackersPublic = new JButton("Collect Tracker's Public Key");
         btnCollectTrackersPublic.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent arg0) {
-        		new collectTrackerKeyGUI().setVisible();
+        		new CollectTrackerKeyView().setVisible();
         	}
         });
 
@@ -765,7 +765,7 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void openNewBnWindow() {
-        new NonAssociatedBlueNodeClientGUI().setVisible(true);     
+        new NonAssociatedBlueNodeClientView().setVisible(true);
     }
     
     protected void openAssosiatedWindow() {
@@ -773,7 +773,7 @@ public class MainWindow extends javax.swing.JFrame {
 			int row = jTable3.getSelectedRow();
 			if (row >= 0) {
 				try {
-					new AssociatedBlueNodeClientGUI((String) jTable3.getValueAt(row, 0)).setVisible();
+					new AssociatedBlueNodeClientView((String) jTable3.getValueAt(row, 0)).setVisible();
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -784,7 +784,7 @@ public class MainWindow extends javax.swing.JFrame {
 	}
 	
 	protected void trackerRNLookup(ActionEvent evt) {
-		new TrackerLookupGUI().setVisible(true);
+		new TrackerLookupView().setVisible(true);
 	}
 
 	private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -988,7 +988,7 @@ public class MainWindow extends javax.swing.JFrame {
 
 	public void updateRemoteRns() {
 		synchronized (lockRRn) {
-			String[][] obj = App.bn.blueNodesTable.buildRRNGUIObj();
+			String[][] obj = App.bn.blueNodeTable.buildRRNGUIObj();
 			int rows = remoteRedNodeTableModel.getRowCount();
 	        for (int i = 0; i < rows; i++) {
 	        	remoteRedNodeTableModel.removeRow(0);
@@ -1003,7 +1003,7 @@ public class MainWindow extends javax.swing.JFrame {
 	
 	public void updateBNs() {
 		synchronized (lockBn) {
-			String[][] obj = App.bn.blueNodesTable.buildBNGUIObj();
+			String[][] obj = App.bn.blueNodeTable.buildBNGUIObj();
 			int rows = remoteBlueNodeTableModel.getRowCount();
 	        for (int i = 0; i < rows; i++) {
 	        	remoteBlueNodeTableModel.removeRow(0);

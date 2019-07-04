@@ -8,7 +8,7 @@ import java.security.KeyPair;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 public class BlueNodeTest {
@@ -31,7 +31,7 @@ public class BlueNodeTest {
 		boolean gui = true;
 		boolean soutTraffic = true;
 		boolean log = false;
-		AccountsTable accounts = null;
+		AccountTable accounts = null;
 		KeyPair keys = CryptoUtilities.generateRSAkeyPair();
 
 		String name = "pakis1";

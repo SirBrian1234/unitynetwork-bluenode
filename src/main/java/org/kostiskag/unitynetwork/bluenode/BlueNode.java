@@ -4,18 +4,18 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.kostiskag.unitynetwork.bluenode.Routing.FlyRegister;
-import org.kostiskag.unitynetwork.bluenode.RunData.IpPoll;
-import org.kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
-import org.kostiskag.unitynetwork.bluenode.RunData.tables.BlueNodesTable;
-import org.kostiskag.unitynetwork.bluenode.RunData.tables.LocalRedNodeTable;
-import org.kostiskag.unitynetwork.bluenode.blueThreads.BlueNodeTimeBuilder;
-import org.kostiskag.unitynetwork.bluenode.functions.PortHandle;
+import org.kostiskag.unitynetwork.bluenode.routing.FlyRegister;
+import org.kostiskag.unitynetwork.bluenode.rundata.IpPoll;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
+import org.kostiskag.unitynetwork.bluenode.bluethreads.BlueNodeTimeBuilder;
+import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import org.kostiskag.unitynetwork.bluenode.socket.blueNodeClient.BlueNodeSonarService;
-import org.kostiskag.unitynetwork.bluenode.socket.blueNodeService.BlueNodeServer;
-import org.kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerClient;
-import org.kostiskag.unitynetwork.bluenode.socket.trackClient.TrackerTimeBuilder;
+import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeSonarService;
+import org.kostiskag.unitynetwork.bluenode.service.bluenodeservice.BlueNodeServer;
+import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
+import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerTimeBuilder;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 /**
@@ -38,7 +38,7 @@ public class BlueNode extends Thread{
 	public final boolean gui;
 	public final boolean soutTraffic;	
 	public final boolean log;
-	public final AccountsTable accounts;
+	public final AccountTable accounts;
 	public final KeyPair bluenodeKeys;
 	public PublicKey trackerPublicKey;
 	// tracker data
@@ -57,7 +57,7 @@ public class BlueNode extends Thread{
 	public final int blueNodeMaxIdleTimeSec = 2*blueNodeCheckTimeSec;	
 	// our most important tables
 	public LocalRedNodeTable localRedNodesTable;
-	public BlueNodesTable blueNodesTable;
+	public BlueNodeTable blueNodeTable;
 	// objects
 	public IpPoll bucket;
 	public MainWindow window;
@@ -106,7 +106,7 @@ public class BlueNode extends Thread{
 		boolean gui,
 		boolean soutTraffic,        
 		boolean log,
-		AccountsTable accounts,
+		AccountTable accounts,
 		KeyPair bluenodeKeys,
 		PublicKey trackerPublicKey
 	) {
@@ -146,12 +146,12 @@ public class BlueNode extends Thread{
 		ConsolePrint("Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
 		
 		/*
-		 *  2. Initialize tables
+		 *  2. Initialize table
 		 */
 		UDPports = new PortHandle(startPort, endPort);
 		localRedNodesTable = new LocalRedNodeTable(maxRednodeEntries);
 		if (network) {
-			blueNodesTable = new BlueNodesTable();
+			blueNodeTable = new BlueNodeTable();
 		}
 
 		/*
@@ -263,7 +263,7 @@ public class BlueNode extends Thread{
 			TrackerClient tr = new TrackerClient();	
 			tr.releaseBn();			
 			//release from bns
-			blueNodesTable.sendKillSigsAndReleaseForAll();
+			blueNodeTable.sendKillSigsAndReleaseForAll();
 			joined = false;
 			trackerTimeBuilder.Kill();
 			die();
@@ -275,7 +275,7 @@ public class BlueNode extends Thread{
 	public void leaveNetworkAfterRevoke() throws Exception {
 		if (joined) {
 			//release from bns
-			blueNodesTable.sendKillSigsAndReleaseForAll();
+			blueNodeTable.sendKillSigsAndReleaseForAll();
 			joined = false;
 			trackerTimeBuilder.Kill();
 			die();

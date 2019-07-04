@@ -3,7 +3,7 @@ package org.kostiskag.unitynetwork.bluenode.scenarios;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 
-import org.kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 public class MultipleBlueNodesWithRedNodesScenario {
@@ -20,7 +20,7 @@ public class MultipleBlueNodesWithRedNodesScenario {
 		boolean gui = false;
 		boolean soutTraffic = false;
 		boolean log = false;
-		AccountsTable accounts = null;
+		AccountTable accounts = null;
 		KeyPair keys = CryptoUtilities.generateRSAkeyPair();
 
 		String name = "Pakis1";

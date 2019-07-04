@@ -11,8 +11,8 @@ import java.security.PublicKey;
 
 import javax.swing.UIManager;
 
-import org.kostiskag.unitynetwork.bluenode.RunData.tables.AccountsTable;
-import org.kostiskag.unitynetwork.bluenode.functions.GetTime;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
+import org.kostiskag.unitynetwork.bluenode.utilities.GetTime;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 /**
@@ -58,7 +58,7 @@ public class App extends Thread {
 	public static boolean gui;
 	public static boolean soutTraffic;        
 	public static boolean log;
-	public static AccountsTable accounts;	
+	public static AccountTable accounts;
 	public static KeyPair bluenodeKeys;
 	public static PublicKey trackerPublicKey;
 	// bluenode
@@ -186,7 +186,7 @@ public class App extends Thread {
 			if (!network && useList) {
 				//reading file
 				System.out.println(pre+"Reading accounts from file.");
-				accounts = new AccountsTable();
+				accounts = new AccountTable();
 				try {
 					ReadPreferencesFile.ParseHostClientList(new File(hostlistFileName));
 				} catch (Exception e) {
