@@ -43,7 +43,7 @@
 						<archive>
 							<manifest>
 								<addClasspath>true</addClasspath>
-								<mainClass>kostiskag.unitynetwork.bluenode.App</mainClass>
+								<mainClass>org.kostiskag.unitynetwork.bluenode.App</mainClass>
 							</manifest>
 						</archive>
 					</configuration>
