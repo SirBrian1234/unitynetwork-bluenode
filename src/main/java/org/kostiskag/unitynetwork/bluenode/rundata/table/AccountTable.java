@@ -2,8 +2,10 @@ package org.kostiskag.unitynetwork.bluenode.rundata.table;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
-import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
+
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.AccountInstance;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 
@@ -16,7 +18,7 @@ import org.kostiskag.unitynetwork.common.address.VirtualAddress;
  */
 public class AccountTable {
     private final String pre = "^AccountsTable ";
-    private final LinkedList<AccountInstance> list;
+    private final List<AccountInstance> list;
 
     public AccountTable() {
         list = new LinkedList<AccountInstance>();
@@ -26,13 +28,13 @@ public class AccountTable {
     	return list.size();
     }
         
-    public synchronized void insert(String username, String password, String hostname, int vadressNum) throws Exception{
+    public synchronized void insert(String username, String password, String hostname, int vadressNum) throws Exception {
         //data validate
     	if (password != null && hostname != null) {
     		if (!username.isEmpty() && !password.isEmpty() && !hostname.isEmpty()) {
-    			if (vadressNum > 0 && vadressNum <= (App.virtualNetworkAddressCapacity - App.systemReservedAddressNumber)) {
+    			if (vadressNum > 0 && vadressNum <= (NumericConstraints.VIRTUAL_NETWORK_ADDRESS_EFFECTIVE_CAPACITY.size())) {
 	    			//check if unique
-	    			String effectveVaddress = VirtualAddress.numberTo10ipAddr(vadressNum);
+	    			VirtualAddress effectveVaddress = VirtualAddress.valueOf(vadressNum);
 	    			Iterator<AccountInstance> it = list.listIterator();
 	    	        while(it.hasNext()) {
 	    	        	AccountInstance element = it.next();
@@ -64,25 +66,24 @@ public class AccountTable {
         return false;
     }
     
-    public synchronized String getVaddrIfExists(String hostname, String username, String password) {
+    public synchronized VirtualAddress getVaddrIfExists(String hostname, String username, String password) {
         Iterator<AccountInstance> it = list.listIterator();
         while(it.hasNext()) {
         	AccountInstance element = it.next();
-        	String vaddr = element.checkAndGetVaddr(username, password, hostname);
+        	VirtualAddress vaddr = element.checkAndGetVaddr(username, password, hostname);
         	if (vaddr != null) {
         		return vaddr;
         	}
         }
         return null;
     }
-    
-     public synchronized String toString() {
-    	 Iterator<AccountInstance> it = list.listIterator();
-    	 StringBuilder b = new StringBuilder();
-         while(it.hasNext()) {
-        	AccountInstance element = it.next();
-            b.append(element.toString()+"\n");
-        }
-        return b.toString(); 
+
+    @Override
+	public synchronized String toString() {
+		StringBuilder strB = new StringBuilder();
+		for(AccountInstance a : this.list) {
+			strB.append(a.toString()+"\n");
+		}
+    	return strB.toString();
     }
 }

@@ -1,18 +1,23 @@
 package org.kostiskag.unitynetwork.bluenode.redthreads;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNodeInstance;
+
+import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
+
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
+import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
+import org.kostiskag.unitynetwork.bluenode.App;
+
 
 /**
  * This service runs for every user it opens a UDP socket and waits a row to
@@ -123,7 +128,7 @@ public class RedlSend extends Thread {
             } else if (packet.length == 0) {
             	continue;
             } else if (packet.length > 1500) {
-            	App.bn.TrafficPrint("Throwing oversized packet of size "+packet.length, 3, 0);
+            	App.bn.TrafficPrint("Throwing oversized packet of size "+packet.length, MessageType.ROUTING, NodeType.REDNODE);
                 continue;
             }
 
@@ -134,35 +139,35 @@ public class RedlSend extends Thread {
 					if (UnityPacket.isKeepAlive(packet)) {
 						for (int i=0; i<3; i++) {
 							serverSocket.send(sendUDPPacket);
-							App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 0);
+							App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", MessageType.KEEP_ALIVE, NodeType.REDNODE);
 						}
 					} else if (UnityPacket.isDping(packet)) {
 						serverSocket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "DPING SENT", 1, 0);
+						App.bn.TrafficPrint(pre + "DPING SENT", MessageType.PINGS, NodeType.REDNODE);
 					} else if (UnityPacket.isShortRoutedAck(packet)) {
 						serverSocket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "SHORT ACK SENT", 1, 0);
+						App.bn.TrafficPrint(pre + "SHORT ACK SENT", MessageType.PINGS, NodeType.REDNODE);
                     } else if (UnityPacket.isLongRoutedAck(packet)) {
                     	serverSocket.send(sendUDPPacket);
                     	try {
-							App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet)+" SENT", 2, 0);
+							App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet)+" SENT", MessageType.ACKS, NodeType.REDNODE);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					} else if (UnityPacket.isMessage(packet)) {
 						serverSocket.send(sendUDPPacket);
 						try {
-							App.bn.TrafficPrint(pre + "MESSAGE -> "+UnityPacket.getDestAddress(packet)+" SENT", 3, 0);
+							App.bn.TrafficPrint(pre + "MESSAGE -> "+UnityPacket.getDestAddress(packet)+" SENT", MessageType.ROUTING, NodeType.REDNODE);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
 				} else if (IPv4Packet.isIPv4(packet)) {
 					serverSocket.send(sendUDPPacket);
-					App.bn.TrafficPrint(pre + "IPV4 SENT", 3, 0);
+					App.bn.TrafficPrint(pre + "IPV4 SENT", MessageType.ROUTING, NodeType.REDNODE);
 				}
                 if (App.bn.gui && !trigger) {
-                    MainWindow.jCheckBox4.setSelected(true);
+                    MainWindow.getInstance().setSentDataToRn();
                     trigger = true;
                 }
             } catch (java.net.SocketException ex1) {

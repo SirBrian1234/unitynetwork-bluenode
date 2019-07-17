@@ -1,12 +1,16 @@
 package org.kostiskag.unitynetwork.bluenode.routing;
 
-import java.security.PublicKey;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.security.PublicKey;
 
-import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.entry.NodeType;
+
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
+import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
+import org.kostiskag.unitynetwork.bluenode.App;
+
 
 /**
  *
@@ -69,7 +73,7 @@ public class FlyRegister extends Thread {
                     	tr = new TrackerClient();
                         String[] args = tr.getPhysicalBn(BNHostname);
                         if (args[0].equals("OFFLINE")) {
-                        	App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE, OFFLINE " + BNHostname, 3, 1);
+                        	App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE, OFFLINE " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
                         	continue;
                         }
                         String address = args[0];
@@ -79,7 +83,7 @@ public class FlyRegister extends Thread {
                         tr = new TrackerClient();
                         PublicKey pub = tr.getBlueNodesPubKey(BNHostname);
                         if (pub == null) {
-                        	App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE, NO PUBLIC KEY " + BNHostname, 3, 1);
+                        	App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE, NO PUBLIC KEY " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
                         	continue;
                         }
                         
@@ -88,10 +92,10 @@ public class FlyRegister extends Thread {
                         try {
 							cl.associateClient();
 						} catch (Exception e) {
-							 App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, 3, 1);  
+							 App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
 							 continue;
 						} 
-                        App.bn.TrafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", 3, 1);
+                        App.bn.TrafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", MessageType.ROUTING, NodeType.BLUENODE);
                         
                         //we were associated now it's time to feed return route
                         BlueNodeInstance bn;

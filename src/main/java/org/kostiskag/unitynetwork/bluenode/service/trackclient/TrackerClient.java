@@ -2,18 +2,20 @@ package org.kostiskag.unitynetwork.bluenode.service.trackclient;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
+import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+
+import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 
 /**
  * 
@@ -21,11 +23,12 @@ import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
  */
 public class TrackerClient {
 
-	private final String pre = "^TrackerClient ";
-	private final PublicKey trackerPublic;
-	private final String name;
-	private InetAddress addr;
-	private int port;
+	private static final String PRE = "^TrackerClient ";
+	private static String bluenodeName;
+	private static PublicKey trackerPublic;
+	private static PhysicalAddress trackerAddress;
+	private static int trackerPort;
+
 	private Socket socket;
 	private SecretKey sessionKey;
 	private DataInputStream reader;
@@ -33,25 +36,25 @@ public class TrackerClient {
 	private String reason;
 	private boolean connected = false;
 
+	public static void configureTracker(String bluenodeName, PublicKey trackerPublic, PhysicalAddress trackerAddress, int trackerPort) {
+		if (bluenodeName == null || trackerPublic == null || trackerAddress == null || (trackerPort <=0 && trackerPort > NumericConstraints.MAX_ALLOWED_PORT_NUM.size())) {
+			throw new IllegalArgumentException(PRE + " invalid arguments were given!");
+		}
+
+		TrackerClient.bluenodeName = bluenodeName;
+		TrackerClient.trackerPublic = trackerPublic;
+		TrackerClient.trackerAddress = trackerAddress;
+		TrackerClient.trackerPort = trackerPort;
+	}
+
 	public TrackerClient() {
-		this.name = App.bn.name;
-		this.trackerPublic = App.bn.trackerPublicKey;
-		
-		if (trackerPublic == null) {
-			System.err.println(pre+"no tracker public key was set.");
-			return;
+		//sanitize
+		if (bluenodeName == null || trackerPublic == null || trackerAddress == null || (trackerPort <=0 && trackerPort > NumericConstraints.MAX_ALLOWED_PORT_NUM.size())) {
+			throw new IllegalArgumentException(PRE + " invalid arguments were given!");
 		}
-		
-		this.port = App.bn.trackerPort;
+
 		try {
-			this.addr = SocketUtilities.getAddress(App.bn.trackerAddress);
-		} catch (UnknownHostException e2) {
-			e2.printStackTrace();
-			return;
-		}
-		
-		try {
-			this.socket = SocketUtilities.absoluteConnect(addr, port);
+			this.socket = SocketUtilities.absoluteConnect(trackerAddress.asInet(), trackerPort);
 			
 			this.reader = SocketUtilities.makeDataReader(socket);
 			this.writer = SocketUtilities.makeDataWriter(socket);
@@ -73,7 +76,7 @@ public class TrackerClient {
 				throw new Exception("WELLCOME_MSG_ERROR");
 			}
 			
-			args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE"+" "+name, reader, writer, sessionKey);
+			args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE"+" "+bluenodeName, reader, writer, sessionKey);
 			
 			if (args[0].equals("PUBLIC_NOT_SET")) {
 				SocketUtilities.sendAESEncryptedStringData("EXIT", writer, sessionKey);
@@ -97,7 +100,7 @@ public class TrackerClient {
 			}
 			
 		} catch (Exception e2) {
-			App.bn.ConsolePrint(pre+"Connection dropped for tracker at "+socket.getInetAddress().getHostAddress());
+			App.bn.ConsolePrint(PRE +"Connection dropped for tracker at "+socket.getInetAddress().getHostAddress());
 			e2.printStackTrace();
 			closeCon();
 			connected = false;
@@ -123,13 +126,13 @@ public class TrackerClient {
 		if (connected) {
 			String[] args = null;
 			try {
-				App.bn.ConsolePrint(pre+"LEASE"+" at "+socket.getInetAddress().getHostAddress());
+				App.bn.ConsolePrint(PRE +"LEASE"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketUtilities.sendReceiveAESEncryptedStringData("LEASE"+" "+authport, reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("LEASED")) {
 					App.bn.echoAddress = args[1];
-					App.bn.window.setEchoIpAddress(args[1]);
-					App.bn.ConsolePrint(pre + "ECHO ADDRESS IS " + App.bn.echoAddress);
+					MainWindow.getInstance().setEchoIpAddress(args[1]);
+					App.bn.ConsolePrint(PRE + "ECHO ADDRESS IS " + App.bn.echoAddress);
 					return true;
 				} else {
 					return false;
@@ -146,7 +149,7 @@ public class TrackerClient {
 		if (connected) {
 			String[] args;
 			try {
-				App.bn.ConsolePrint(pre+"RELEASE"+" at "+socket.getInetAddress().getHostAddress());
+				App.bn.ConsolePrint(PRE +"RELEASE"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketUtilities.sendReceiveAESEncryptedStringData("RELEASE", reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("RELEASED")) {
@@ -172,7 +175,7 @@ public class TrackerClient {
 		if (connected) {
 			String[] args;
 			try {
-				App.bn.ConsolePrint(pre+"GETPH"+" at "+socket.getInetAddress().getHostAddress());
+				App.bn.ConsolePrint(PRE +"GETPH"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketUtilities.sendReceiveAESEncryptedStringData("GETPH"+" "+BNHostname, reader, writer, sessionKey);
 				closeCon();
 				if (!args[0].equals("NOT_FOUND")) {
@@ -202,7 +205,7 @@ public class TrackerClient {
 		if (connected) {
 	    	String[] args;
 			try {
-				App.bn.ConsolePrint(pre+"LEASE_RN"+" at "+socket.getInetAddress().getHostAddress());
+				App.bn.ConsolePrint(PRE +"LEASE_RN"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketUtilities.sendReceiveAESEncryptedStringData("LEASE_RN"+" "+Hostname+" "+Username+" "+Password, reader, writer, sessionKey);
 				closeCon();
 		        if (args[0].equals("LEASED")) {
@@ -226,7 +229,7 @@ public class TrackerClient {
     public void releaseRnByHostname(String hostname) {
     	if (connected) {
 	        try {
-	        	App.bn.ConsolePrint(pre+"RELEASE_RN"+" at "+socket.getInetAddress().getHostAddress());
+	        	App.bn.ConsolePrint(PRE +"RELEASE_RN"+" at "+socket.getInetAddress().getHostAddress());
 				SocketUtilities.sendAESEncryptedStringData("RELEASE_RN"+" "+hostname, writer, sessionKey);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -246,7 +249,7 @@ public class TrackerClient {
     	if (connected) {
 	    	String[] args;
 			try {
-				App.bn.ConsolePrint(pre+"CHECK_RN"+" at "+socket.getInetAddress().getHostAddress());
+				App.bn.ConsolePrint(PRE +"CHECK_RN"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketUtilities.sendReceiveAESEncryptedStringData("CHECK_RN"+" "+hostanme, reader, writer, sessionKey);
 				closeCon();
 		        if (args[0].equals("OFFLINE")) {
@@ -273,7 +276,7 @@ public class TrackerClient {
     	if (connected) {
 	        String[] args = null;
 			try {
-				App.bn.ConsolePrint(pre+"CHECK_RNA"+" at "+socket.getInetAddress().getHostAddress());
+				App.bn.ConsolePrint(PRE +"CHECK_RNA"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketUtilities.sendReceiveAESEncryptedStringData("CHECK_RNA"+" "+vaddress, reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("OFFLINE")) {
@@ -293,7 +296,7 @@ public class TrackerClient {
     	if (connected) {
 	        String[] args = null;
 			try {
-				App.bn.ConsolePrint(pre+"GETBNPUB"+" at "+socket.getInetAddress().getHostAddress());
+				App.bn.ConsolePrint(PRE +"GETBNPUB"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketUtilities.sendReceiveAESEncryptedStringData("GETBNPUB"+" "+name, reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("NONE")) {
@@ -313,7 +316,7 @@ public class TrackerClient {
     	if (connected) {
 	        String[] args = null;
 			try {
-				App.bn.ConsolePrint(pre+"GETRNPUB"+" at "+socket.getInetAddress().getHostAddress());
+				App.bn.ConsolePrint(PRE +"GETRNPUB"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketUtilities.sendReceiveAESEncryptedStringData("GETRNPUB"+" "+hostname, reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("NONE")) {
@@ -333,7 +336,7 @@ public class TrackerClient {
 		if (connected) {
 			String[] args = null;
 			try {
-				App.bn.ConsolePrint(pre+"REVOKEPUB"+" at "+socket.getInetAddress().getHostAddress());
+				App.bn.ConsolePrint(PRE +"REVOKEPUB"+" at "+socket.getInetAddress().getHostAddress());
 				args = SocketUtilities.sendReceiveAESEncryptedStringData("REVOKEPUB", reader, writer, sessionKey);
 				closeCon();
 				return args[0];
@@ -354,14 +357,8 @@ public class TrackerClient {
      */
 	public static void getPubKey() {
 		int port = App.bn.trackerPort;
-		InetAddress addr;
-		try {
-			addr = SocketUtilities.getAddress(App.bn.trackerAddress);
-		} catch (UnknownHostException e1) {
-			e1.printStackTrace();
-			return;
-		}
-		
+		InetAddress addr = TrackerClient.trackerAddress.asInet();
+
 		Socket socket = null;
 		try {
 			socket = SocketUtilities.absoluteConnect(addr, port);
@@ -372,8 +369,9 @@ public class TrackerClient {
 			App.bn.ConsolePrint("Tracker "+"GETPUB"+" at "+socket.getInetAddress().getHostAddress());
 			String[] args = SocketUtilities.sendReceivePlainStringData("GETPUB", reader, writer);
 			     
-			App.bn.trackerPublicKey = (PublicKey) CryptoUtilities.base64StringRepresentationToObject(args[0]);
-	        CryptoUtilities.objectToFile(App.bn.trackerPublicKey, new File(App.trackerPublicKeyFileName));
+			PublicKey trackerPublic = CryptoUtilities.base64StringRepresentationToObject(args[0]);
+			App.writeTrackerPublicKey(trackerPublic);
+
 	        
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -404,14 +402,8 @@ public class TrackerClient {
 		}
 		
 		int port = App.bn.trackerPort;
-		InetAddress addr;
-		try {
-			addr = SocketUtilities.getAddress(App.bn.trackerAddress);
-		} catch (UnknownHostException e2) {
-			e2.printStackTrace();
-			return null;
-		}
-		
+		InetAddress addr = TrackerClient.trackerAddress.asInet();
+
 		Socket socket = null;
 		try {
 			socket = SocketUtilities.absoluteConnect(addr, port);

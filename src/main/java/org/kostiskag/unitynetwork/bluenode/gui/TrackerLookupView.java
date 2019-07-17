@@ -15,6 +15,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
+import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 import java.awt.Font;
@@ -75,7 +76,7 @@ public class TrackerLookupView extends javax.swing.JFrame {
         	public void actionPerformed(ActionEvent arg0) {
         		if (App.bn.joined) {
                 	String bnName = jTextField2.getText();
-                	if (!bnName.isEmpty() && bnName.length() < App.max_str_len_small_size) {
+                	if (!bnName.isEmpty() && bnName.length() < NumericConstraints.MAX_STR_LEN_SMALL.size()) {
                 		TrackerClient tr = new TrackerClient();
                 		PublicKey key = tr.getBlueNodesPubKey(bnName);
                 		if (key != null) {
@@ -97,7 +98,7 @@ public class TrackerLookupView extends javax.swing.JFrame {
         	public void actionPerformed(ActionEvent e) {
         		if (App.bn.joined) {
                 	String hostname = jTextField2.getText();
-                	if (!hostname.isEmpty() && hostname.length() < App.max_str_len_small_size) {
+                	if (!hostname.isEmpty() && hostname.length() < NumericConstraints.MAX_STR_LEN_SMALL.size()) {
                 		TrackerClient tr = new TrackerClient();
                 		PublicKey key = tr.getRedNodesPubKey(hostname);
                 		if (key != null) {
@@ -175,7 +176,7 @@ public class TrackerLookupView extends javax.swing.JFrame {
 	private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         if (App.bn.joined) {
         	String rnhostname = jTextField2.getText();
-        	if (!rnhostname.isEmpty() && rnhostname.length() < App.max_str_len_small_size) {
+        	if (!rnhostname.isEmpty() && rnhostname.length() < NumericConstraints.MAX_STR_LEN_SMALL.size()) {
         		TrackerClient tr = new TrackerClient();
         		String bluenode = tr.checkRnOnlineByHostname(rnhostname);
         		if (bluenode != null) {
@@ -189,7 +190,7 @@ public class TrackerLookupView extends javax.swing.JFrame {
 	
 	private void jButton2ActionPerformed(ActionEvent evt) {
 		String vaddress = jTextField2.getText();
-    	if (!vaddress.isEmpty() && vaddress.length() < App.max_str_len_small_size) {
+    	if (!vaddress.isEmpty() && vaddress.length() < NumericConstraints.MAX_STR_LEN_SMALL.size()) {
     		TrackerClient tr = new TrackerClient();
     		String bluenode = tr.checkRnOnlineByVaddr(vaddress);	 
     		if (bluenode != null) {

@@ -1,27 +1,27 @@
 package org.kostiskag.unitynetwork.bluenode.gui;
 
+import java.util.Map;
+import java.util.HashMap;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.ListSelectionModel;
-import javax.swing.table.DefaultTableModel;
-
-import org.kostiskag.unitynetwork.bluenode.App;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import javax.swing.JCheckBox;
+
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.*;
+
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.common.entry.NodeType;
+
+import org.kostiskag.unitynetwork.bluenode.App;
+
 
 /**
  * This is the main bluenode window. 
@@ -29,108 +29,166 @@ import javax.swing.event.ChangeEvent;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class MainWindow extends javax.swing.JFrame {
-
+public final class MainWindow extends JFrame {
+    
+    private static MainWindow MAIN_WINDOW;
+    private static final int TEXT_AREA_MAX_MESSAGE_VALUE = 10000;
     private static final long serialVersionUID = 5505085647328297106L;
-	private final Object lockLocal = new Object();
+
+    private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Physical Address", "Auth Port", "Send Port", "Receive Port"});
+    private final DefaultTableModel remoteRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Blue Node Name", "Last Checked"});
+    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Is a Server", "Physical Address", "Auth Port", "Send Port", "Receive Port", "Last Checked"});
+
+    //synchronised locks
+    private final Object lockLocal = new Object();
     private final Object lockBn = new Object();
     private final Object lockRRn = new Object();
     private final Object lockTraffic = new Object();
     private final Object lockConsole = new Object();
-	private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Physical Address", "Auth Port", "Send Port", "Receive Port"});
-    private final DefaultTableModel remoteRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Blue Node Name", "Last Checked"});
-    private final DefaultTableModel remoteBlueNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Name", "Is a Server", "Physical Address", "Auth Port", "Send Port", "Receive Port", "Last Checked"});
+
+    //instance data
+    private final MainWindowPrefs prefs;
     private boolean autoScrollDownTraffic = true;
     private boolean autoScrollDownConsole = true;
     private boolean viewTraffic = true;
-    private boolean[] viewType = new boolean[] { true, true, true, true };
-	private boolean[] viewhostType = new boolean[] { true, true };
-	private int messageCountConsole = 0;
+    private int messageCountConsole = 0;
     private int messageCountTraffic = 0;
+    private final Map<AppLogger.MessageType, Boolean> viewType = new HashMap<>();
+    private final Map<NodeType, Boolean> viewhostType = new HashMap<>();
+	
     private About about;
 
-    public MainWindow() {
-    	setTitle("Blue Node");
-    	initComponents(); 
-        if (!App.bn.network) {
-    		jTabbedPane1.remove(2); 
-    		btnCollectTrackersPublic.setEnabled(false);
-    		btnNewButton_1.setEnabled(false);    		
-        } else if (App.bn.trackerPublicKey == null) {
-			btnNewButton_1.setEnabled(false);
-		}
+    public static class MainWindowPrefs {
+        final String bluenodeName;
+        final int authPort;
+        final int maxRednodeEntries;
+        final int startPort;
+        final int endPort;
+        final boolean networkMode;
+        final boolean isTrackerKeySet;
+        final boolean useListMode;
+
+        public MainWindowPrefs(String bluenodeName, int authPort, int maxRednodeEntries, int startPort, int endPort, boolean networkMode, boolean isTrackerKeySet, boolean useListMode) {
+            this.bluenodeName = bluenodeName;
+            this.authPort = authPort;
+            this.maxRednodeEntries = maxRednodeEntries;
+            this.startPort = startPort;
+            this.endPort = endPort;
+            this.networkMode = networkMode;
+            this.isTrackerKeySet = isTrackerKeySet;
+            this.useListMode = useListMode;
+        }
+    }
+    
+    public static MainWindow newInstance(MainWindowPrefs prefs) {
+        if (MAIN_WINDOW == null) {
+            MAIN_WINDOW = new MainWindow(prefs);
+        }
+        return MAIN_WINDOW;
+    }
+
+    public static MainWindow getInstance() {
+        return MAIN_WINDOW;
+    }
+
+    private MainWindow(MainWindowPrefs prefs) {
+        this.prefs = prefs;
+        for (AppLogger.MessageType m : AppLogger.MessageType.values()) {
+            viewType.put(m, true);    
+        }
+        for (NodeType n : NodeType.values()) {
+            viewhostType.put(n, true);
+        }
         
-        jTable1.setDefaultEditor(Object.class, null);
-        jTable2.setDefaultEditor(Object.class, null);
-        jTable3.setDefaultEditor(Object.class, null);
+        initComponents();
+        bluenodeNameTextField.setText(prefs.bluenodeName);
+        authPortTextField.setText("" + prefs.authPort);
+        maxEntriesTextField.setText("" + prefs.maxRednodeEntries);
+        portRangeTextField.setText("" + prefs.startPort + "-" + prefs.endPort);
+
+        if (prefs.networkMode) {
+            txtOpMode.setText("Network");
+            if (prefs.isTrackerKeySet) {
+                uploadPublicKeyButton.setEnabled(false);
+            }
+        } else if (prefs.useListMode){
+            txtOpMode.setText("Standalone/List");
+        } else {
+            txtOpMode.setText("Standalone/Plain");
+            jTabbedPane1.remove(2);
+            btnCollectTrackersPublic.setEnabled(false);
+            uploadPublicKeyButton.setEnabled(false);
+        }
+
+        this.setVisible(true);
     }   
 
     private void initComponents() {
 
-        jMenuItem1 = new javax.swing.JMenuItem();
-        jCheckBoxMenuItem1 = new javax.swing.JCheckBoxMenuItem();
-        jMenuItem5 = new javax.swing.JMenuItem();
-        buttonGroup1 = new javax.swing.ButtonGroup();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
-        jPanel4 = new javax.swing.JPanel();
-        jButton2 = new javax.swing.JButton();
-        jScrollPane5 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
-        jPanel3 = new javax.swing.JPanel();
-        jTextField2 = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jTextField1.setFont(new Font("Tahoma", Font.PLAIN, 13));
-        jTextField1.setText("BlueNode");
-        jLabel1 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
-        jTextField5 = new javax.swing.JTextField();
-        jPanel5 = new javax.swing.JPanel();
-        jCheckBox2 = new javax.swing.JCheckBox();
-        jCheckBox3 = new javax.swing.JCheckBox();
-        jCheckBox4 = new javax.swing.JCheckBox();
-        jCheckBox6 = new javax.swing.JCheckBox();
-        jCheckBox7 = new javax.swing.JCheckBox();
-        jCheckBox8 = new javax.swing.JCheckBox();
-        jPanel8 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jToggleButton1 = new javax.swing.JToggleButton();
-        jScrollPane6 = new javax.swing.JScrollPane();
-        jTextArea2 = new javax.swing.JTextArea();
-        jCheckBox5 = new javax.swing.JCheckBox();
-        jCheckBox9 = new javax.swing.JCheckBox();
-        jCheckBox10 = new javax.swing.JCheckBox();
-        jSeparator1 = new javax.swing.JSeparator();
-        jRadioButton1 = new javax.swing.JRadioButton();
-        jRadioButton2 = new javax.swing.JRadioButton();
-        jRadioButton3 = new javax.swing.JRadioButton();
-        jCheckBox11 = new javax.swing.JCheckBox();
-        jCheckBox12 = new javax.swing.JCheckBox();
-        jPanel2 = new javax.swing.JPanel();
-        jPanel6 = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        jTable1.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        jButton3 = new javax.swing.JButton();
-        jButton3.setToolTipText("Refresh the GUI representation to match the inner data.");
-        jPanel7 = new javax.swing.JPanel();
-        jPanel9 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable2 = new javax.swing.JTable();
-        jTable2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        jButton5 = new javax.swing.JButton();
+        jPanel1 = new JPanel();
+        jPanel2 = new JPanel();
+        jPanel3 = new JPanel();
+        jPanel4 = new JPanel();
+        jPanel5 = new JPanel();
+        jPanel6 = new JPanel();
+        jPanel7 = new JPanel();
+        jPanel8 = new JPanel();
+        jPanel9 = new JPanel();
+        jPanel10 = new JPanel();
+        localRednodeTable = new JTable();
+        localRednodeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        remoteRednodeTable = new JTable();
+        remoteRednodeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        remoteBluenodeTable = new JTable();
+        remoteBluenodeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        jLabel1 = new JLabel();
+        jLabel2 = new JLabel();
+        jLabel4 = new JLabel();
+        jLabel5 = new JLabel();
+        jMenuItem1 = new JMenuItem();
+        jCheckBoxMenuItem1 = new JCheckBoxMenuItem();
+        jMenuItem5 = new JMenuItem();
+        buttonGroup1 = new ButtonGroup();
+        jTabbedPane1 = new JTabbedPane();
+        jScrollPane5 = new JScrollPane();
+        jScrollPane6 = new JScrollPane();
+        authPortTextField = new JTextField();
+        bluenodeNameTextField = new JTextField();
+        bluenodeNameTextField.setFont(new Font("Tahoma", Font.PLAIN, 13));
+        bluenodeNameTextField.setText("BlueNode");
+        maxEntriesTextField = new JTextField();
+        portRangeTextField = new JTextField();
+        oneUserConnectedCheckBox = new JCheckBox();
+        receivedFromLocalRnCheckBox = new JCheckBox();
+        sentDataToRnCheckBox = new JCheckBox();
+        sentDataToBnCheckBox = new JCheckBox();
+        receivedBnDataCheckBox = new JCheckBox();
+        authServiceCheckBox = new JCheckBox();
+        jToggleButton1 = new JToggleButton();
+        messageVerboseTextArea = new JTextArea();
+        trafficVerboseTextArea = new JTextArea();
+        showkeepAliveCheckBox = new JCheckBox();
+        showRoutingCheckBox = new JCheckBox();
+        shpwAcksCheckBox = new JCheckBox();
+        jSeparator1 = new JSeparator();
+        optViewOnlyRnsRadioButton = new JRadioButton();
+        optViewOnlyBnsRadioButton = new JRadioButton();
+        optViewBothRadioButton = new JRadioButton();
+        showPingsCheckBox = new JCheckBox();
+        jCheckBox12 = new JCheckBox();
+        jScrollPane2 = new JScrollPane();
+        jButton1 = new JButton();
+        jButton2 = new JButton();
+        refreshLocalRnsTableButton = new JButton();
+        refreshLocalRnsTableButton.setToolTipText("Refresh the GUI representation to match the inner data.");
+        jButton5 = new JButton();
         jButton5.setToolTipText("Refresh the GUI representation to match the inner data.");
-        jPanel10 = new javax.swing.JPanel();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        jTable3 = new javax.swing.JTable();
-        jTable3.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        jButton7 = new javax.swing.JButton();
+        jButton7 = new JButton();
         jButton7.setToolTipText("Refresh the GUI representation to match the inner data.");
-        jButton10 = new javax.swing.JButton();
+        jButton10 = new JButton();
         jButton10.setBackground(new Color(204, 51, 0));
+        jScrollPane1 = new JScrollPane();
+        jScrollPane3 = new JScrollPane();
 
         jMenuItem1.setText("jMenuItem1");
 
@@ -175,10 +233,10 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
-        jTextArea1.setRows(5);
-        jScrollPane5.setViewportView(jTextArea1);
+        messageVerboseTextArea.setColumns(20);
+        messageVerboseTextArea.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
+        messageVerboseTextArea.setRows(5);
+        jScrollPane5.setViewportView(messageVerboseTextArea);
         
         checkBox = new JCheckBox();
         checkBox.addChangeListener(new ChangeListener() {
@@ -218,21 +276,15 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Info"));
 
-        jTextField2.setEditable(false);
-
         jLabel2.setText("Auth Port (TCP)");
-
-        jTextField1.setEditable(false);
-        
         jLabel1.setText("Hostname");
-
         jLabel4.setText("Max Number of RN Hosts");
-
-        jTextField4.setEditable(false);
-
         jLabel5.setText("UDP Port Range");
 
-        jTextField5.setEditable(false);
+        authPortTextField.setEditable(false);
+        bluenodeNameTextField.setEditable(false);
+        maxEntriesTextField.setEditable(false);
+        portRangeTextField.setEditable(false);
         
         JLabel lblOperationMode = new JLabel("Operation Mode");
         
@@ -260,8 +312,8 @@ public class MainWindow extends javax.swing.JFrame {
         	}
         });
         
-        btnNewButton_1 = new JButton("Manage BlueNode's Public Key");
-        btnNewButton_1.addActionListener(new ActionListener() {
+        uploadPublicKeyButton = new JButton("Manage BlueNode's Public Key");
+        uploadPublicKeyButton.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		new UploadKeyView().setVisible();
         	}
@@ -283,18 +335,18 @@ public class MainWindow extends javax.swing.JFrame {
         				.addComponent(btnNewButton, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(lblOperationMode)
         				.addComponent(txtOpMode, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
-        				.addComponent(btnNewButton_1, GroupLayout.PREFERRED_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(uploadPublicKeyButton, GroupLayout.PREFERRED_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(jLabel1)
-        				.addComponent(jTextField1, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(bluenodeNameTextField, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(lblEchoAddress)
         				.addComponent(textField, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(jLabel2)
-        				.addComponent(jTextField2, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(authPortTextField, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(jLabel5)
-        				.addComponent(jTextField5, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+        				.addComponent(portRangeTextField, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(jLabel4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
         				.addComponent(btnCollectTrackersPublic)
-        				.addComponent(jTextField4, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE))
+        				.addComponent(maxEntriesTextField, GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE))
         			.addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -307,7 +359,7 @@ public class MainWindow extends javax.swing.JFrame {
         			.addPreferredGap(ComponentPlacement.RELATED)
         			.addComponent(jLabel1)
         			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addComponent(jTextField1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        			.addComponent(bluenodeNameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(lblEchoAddress)
         			.addPreferredGap(ComponentPlacement.RELATED)
@@ -315,19 +367,19 @@ public class MainWindow extends javax.swing.JFrame {
         			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(jLabel2)
         			.addPreferredGap(ComponentPlacement.UNRELATED)
-        			.addComponent(jTextField2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        			.addComponent(authPortTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(jLabel5)
         			.addPreferredGap(ComponentPlacement.UNRELATED)
-        			.addComponent(jTextField5, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        			.addComponent(portRangeTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         			.addPreferredGap(ComponentPlacement.UNRELATED)
         			.addComponent(jLabel4)
         			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addComponent(jTextField4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        			.addComponent(maxEntriesTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         			.addGap(13)
         			.addComponent(btnCollectTrackersPublic)
         			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addComponent(btnNewButton_1)
+        			.addComponent(uploadPublicKeyButton)
         			.addPreferredGap(ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
         			.addComponent(btnNewButton)
         			.addContainerGap())
@@ -338,24 +390,24 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Info Variables"));
 
-        jCheckBox2.setText("At least one user was connected");
-        jCheckBox2.setEnabled(false);
+        oneUserConnectedCheckBox.setText("At least one user was connected");
+        oneUserConnectedCheckBox.setEnabled(false);
 
-        jCheckBox3.setText("Has downloaded data from a local Red Node");
-        jCheckBox3.setActionCommand("hasDownloadedContentFromBoundHosts");
-        jCheckBox3.setEnabled(false);
+        receivedFromLocalRnCheckBox.setText("Has downloaded data from a local Red Node");
+        receivedFromLocalRnCheckBox.setActionCommand("hasDownloadedContentFromBoundHosts");
+        receivedFromLocalRnCheckBox.setEnabled(false);
 
-        jCheckBox4.setText("Has uploaded data to a local Red Node");
-        jCheckBox4.setEnabled(false);
+        sentDataToRnCheckBox.setText("Has uploaded data to a local Red Node");
+        sentDataToRnCheckBox.setEnabled(false);
 
-        jCheckBox6.setText("Has uploaded data to another Blue Node");
-        jCheckBox6.setEnabled(false);
+        sentDataToBnCheckBox.setText("Has uploaded data to another Blue Node");
+        sentDataToBnCheckBox.setEnabled(false);
 
-        jCheckBox7.setText("Has downloaded data from another Blue Node");
-        jCheckBox7.setEnabled(false);
+        receivedBnDataCheckBox.setText("Has downloaded data from another Blue Node");
+        receivedBnDataCheckBox.setEnabled(false);
 
-        jCheckBox8.setText("Is Auth Service Online");
-        jCheckBox8.setEnabled(false);
+        authServiceCheckBox.setText("Is Auth Service Online");
+        authServiceCheckBox.setEnabled(false);
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -366,16 +418,16 @@ public class MainWindow extends javax.swing.JFrame {
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jCheckBox4)
-                            .addComponent(jCheckBox6))
+                            .addComponent(sentDataToRnCheckBox)
+                            .addComponent(sentDataToBnCheckBox))
                         .addGap(23, 23, 23)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jCheckBox7)
-                            .addComponent(jCheckBox3)))
+                            .addComponent(receivedBnDataCheckBox)
+                            .addComponent(receivedFromLocalRnCheckBox)))
                     .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addComponent(jCheckBox8)
+                        .addComponent(authServiceCheckBox)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jCheckBox2)))
+                        .addComponent(oneUserConnectedCheckBox)))
                 .addContainerGap(76, Short.MAX_VALUE))
         );
         jPanel5Layout.setVerticalGroup(
@@ -383,16 +435,16 @@ public class MainWindow extends javax.swing.JFrame {
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jCheckBox2)
-                    .addComponent(jCheckBox8))
+                    .addComponent(oneUserConnectedCheckBox)
+                    .addComponent(authServiceCheckBox))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jCheckBox4)
-                    .addComponent(jCheckBox3))
+                    .addComponent(sentDataToRnCheckBox)
+                    .addComponent(receivedFromLocalRnCheckBox))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jCheckBox6)
-                    .addComponent(jCheckBox7))
+                    .addComponent(sentDataToBnCheckBox)
+                    .addComponent(receivedBnDataCheckBox))
                 .addContainerGap(18, Short.MAX_VALUE))
         );
 
@@ -413,65 +465,65 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        jTextArea2.setColumns(20);
-        jTextArea2.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
-        jTextArea2.setRows(5);
-        jScrollPane6.setViewportView(jTextArea2);
+        trafficVerboseTextArea.setColumns(20);
+        trafficVerboseTextArea.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
+        trafficVerboseTextArea.setRows(5);
+        jScrollPane6.setViewportView(trafficVerboseTextArea);
 
-        jCheckBox5.setSelected(true);
-        jCheckBox5.setText("view keep alives");
-        jCheckBox5.addActionListener(new java.awt.event.ActionListener() {
+        showkeepAliveCheckBox.setSelected(true);
+        showkeepAliveCheckBox.setText("view keep alives");
+        showkeepAliveCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox5ActionPerformed(evt);
+                keepAliveCheckBoxActionPerformed(evt);
             }
         });
 
-        jCheckBox9.setSelected(true);
-        jCheckBox9.setText("view routing");
-        jCheckBox9.addActionListener(new java.awt.event.ActionListener() {
+        showRoutingCheckBox.setSelected(true);
+        showRoutingCheckBox.setText("view routing");
+        showRoutingCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox9ActionPerformed(evt);
+                showRoutingCheckBoxActionPerformed(evt);
             }
         });
 
-        jCheckBox10.setSelected(true);
-        jCheckBox10.setText("view acks");
-        jCheckBox10.addActionListener(new java.awt.event.ActionListener() {
+        shpwAcksCheckBox.setSelected(true);
+        shpwAcksCheckBox.setText("view acks");
+        shpwAcksCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox10ActionPerformed(evt);
+                shpwAcksCheckBoxActionPerformed(evt);
             }
         });
 
-        buttonGroup1.add(jRadioButton1);
-        jRadioButton1.setText("Only view Local Red Nodes");
-        jRadioButton1.addActionListener(new java.awt.event.ActionListener() {
+        buttonGroup1.add(optViewOnlyRnsRadioButton);
+        optViewOnlyRnsRadioButton.setText("Only view Local Red Nodes");
+        optViewOnlyRnsRadioButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton1ActionPerformed(evt);
+                optViewOnlyRnsRadioButtonActionPerformed(evt);
             }
         });
 
-        buttonGroup1.add(jRadioButton2);
-        jRadioButton2.setText("Only View Blue Nodes");
-        jRadioButton2.addActionListener(new java.awt.event.ActionListener() {
+        buttonGroup1.add(optViewOnlyBnsRadioButton);
+        optViewOnlyBnsRadioButton.setText("Only View Blue Nodes");
+        optViewOnlyBnsRadioButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton2ActionPerformed(evt);
+                optViewOnlyBnsRadioButtonActionPerformed(evt);
             }
         });
 
-        buttonGroup1.add(jRadioButton3);
-        jRadioButton3.setSelected(true);
-        jRadioButton3.setText("View Both LRNs and BNs");
-        jRadioButton3.addActionListener(new java.awt.event.ActionListener() {
+        buttonGroup1.add(optViewBothRadioButton);
+        optViewBothRadioButton.setSelected(true);
+        optViewBothRadioButton.setText("View Both LRNs and BNs");
+        optViewBothRadioButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton3ActionPerformed(evt);
+                optViewBothRadioButtonRadioButtonActionPerformed(evt);
             }
         });
 
-        jCheckBox11.setSelected(true);
-        jCheckBox11.setText("view pings");
-        jCheckBox11.addActionListener(new java.awt.event.ActionListener() {
+        showPingsCheckBox.setSelected(true);
+        showPingsCheckBox.setText("view pings");
+        showPingsCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox11ActionPerformed(evt);
+                showPingsCheckBoxActionPerformed(evt);
             }
         });
 
@@ -492,24 +544,24 @@ public class MainWindow extends javax.swing.JFrame {
                 .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel8Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jRadioButton3)
+                        .addComponent(optViewBothRadioButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jRadioButton1)
+                        .addComponent(optViewOnlyRnsRadioButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jRadioButton2)
+                        .addComponent(optViewOnlyBnsRadioButton)
                         .addGap(48, 48, 48))
                     .addComponent(jScrollPane6)
                     .addComponent(jSeparator1)
                     .addGroup(jPanel8Layout.createSequentialGroup()
                         .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel8Layout.createSequentialGroup()
-                                .addComponent(jCheckBox5)
+                                .addComponent(showkeepAliveCheckBox)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jCheckBox11)
+                                .addComponent(showPingsCheckBox)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jCheckBox10)
+                                .addComponent(shpwAcksCheckBox)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jCheckBox9))
+                                .addComponent(showRoutingCheckBox))
                             .addGroup(jPanel8Layout.createSequentialGroup()
                                 .addComponent(jToggleButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -530,17 +582,17 @@ public class MainWindow extends javax.swing.JFrame {
                 .addComponent(jScrollPane6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jRadioButton1)
-                    .addComponent(jRadioButton2)
-                    .addComponent(jRadioButton3))
+                    .addComponent(optViewOnlyRnsRadioButton)
+                    .addComponent(optViewOnlyBnsRadioButton)
+                    .addComponent(optViewBothRadioButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jCheckBox5)
-                    .addComponent(jCheckBox9)
-                    .addComponent(jCheckBox10)
-                    .addComponent(jCheckBox11))
+                    .addComponent(showkeepAliveCheckBox)
+                    .addComponent(showRoutingCheckBox)
+                    .addComponent(shpwAcksCheckBox)
+                    .addComponent(showPingsCheckBox))
                 .addContainerGap())
         );
 
@@ -579,11 +631,11 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("Local Red Nodes"));
 
-        jTable1.setModel(localRedNodeTableModel);
-        jScrollPane2.setViewportView(jTable1);
+        localRednodeTable.setModel(localRedNodeTableModel);
+        jScrollPane2.setViewportView(localRednodeTable);
 
-        jButton3.setText("Refresh Table");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        refreshLocalRnsTableButton.setText("Refresh Table");
+        refreshLocalRnsTableButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
             	updateLocalRns();
             }
@@ -596,7 +648,7 @@ public class MainWindow extends javax.swing.JFrame {
         			.addContainerGap()
         			.addGroup(jPanel6Layout.createParallelGroup(Alignment.LEADING)
         				.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 1416, Short.MAX_VALUE)
-        				.addComponent(jButton3))
+        				.addComponent(refreshLocalRnsTableButton))
         			.addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
@@ -604,7 +656,7 @@ public class MainWindow extends javax.swing.JFrame {
         		.addGroup(jPanel6Layout.createSequentialGroup()
         			.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 435, Short.MAX_VALUE)
         			.addPreferredGap(ComponentPlacement.RELATED)
-        			.addComponent(jButton3))
+        			.addComponent(refreshLocalRnsTableButton))
         );
         jPanel6.setLayout(jPanel6Layout);
 
@@ -629,8 +681,8 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel9.setBorder(javax.swing.BorderFactory.createTitledBorder("Remote Red Nodes"));
 
-        jTable2.setModel(remoteRedNodeTableModel);
-        jScrollPane1.setViewportView(jTable2);
+        remoteRednodeTable.setModel(remoteRedNodeTableModel);
+        jScrollPane1.setViewportView(remoteRednodeTable);
 
         jButton5.setText("Refresh Table");
         jButton5.addActionListener(new java.awt.event.ActionListener() {
@@ -671,8 +723,8 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel10.setBorder(javax.swing.BorderFactory.createTitledBorder("Remote Assosiated BlueNodes"));
 
-        jTable3.setModel(remoteBlueNodeTableModel);
-        jScrollPane3.setViewportView(jTable3);
+        remoteBluenodeTable.setModel(remoteBlueNodeTableModel);
+        jScrollPane3.setViewportView(remoteBluenodeTable);
 
         jButton7.setText("Refresh Table");
         jButton7.addActionListener(new java.awt.event.ActionListener() {
@@ -762,29 +814,91 @@ public class MainWindow extends javax.swing.JFrame {
         );
 
         pack();
+
+        this.setTitle("Blue Node");
+        localRednodeTable.setDefaultEditor(Object.class, null);
+        remoteRednodeTable.setDefaultEditor(Object.class, null);
+        remoteBluenodeTable.setDefaultEditor(Object.class, null);
+    }
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+        trafficVerboseTextArea.setText("");
+    }
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+        messageVerboseTextArea.setText("");
+    }
+
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {
+        updateRemoteRns();
+    }
+
+    private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {
+        updateBNs();
+    }
+
+    private void keepAliveCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {
+        viewType.put(AppLogger.MessageType.KEEP_ALIVE, showkeepAliveCheckBox.isSelected());
+    }
+
+    private void showPingsCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {
+        viewType.put(AppLogger.MessageType.PINGS, showPingsCheckBox.isSelected());
+    }
+
+    private void shpwAcksCheckBoxActionPerformed(ActionEvent evt) {
+        viewType.put(AppLogger.MessageType.ACKS, shpwAcksCheckBox.isSelected());
+    }
+
+    private void showRoutingCheckBoxActionPerformed(ActionEvent evt) {
+        viewType.put(AppLogger.MessageType.ROUTING, showRoutingCheckBox.isSelected());
+    }
+
+    private void optViewBothRadioButtonRadioButtonActionPerformed(ActionEvent evt) {
+        if (optViewBothRadioButton.isSelected()) {
+            viewhostType.put(NodeType.REDNODE, true);
+            viewhostType.put(NodeType.BLUENODE, true);
+        }
+    }
+
+    private void optViewOnlyRnsRadioButtonActionPerformed(ActionEvent evt) {
+        if (optViewOnlyRnsRadioButton.isSelected()) {
+            viewhostType.put(NodeType.REDNODE, true);
+            viewhostType.put(NodeType.BLUENODE, false);
+        }
+    }
+
+    private void optViewOnlyBnsRadioButtonActionPerformed(ActionEvent evt) {
+        if (optViewOnlyBnsRadioButton.isSelected()) {
+            viewhostType.put(NodeType.REDNODE, false);
+            viewhostType.put(NodeType.BLUENODE, true);
+        }
+    }
+
+    private void jCheckBox12ActionPerformed(ActionEvent evt) {
+        autoScrollDownTraffic = jCheckBox12.isSelected();
+    }
+
+    private void trackerRNLookup(ActionEvent evt) {
+        new TrackerLookupView().setVisible(true);
     }
 
     private void openNewBnWindow() {
         new NonAssociatedBlueNodeClientView().setVisible(true);
     }
-    
-    protected void openAssosiatedWindow() {
+
+    private void openAssosiatedWindow() {
 		try {
-			int row = jTable3.getSelectedRow();
+			int row = remoteBluenodeTable.getSelectedRow();
 			if (row >= 0) {
 				try {
-					new AssociatedBlueNodeClientView((String) jTable3.getValueAt(row, 0)).setVisible();
+					new AssociatedBlueNodeClientView((String) remoteBluenodeTable.getValueAt(row, 0)).setVisible();
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 			}
 		} catch (ArrayIndexOutOfBoundsException ex){
-			
+
 		}
-	}
-	
-	protected void trackerRNLookup(ActionEvent evt) {
-		new TrackerLookupView().setVisible(true);
 	}
 
 	private void jToggleButton1ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -795,224 +909,185 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        jTextArea2.setText("");
-    }
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        jTextArea1.setText("");
-    }
-
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {
-    	updateRemoteRns();
-    }
-
-    private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {
-    	updateBNs();
-    }
-
-    private void jCheckBox5ActionPerformed(java.awt.event.ActionEvent evt) {
-         viewType[0] = jCheckBox5.isSelected();
-    }
-
-    private void jCheckBox11ActionPerformed(java.awt.event.ActionEvent evt) {
-        viewType[1] = jCheckBox11.isSelected();
-    }
-
-    private void jCheckBox10ActionPerformed(java.awt.event.ActionEvent evt) {
-       viewType[2] = jCheckBox10.isSelected();
-    }
-
-    private void jCheckBox9ActionPerformed(java.awt.event.ActionEvent evt) {
-        viewType[3] = jCheckBox9.isSelected();
-    }
-
-    private void jRadioButton3ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (jRadioButton3.isSelected()) {
-            viewhostType[0] = true;
-            viewhostType[1] = true;
-        }
-    }
-
-    private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (jRadioButton1.isSelected()) {
-            viewhostType[0] = true;
-            viewhostType[1] = false;
-        }
-    }
-
-    private void jRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (jRadioButton2.isSelected()) {
-            viewhostType[0] = false;
-            viewhostType[1] = true;
-        }
-    }
-
-    private void jCheckBox12ActionPerformed(java.awt.event.ActionEvent evt) {
-        autoScrollDownTraffic = jCheckBox12.isSelected();
-    }
-    private javax.swing.ButtonGroup buttonGroup1;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton10;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton7;
-    private JCheckBox checkBox;
-    private javax.swing.JCheckBox jCheckBox10;
-    private javax.swing.JCheckBox jCheckBox11;
-    private javax.swing.JCheckBox jCheckBox12;
-    public static javax.swing.JCheckBox jCheckBox2;
-    public static javax.swing.JCheckBox jCheckBox3;
-    public static javax.swing.JCheckBox jCheckBox4;
-    private javax.swing.JCheckBox jCheckBox5;
-    public static javax.swing.JCheckBox jCheckBox6;
-    public static javax.swing.JCheckBox jCheckBox7;
-    public static javax.swing.JCheckBox jCheckBox8;
-    private javax.swing.JCheckBox jCheckBox9;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JMenuItem jMenuItem5;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel10;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel5;
-    private javax.swing.JPanel jPanel6;
-    private javax.swing.JPanel jPanel7;
-    private javax.swing.JPanel jPanel8;
-    private javax.swing.JPanel jPanel9;
-    private javax.swing.JRadioButton jRadioButton1;
-    private javax.swing.JRadioButton jRadioButton2;
-    private javax.swing.JRadioButton jRadioButton3;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JScrollPane jScrollPane6;
-    private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JTabbedPane jTabbedPane1;
-    public javax.swing.JTable jTable1;
-    public javax.swing.JTable jTable2;
-    public javax.swing.JTable jTable3;
-    public static javax.swing.JTextArea jTextArea1;
-    public static javax.swing.JTextArea jTextArea2;
-    public static javax.swing.JTextField jTextField1;
-    public static javax.swing.JTextField jTextField2;
-    public static javax.swing.JTextField jTextField4;
-    public static javax.swing.JTextField jTextField5;
-    private javax.swing.JToggleButton jToggleButton1;
-    private JTextField txtOpMode;
-    private JButton btnOpenBlueNode;
-    private JLabel lblEchoAddress;
-    private JTextField textField;
-    private JButton btnNewButton;
-    private JButton btnCollectTrackersPublic;
-    private JButton btnNewButton_1;
-    
     public void enableUploadKey () {
-    	btnNewButton_1.setEnabled(true);
+    	uploadPublicKeyButton.setEnabled(true);
     }
-    
-    public void setBlueNodeInfo() {    
-        jTextField1.setText(App.bn.name);
-        jTextField2.setText("" + App.bn.authPort);
-        jTextField4.setText("" + App.bn.maxRednodeEntries);
-        jTextField5.setText("" + App.bn.startPort + "-" + App.bn.endPort);
-        if (App.bn.network) {
-        	txtOpMode.setText("Network");
-        } else if (App.bn.useList){
-        	txtOpMode.setText("Standalone/List");
-        } else {
-        	txtOpMode.setText("Standalone/Plain");
-        }
-    }
-    
+
+    //destroys Encapsulation!!!
     public void setEchoIpAddress(String addr) {
     	textField.setText(addr);
     }
-    
-    public void ConsolePrint(String message) {
+
+    public void setAuthServiceAsEnabled() {
+        authServiceCheckBox.setEnabled(true);
+    }
+
+    public void setOneUserAsConnected() {
+        oneUserConnectedCheckBox.setEnabled(true);
+    }
+
+    public void setReceivedLocalRnData() {
+        receivedFromLocalRnCheckBox.setEnabled(true);
+    }
+
+    public void setReceivedBnData() {
+        receivedBnDataCheckBox.setEnabled(true);
+    }
+
+    public void setSentDataToRn() {
+        sentDataToRnCheckBox.setEnabled(true);
+    }
+
+    public void setSentDataToBn() {
+        sentDataToBnCheckBox.setEnabled(true);
+    }
+
+    public void consolePrint(String message) {
     	synchronized (lockConsole) {
     		messageCountConsole++;
-    		jTextArea1.append(message + "\n");    
-    		
-    		if (messageCountConsole > 10000) {
+    		messageVerboseTextArea.append(message + "\n");
+
+    		if (messageCountConsole > TEXT_AREA_MAX_MESSAGE_VALUE) {
 				messageCountConsole = 0;
-				jTextArea1.setText("");
+				messageVerboseTextArea.setText("");
 			}
 			if (autoScrollDownConsole) {
-				jTextArea1.select(jTextArea1.getHeight() + 10000, 0);
+				messageVerboseTextArea.select(messageVerboseTextArea.getHeight() + TEXT_AREA_MAX_MESSAGE_VALUE, 0);
 			}
-		}    	
+		}
     }
-    
-    public void TrafficPrint(String message, int messageType, int hostType) {		
+
+    public void trafficPrint(String message, AppLogger.MessageType messageType, NodeType hostType) {
 		synchronized (lockTraffic) {
-			if (viewTraffic) {
-				if (viewType[messageType] == true && viewhostType[hostType] == true) {
+			if (viewTraffic && viewType.get(messageType) && viewhostType.get(hostType)) {
 					messageCountTraffic++;
-					jTextArea2.append(message + "\n");
-				}
+					trafficVerboseTextArea.append(message + "\n");
 			}
-			if (messageCountTraffic > 10000) {
+			if (messageCountTraffic > TEXT_AREA_MAX_MESSAGE_VALUE) {
 				messageCountTraffic = 0;
-				jTextArea2.setText("");
+				trafficVerboseTextArea.setText("");
 			}
 			if (autoScrollDownTraffic) {
-				jTextArea2.select(jTextArea2.getHeight() + 10000, 0);
+				trafficVerboseTextArea.select(trafficVerboseTextArea.getHeight() + TEXT_AREA_MAX_MESSAGE_VALUE, 0);
 			}
 		}
     }
 
-	public void updateLocalRns() {
-		synchronized (lockLocal) {
-			String[][] obj = App.bn.localRedNodesTable.buildGUIObj();
-			int rows = localRedNodeTableModel.getRowCount();
-	        for (int i = 0; i < rows; i++) {
-	            localRedNodeTableModel.removeRow(0);
-	        }
-	        for (int i = 0; i < obj.length; i++) {
-	            localRedNodeTableModel.addRow(obj[i]);
-	        }
-	        
-	        jTable1.setModel(localRedNodeTableModel);
-	        repaint();
-		}		
-	}
+    public void updateLocalRns() {
+        String[][] guiObj = App.bn.localRedNodesTable.buildGUIObj();
+        updateLocalRns(guiObj);
+    }
 
-	public void updateRemoteRns() {
-		synchronized (lockRRn) {
-			String[][] obj = App.bn.blueNodeTable.buildRRNGUIObj();
-			int rows = remoteRedNodeTableModel.getRowCount();
-	        for (int i = 0; i < rows; i++) {
-	        	remoteRedNodeTableModel.removeRow(0);
-	        }
-	        for (int i = 0; i < obj.length; i++) {
-	        	remoteRedNodeTableModel.addRow(obj[i]);
-	        }		
-	        jTable2.setModel(remoteRedNodeTableModel);
-	        repaint();
-		}		
-	}
-	
-	public void updateBNs() {
-		synchronized (lockBn) {
-			String[][] obj = App.bn.blueNodeTable.buildBNGUIObj();
-			int rows = remoteBlueNodeTableModel.getRowCount();
-	        for (int i = 0; i < rows; i++) {
-	        	remoteBlueNodeTableModel.removeRow(0);
-	        }
-	        for (int i = 0; i < obj.length; i++) {
-	        	remoteBlueNodeTableModel.addRow(obj[i]);
-	        }	
-	        jTable3.setModel(remoteBlueNodeTableModel);
-	        repaint();
-		}
-	}
+    public void updateLocalRns(String[][] guiObj) {
+        synchronized (lockLocal) {
+            for (int i = 0; i < localRedNodeTableModel.getRowCount(); i++) {
+                localRedNodeTableModel.removeRow(0);
+            }
+            for (int i = 0; i < guiObj.length; i++) {
+                localRedNodeTableModel.addRow(guiObj[i]);
+            }
+            localRednodeTable.setModel(localRedNodeTableModel);
+            repaint();
+        }
+    }
+
+    public void updateRemoteRns() {
+        String[][] guiObj = App.bn.blueNodeTable.buildRRNGUIObj();
+        updateRemoteRns(guiObj);
+    }
+
+    public void updateRemoteRns(String[][] guiObj) {
+        synchronized (lockRRn) {
+            for (int i = 0; i < remoteRedNodeTableModel.getRowCount(); i++) {
+                remoteRedNodeTableModel.removeRow(0);
+            }
+            for (int i = 0; i < guiObj.length; i++) {
+                remoteRedNodeTableModel.addRow(guiObj[i]);
+            }
+            remoteRednodeTable.setModel(remoteRedNodeTableModel);
+            repaint();
+        }
+    }
+
+    public void updateBNs() {
+        String[][] guiObj = App.bn.blueNodeTable.buildBNGUIObj();
+        updateBNs(guiObj);
+    }
+
+    public void updateBNs(String[][] guiObj) {
+        synchronized (lockBn) {
+            for (int i = 0; i < remoteBlueNodeTableModel.getRowCount(); i++) {
+                remoteBlueNodeTableModel.removeRow(0);
+            }
+            for (int i = 0; i < guiObj.length; i++) {
+                remoteBlueNodeTableModel.addRow(guiObj[i]);
+            }
+            remoteBluenodeTable.setModel(remoteBlueNodeTableModel);
+            repaint();
+        }
+    }
+
+    private JPanel jPanel1;
+    private JPanel jPanel10;
+    private JPanel jPanel2;
+    private JPanel jPanel3;
+    private JPanel jPanel4;
+    private JPanel jPanel5;
+    private JPanel jPanel6;
+    private JPanel jPanel7;
+    private JPanel jPanel8;
+    private JPanel jPanel9;
+    private JScrollPane jScrollPane1;
+    private JScrollPane jScrollPane2;
+    private JScrollPane jScrollPane3;
+    private JScrollPane jScrollPane5;
+    private JScrollPane jScrollPane6;
+    private JSeparator jSeparator1;
+    private JTabbedPane jTabbedPane1;
+    private JMenuItem jMenuItem1;
+    private JMenuItem jMenuItem5;
+    private JTable localRednodeTable;
+    private JTable remoteRednodeTable;
+    private JTable remoteBluenodeTable;
+    private JLabel jLabel1;
+    private JLabel jLabel2;
+    private JLabel jLabel4;
+    private JLabel jLabel5;
+    private JLabel lblEchoAddress;
+    private ButtonGroup buttonGroup1;
+    private JToggleButton jToggleButton1;
+    private JButton jButton1;
+    private JButton jButton10;
+    private JButton jButton2;
+    private JButton refreshLocalRnsTableButton;
+    private JButton jButton5;
+    private JButton jButton7;
+    private JButton btnNewButton;
+    private JButton btnCollectTrackersPublic;
+    private JButton uploadPublicKeyButton;
+    private JButton btnOpenBlueNode;
+    private JRadioButton optViewOnlyRnsRadioButton;
+    private JRadioButton optViewBothRadioButton;
+    private JRadioButton optViewOnlyBnsRadioButton;
+    private JCheckBoxMenuItem jCheckBoxMenuItem1;
+    private JCheckBox checkBox;
+    private JCheckBox shpwAcksCheckBox;
+    private JCheckBox showPingsCheckBox;
+    private JCheckBox jCheckBox12;
+    private JCheckBox oneUserConnectedCheckBox;
+    private JCheckBox receivedFromLocalRnCheckBox;
+    private JCheckBox sentDataToRnCheckBox;
+    private JCheckBox showkeepAliveCheckBox;
+    private JCheckBox sentDataToBnCheckBox;
+    private JCheckBox receivedBnDataCheckBox;
+    private JCheckBox authServiceCheckBox;
+    private JCheckBox showRoutingCheckBox;
+    private JTextArea messageVerboseTextArea;
+    private JTextArea trafficVerboseTextArea;
+    private JTextField bluenodeNameTextField;
+    private JTextField authPortTextField;
+    private JTextField maxEntriesTextField;
+    private JTextField portRangeTextField;
+    private JTextField textField;
+    private JTextField txtOpMode;
 }

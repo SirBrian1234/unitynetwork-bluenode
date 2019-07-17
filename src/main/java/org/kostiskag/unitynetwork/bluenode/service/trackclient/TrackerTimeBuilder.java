@@ -1,54 +1,69 @@
 package org.kostiskag.unitynetwork.bluenode.service.trackclient;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.kostiskag.unitynetwork.common.service.SimpleCyclicService;
 import org.kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
  * @author Konstantinos Kagiampakis
  */
-public class TrackerTimeBuilder extends Thread {
+public class TrackerTimeBuilder extends SimpleCyclicService {
 
-    private final String pre = "^Tracker sonar ";
-    private AtomicBoolean kill = new AtomicBoolean(false);
-    
-    public TrackerTimeBuilder() {
+    private static final String PRE = "^Tracker sonar ";
+    private static TrackerTimeBuilder TRACKER_TIME_BUILDER;
+
+    public static TrackerTimeBuilder newInstance(int timeInSec) throws IllegalAccessException {
+        if (TRACKER_TIME_BUILDER == null) {
+            TRACKER_TIME_BUILDER = new TrackerTimeBuilder(timeInSec);
+        }
+        return TRACKER_TIME_BUILDER;
     }
-    
+
+    public static TrackerTimeBuilder getInstance() {
+        return TRACKER_TIME_BUILDER;
+    }
+
+    // triggers
+    private AtomicInteger trackerRespond = new AtomicInteger(0);
+
+    private TrackerTimeBuilder(int timeInSec) throws IllegalAccessException {
+        super(timeInSec);
+    }
+
     @Override
-    public void run() {        
-        //reverse error catch
-        if (!App.bn.joined){
-            App.bn.ConsolePrint(pre +"NOT JOINED");
-            return;
-        } else if (App.bn.name == null){
-            App.bn.ConsolePrint(pre +"NO HOSTNAME");
-            return;
-        }
-        
-        App.bn.ConsolePrint(pre+"JUST STARTED");             
-        while (!kill.get()){
-            App.bn.ConsolePrint(pre+"WAITING");
-            try {
-                sleep(App.bn.trackerCheckSec*1000);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-            if (kill.get()) break;
-            int passedTime = App.bn.trackerRespond.addAndGet(App.bn.trackerCheckSec*1000);
-            App.bn.ConsolePrint(pre+" BUILDING TIME "+passedTime);
-            
-            if (passedTime > App.bn.trackerMaxIdleTimeMin*1000*60) {
-            	App.bn.ConsolePrint(pre+"GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL"); 
-                App.bn.localRedNodesTable.exitAll();
-                App.bn.die();                
-            }
-        }
-        App.bn.ConsolePrint(pre+"DIED");
+    protected void preActions() {
+        App.bn.ConsolePrint(PRE +"JUST STARTED");
     }
 
-    public void Kill() {
-        kill.set(true);
-    }       
+    @Override
+    protected void postActions() {
+        App.bn.ConsolePrint(PRE +"DIED");
+    }
+
+    @Override
+    protected void interruptedMessage(InterruptedException e) {
+        e.printStackTrace();
+    }
+
+    @Override
+    protected void cyclicPayload() {
+        int passedTime = trackerRespond.addAndGet(getTime());
+        App.bn.ConsolePrint(PRE + " BUILDING TIME " + passedTime);
+
+        if (passedTime > getTime() * 60) {
+            App.bn.ConsolePrint(PRE + "GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL");
+            App.bn.localRedNodesTable.exitAll();
+            App.bn.die();
+        }
+    }
+
+    public int getTotalElapsedTime() {
+        return trackerRespond.get();
+    }
+
+    public void resetClock() {
+        trackerRespond.set(0);
+    }
 }

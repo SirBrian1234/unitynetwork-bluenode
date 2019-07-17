@@ -6,6 +6,7 @@ import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.service.GlobalSocketFunctions;
+import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerTimeBuilder;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 /**
@@ -17,7 +18,8 @@ class TrackingFunctions {
     public static void check(DataOutputStream outputWriter, SecretKey sessionKey) {
         try {
 			SocketUtilities.sendAESEncryptedStringData("OK", outputWriter, sessionKey);
-			App.bn.trackerRespond.set(0);
+			TrackerTimeBuilder.getInstance().resetClock();
+
         } catch (Exception e) {
 			e.printStackTrace();
 		}

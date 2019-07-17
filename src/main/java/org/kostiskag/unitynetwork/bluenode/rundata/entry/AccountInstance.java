@@ -1,9 +1,13 @@
 package org.kostiskag.unitynetwork.bluenode.rundata.entry;
 
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
+
+import java.security.GeneralSecurityException;
+import java.util.Objects;
+
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.HashUtilities;
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 /**
  * An object of the accounts instance loads the user details when a host.list is
@@ -11,15 +15,17 @@ import org.kostiskag.unitynetwork.common.utilities.HashUtilities;
  *
  * @author Konstantinos Kagiampakis
  */
-public class AccountInstance {
+public final class AccountInstance {
+
     private final String username;
     private final String password;
     private final String hostname;
-    private final String vaddress;
+    private final VirtualAddress vaddress;
 
-    public AccountInstance(String username, String password, String hostname, String vadress) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+    public AccountInstance(String username, String password, String hostname, VirtualAddress vadress) throws GeneralSecurityException {
             this.username = username;
-            this.password = HashUtilities.SHA256(HashUtilities.SHA256(App.SALT) +  HashUtilities.SHA256(username) + HashUtilities.SHA256(App.SALT + password));
+            //derive from common
+            this.password = HashUtilities.SHA256(HashUtilities.SHA256(CryptoUtilities.SALT) +  HashUtilities.SHA256(username) + HashUtilities.SHA256(CryptoUtilities.SALT + password));
             this.hostname = hostname;        
             this.vaddress = vadress;
     }        
@@ -36,27 +42,43 @@ public class AccountInstance {
 		return hostname;
 	}
     
-    public String getVaddress() {
+    public VirtualAddress getVaddress() {
 		return vaddress;
 	}
-    
-    public boolean check(String username, String password, String hostname){
+
+    public boolean check(String username, String password, String hostname) {
         if (this.username.equals(username) && this.password.equals(password) && this.hostname.equals(hostname)){
             return true;
         } else {
         	return false;
         }
     } 
-    
-    public String checkAndGetVaddr(String username, String password, String hostname){
+
+    //get optional of VirtualAddress
+    public VirtualAddress checkAndGetVaddr(String username, String password, String hostname) {
         if (this.username.equals(username) && this.password.equals(password) && this.hostname.equals(hostname)){
             return vaddress;
         } else {
         	return null;
         }
-    }               
+    }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AccountInstance that = (AccountInstance) o;
+        return hostname.equals(that.hostname) ||
+                vaddress.equals(that.vaddress);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(username, password, hostname, vaddress);
+    }
+
+    @Override
     public String toString(){
-        return username+" "+password+" "+hostname+" "+vaddress;
+        return username+" "+password+" "+hostname+" "+vaddress.asString();
     }
 }

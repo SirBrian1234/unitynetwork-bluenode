@@ -27,7 +27,7 @@ public class BlueNodeServer extends Thread{
         try {
             ServerSocket serverSocket = new ServerSocket(authPort);            
             if (!didTrigger && App.bn.gui){
-                MainWindow.jCheckBox8.setSelected(true);
+                MainWindow.getInstance().setAuthServiceAsEnabled();
                 didTrigger = true;
             }            
             

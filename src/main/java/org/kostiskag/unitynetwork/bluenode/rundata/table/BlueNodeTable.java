@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
@@ -284,13 +285,13 @@ public class BlueNodeTable {
 	
 	private void notifyGUI() {
     	if (notifyGui) {
-    		App.bn.window.updateBNs();
+    		MainWindow.getInstance().updateBNs();
     	}
     }
     
     private void notifyRGUI () {
     	if (notifyGui) {
-    		App.bn.window.updateRemoteRns();
+			MainWindow.getInstance().updateRemoteRns();
     	}
     }
 }

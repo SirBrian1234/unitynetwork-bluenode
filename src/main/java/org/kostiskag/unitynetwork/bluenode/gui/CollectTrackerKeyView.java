@@ -85,7 +85,7 @@ public class CollectTrackerKeyView {
 			txtpnWii.setText(CryptoUtilities.bytesToBase64String(App.bn.trackerPublicKey.getEncoded()));
 			txtNotSet.setText("Key is set");
 			btnCollectTrackersPublic.setEnabled(false);
-			App.bn.window.enableUploadKey();
+			MainWindow.getInstance().enableUploadKey();
 		}
 	}
 

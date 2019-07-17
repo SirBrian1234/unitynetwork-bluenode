@@ -3,6 +3,7 @@ package org.kostiskag.unitynetwork.bluenode.service.bluenodeclient;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.service.SimpleCyclicService;
 
 /**
  * Works like the java garbage collector but for killed bluenodes and remote redonodes. The sonar
@@ -12,32 +13,32 @@ import org.kostiskag.unitynetwork.bluenode.App;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class BlueNodeSonarService extends Thread {
+public class BlueNodeSonarService extends SimpleCyclicService {
 
     private final String pre = "^BlueNodeSonarService ";
-    private final int timeInSec;
-    private AtomicBoolean kill = new AtomicBoolean(false);
     
-    public BlueNodeSonarService(int timeInSec) {
-        this.timeInSec = timeInSec;
+    public BlueNodeSonarService(int timeInSec) throws IllegalAccessException {
+        super(timeInSec);
     }
 
     @Override
-    public void run() {
-        App.bn.ConsolePrint(pre+"started in thread "+Thread.currentThread()+" with time pulse "+timeInSec+" sec");
-        while (!kill.get()) {
-            try {
-                sleep(timeInSec*1000);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-            if (kill.get()) break;
-            App.bn.ConsolePrint(pre+"Updating BN Tables via ping");
-            App.bn.blueNodeTable.rebuildTableViaAuthClient();
-        }
+    protected void preActions() {
+        App.bn.ConsolePrint(pre+"started in thread "+Thread.currentThread()+" with time period "+getTime()+" milli sec");
     }
-    
-    public synchronized void kill() {
-        kill.set(true);
+
+    @Override
+    protected void postActions() {
+
+    }
+
+    @Override
+    protected void interruptedMessage(InterruptedException e) {
+
+    }
+
+    @Override
+    protected void cyclicPayload() {
+        App.bn.ConsolePrint(pre+"Updating BN Tables via ping");
+        App.bn.blueNodeTable.rebuildTableViaAuthClient();
     }
 }

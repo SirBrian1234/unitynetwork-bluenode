@@ -1,20 +1,24 @@
 package org.kostiskag.unitynetwork.bluenode.bluethreads;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.entry.NodeType;
+import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
+import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
+
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.redthreads.RedlSend;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
-import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
+import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
+import org.kostiskag.unitynetwork.bluenode.App;
+
 
 /**
  *
@@ -110,41 +114,41 @@ public class BlueSend extends Thread {
 						//send three keep alive packets
 						for (int i=0; i<3; i++) {
 							socket.send(sendUDPPacket);
-							App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", 0, 1);
+							App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", MessageType.KEEP_ALIVE, NodeType.BLUENODE);
 						}						
 					} else if (UnityPacket.isUping(packet)) {
 						//blue node uping!
 						socket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "UPING SENT", 1, 1);
+						App.bn.TrafficPrint(pre + "UPING SENT", MessageType.PINGS, NodeType.BLUENODE);
 					} else if (UnityPacket.isDping(packet)) {
 						//blue node dping!
 						socket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "DPING SENT", 1, 1);
+						App.bn.TrafficPrint(pre + "DPING SENT", MessageType.PINGS, NodeType.BLUENODE);
 					} else if (UnityPacket.isShortRoutedAck(packet)) {
 						//short ack sent
 						socket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "SHORT ACK SENT", 1, 1);
+						App.bn.TrafficPrint(pre + "SHORT ACK SENT", MessageType.PINGS, NodeType.BLUENODE);
 					} else if (UnityPacket.isLongRoutedAck(packet)) {
 						socket.send(sendUDPPacket);
 						try {
-							App.bn.TrafficPrint(pre + "LONG ACK-> "+UnityPacket.getDestAddress(packet)+" SENT", 2, 1);
+							App.bn.TrafficPrint(pre + "LONG ACK-> "+UnityPacket.getDestAddress(packet)+" SENT", MessageType.ACKS, NodeType.BLUENODE);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					} else if (UnityPacket.isMessage(packet)) {
 						blueNode.getUploadMan().waitToSend();
 						socket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "MESSAGE SENT", 3, 1);
+						App.bn.TrafficPrint(pre + "MESSAGE SENT", MessageType.ROUTING, NodeType.BLUENODE);
 					}
 				} else if (IPv4Packet.isIPv4(packet)) {
 					blueNode.getUploadMan().waitToSend();
 					socket.send(sendUDPPacket);
-					App.bn.TrafficPrint(pre + "IPV4 SENT", 3, 1);
+					App.bn.TrafficPrint(pre + "IPV4 SENT", MessageType.ROUTING, NodeType.BLUENODE);
 				}
                 
                 if (!didTrigger) {
                 	if (App.bn.gui) {
-                		MainWindow.jCheckBox6.setSelected(true);
+                		MainWindow.getInstance().setSentDataToRn();
                 	}
                 	didTrigger = true;
                 }

@@ -1,19 +1,18 @@
 package org.kostiskag.unitynetwork.bluenode;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
 
 import javax.swing.UIManager;
 
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
+
 import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
 import org.kostiskag.unitynetwork.bluenode.utilities.GetTime;
-import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 /**
  * This class keeps the application's main method. 
@@ -25,58 +24,42 @@ import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 public class App extends Thread {
 
 	private static final String pre = "^App ";
-	//sizes
-	public static final int max_int_str_len = 32;
-	public static final int max_str_len_small_size = 128;
-	public static final int max_str_len_large_size = 256;
-	public static final int max_str_addr_len = "255.255.255.255".length();
-	public static final int min_str_addr_len = "0.0.0.0".length();
-	// network
-	public static final int virtualNetworkAddressCapacity = (int) (Math.pow(2,24) - 2); //this is our 10.0.0.0/8 network
-	public static final int systemReservedAddressNumber = 1; //The number of reserved IP addresses from the system 	
+
 	// file names
-	public static final String configFileName = "bluenode.conf";
-	public static final String hostlistFileName = "host.list";
-	public static final String logFileName = "bluenode.log";
-	public static final String keyPairFileName = "public_private.keypair";
-	public static final String trackerPublicKeyFileName = "tracker_public.key";
-	// files
-	public static final File logFile =  new File(logFileName);
-	// user
-	public static final String SALT = "=UrBN&RLJ=dBshBX3HFn!S^Au?yjqV8MBx7fMyg5p6U8T^%2kp^X-sk9EQeENgVEj%DP$jNnz&JeF?rU-*meW5yFkmAvYW_=mA+E$F$xwKmw=uSxTdznSTbunBKT*-&!";
-	// bluenode settings
-	public static boolean network;
-	public static String trackerAddress; 
-	public static int trackerPort;    
-	public static int trackerMaxIdleTimeMin;
-	public static String name;
-	public static boolean useList;
-	public static int authPort;
-	public static int startPort;
-	public static int endPort;
-	public static int maxRednodeEntries;
-	public static boolean gui;
-	public static boolean soutTraffic;        
-	public static boolean log;
-	public static AccountTable accounts;
-	public static KeyPair bluenodeKeys;
-	public static PublicKey trackerPublicKey;
+	private enum FileNames {
+		CONFIG_FILE("bluenode.conf"),
+		HOST_LIST_FILE("host.list"),
+		LOG_FILE("bluenode.log"),
+		KEY_PAIR_FILE("public_private.keypair"),
+		TRACKER_KEY_FILE("tracker_public.key");
+
+		private File f;
+
+		FileNames(String name) {
+			this.f = new File(name);
+		}
+
+		public File getFile() {
+			return f;
+		}
+	}
+
 	// bluenode
 	public static BlueNode bn;
 	
 	public static synchronized void writeToLogFile(String message) {
-		if (log) {
-			FileWriter fw;
-			try {
-				fw = new FileWriter(logFile, true);
-				fw.append(message + "\n");
-				fw.close();
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			}
+		try (FileWriter fw = new FileWriter(FileNames.LOG_FILE.getFile(), true)) {
+			fw.append(message + "\n");
+		} catch (IOException ex) {
+			ex.printStackTrace();
 		}
 	}
-	
+
+	public static void writeTrackerPublicKey(PublicKey trackerKey) throws IOException {
+		CryptoUtilities.objectToFile(trackerKey, FileNames.TRACKER_KEY_FILE.getFile());
+	}
+
+
 	/**
 	 * The app's main method here.
 	 * we do not use args anymore... we use bluenode.conf. You may set the initial settings in the file.
@@ -85,51 +68,46 @@ public class App extends Thread {
 	 * 
 	 * @param argv
 	 */
-	public static void main(String argv[]) {
+	public static void main(String... argv) {
 		System.out.println(pre+"@Started at "+Thread.currentThread().getName());
 		
 		if (argv.length > 1) {
-			System.out.println(pre+"The application does not support any arguments. In order to provide settings edit the file:"+configFileName+".");
+			System.out.println(pre+"The application does not support any arguments. In order to provide settings edit the file:"+FileNames.CONFIG_FILE.toString()+".");
 			System.exit(1);
 		}
 		
 		//loading .conf file if exists or generating a new file and load the default settings if non existing.
-		System.out.println(pre+"Checking configuration file " + configFileName + "...");
-		File file = new File(configFileName);
-		InputStream filein = null;
-		if (file.exists()) {
+		System.out.println(pre+"Checking configuration file " + FileNames.CONFIG_FILE + "...");
+		ReadBluenodePreferencesFile prefs = null;
+		File configFile = FileNames.CONFIG_FILE.getFile();
+		if (configFile.exists()) {
 			try {
-				filein = new FileInputStream(file);
-				ReadPreferencesFile.ParseConfigFile(filein);
-				filein.close();
-			} catch (Exception e) {
-				System.out.println(pre+"File "+configFileName+" could not be loaded.");
-				e.printStackTrace();
+				prefs = ReadBluenodePreferencesFile.ParseConfigFile(configFile);
+			} catch (IOException e) {
+				System.out.println(pre+"File "+configFile+" could not be loaded.");
 				System.exit(1);
 			}
 		} else {
-			System.out.println(pre+"File "+configFileName+" not found in the dir. Generating new file with the default settings.");			
+			System.out.println(pre+"File "+FileNames.CONFIG_FILE.toString()+" not found in the dir. Generating new file with the default settings.");
      		try {
-     			ReadPreferencesFile.GenerateConfigFile(file);
-				filein = new FileInputStream(file);
-				ReadPreferencesFile.ParseConfigFile(filein);
-				filein.close();
-			} catch (Exception e) {
-				System.out.println(pre+"File "+configFileName+" could not be loaded.");
-				e.printStackTrace();
+     			ReadBluenodePreferencesFile.GenerateConfigFile(configFile);
+				prefs = ReadBluenodePreferencesFile.ParseConfigFile(configFile);
+			} catch (IOException e) {
+				System.out.println(pre+"File "+configFile+" could not be loaded.");
 				System.exit(1);
 			}
 		}
 		
 		// 3. rsa key pair
-		File keyPairFile = new File(keyPairFileName);
+		KeyPair keys = null;
+		File keyPairFile = FileNames.KEY_PAIR_FILE.getFile();
 		if (keyPairFile.exists()) {
 			// the tracker has key pair
 			System.out.println(pre+"Loading RSA key pair from file...");
 			try {
-				bluenodeKeys = (KeyPair) CryptoUtilities.fileToObject(keyPairFile);
+				keys = CryptoUtilities.fileToObject(keyPairFile);
 				System.out.println(pre +
-						"Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
+						"Your public key is:\n" + CryptoUtilities.bytesToBase64String(keys.getPublic().getEncoded()));
 			} catch (GeneralSecurityException | IOException e) {
 				System.out.println(pre+"could not load the RSA keypair from file");
 				System.out.println(e.getMessage());
@@ -141,12 +119,12 @@ public class App extends Thread {
 			// generating...
 			try {
 				System.out.println(pre + "Generating RSA key pair...");
-				bluenodeKeys = CryptoUtilities.generateRSAkeyPair();
+				keys = CryptoUtilities.generateRSAkeyPair();
 				// and storing
 				System.out.println(pre + "Generating key file...");
-				CryptoUtilities.objectToFile(bluenodeKeys, keyPairFile);
+				CryptoUtilities.objectToFile(keys, keyPairFile);
 				System.out.println(pre +
-						"Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
+						"Your public key is:\n" + CryptoUtilities.bytesToBase64String(keys.getPublic().getEncoded()));
 			} catch (GeneralSecurityException | IOException e) {
 				System.out.println(pre+"could not generate an RSA keypair");
 				System.out.println(e.getMessage());
@@ -155,10 +133,11 @@ public class App extends Thread {
 		}
 		
 		// tracker's public
-		File trackerPublic = new File(trackerPublicKeyFileName);
+		PublicKey trackerKey = null;
+		File trackerPublic = FileNames.TRACKER_KEY_FILE.getFile();
 		if (trackerPublic.exists()) {
 			try {
-				trackerPublicKey = (PublicKey) CryptoUtilities.fileToObject(trackerPublic);
+				trackerKey = CryptoUtilities.fileToObject(trackerPublic);
 			} catch (GeneralSecurityException | IOException e) {
 				System.out.println(pre+"could not read public key");
 				System.out.println(e.getMessage());
@@ -167,39 +146,37 @@ public class App extends Thread {
 		} 
 
 		// generating hostlist file if not existing
-	    System.out.println(pre+"Checking file " + hostlistFileName + "...");
-		file = new File(hostlistFileName);
-		filein = null;
-		if (!file.exists()) {
-			//generating
-			System.out.println(pre+hostlistFileName+" file not found in the dir. Generating new file with the default settings");			
-     		try {
-     			ReadPreferencesFile.GenerateHostClientFile(file);				
-			} catch (Exception e) {
-				System.out.println(pre+"File "+hostlistFileName+" could not be generated.");
-				e.printStackTrace();
-				System.exit(1);
-			}
-		} else {
+	    System.out.println(pre+"Checking file " + FileNames.HOST_LIST_FILE.toString() + "...");
+		AccountTable accounts = null;
+		File hostFile = FileNames.HOST_LIST_FILE.getFile();
+		if (configFile.exists()) {
 			//loading accounts
-			System.out.println(pre+"File "+hostlistFileName+" exists in the dir.");			
-			if (!network && useList) {
+			System.out.println(pre+"File "+configFile+" exists in the dir.");
+			if (!prefs.network && prefs.useList) {
 				//reading file
 				System.out.println(pre+"Reading accounts from file.");
 				accounts = new AccountTable();
 				try {
-					ReadPreferencesFile.ParseHostClientList(new File(hostlistFileName));
-				} catch (Exception e) {
-					e.printStackTrace();
-					System.out.println(hostlistFileName+" was wrongly formated. Please edit or delete the file.");
+					ReadBluenodePreferencesFile.ParseHostClientList(hostFile);
+				} catch (GeneralSecurityException | IOException e) {
+					System.out.println(hostFile+" was wrongly formated. Please edit or delete the file.");
 					System.exit(1);
 				}
-				System.out.println(pre+"hostlist loaded with "+accounts.getSize()+" host-clients.");       
+				System.out.println(pre+"hostlist loaded with "+accounts.getSize()+" host-clients.");
+			}
+		} else {
+			//generating
+			System.out.println(pre+hostFile+" file not found in the dir. Generating new file with the default settings");
+			try {
+				ReadBluenodePreferencesFile.GenerateHostClientFile(hostFile);
+			} catch (Exception e) {
+				System.out.println(pre+"File "+hostFile+" could not be generated.");
+				System.exit(1);
 			}
 		}
 
 		// test and init gui if enabled
-		if (gui) {
+		if (prefs.gui) {
 			System.out.println(pre+"checking gui libraries...");
 			try {
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
@@ -220,36 +197,12 @@ public class App extends Thread {
 		
 		// init bluenode.log
 		System.out.println(pre+"initializing log file...");
-		if (log) {
-			FileWriter fw;
-			try {
-				fw = new FileWriter(App.logFile, false);
-				fw.write("-------------"+GetTime.getFullTimestamp()+"-------------\n");
-				fw.close();
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			}
+		if (prefs.log) {
+			writeToLogFile("-------------"+GetTime.getFullTimestamp()+"-------------");
 		}
 
 		// init a bluenode object
 		System.out.println(pre+"starting a BlueNode instance...");
-		bn = new BlueNode(
-				network, 
-				trackerAddress, 
-				trackerPort, 
-				trackerMaxIdleTimeMin,
-				name, 
-				useList, 
-				authPort, 
-				startPort, 
-				endPort, 
-				maxRednodeEntries, 
-				gui, 
-				soutTraffic, 
-				log, 
-				accounts,
-				bluenodeKeys,
-				trackerPublicKey);
-		bn.run();
+		new BlueNode(prefs, accounts, keys, trackerKey);
 	}
 }

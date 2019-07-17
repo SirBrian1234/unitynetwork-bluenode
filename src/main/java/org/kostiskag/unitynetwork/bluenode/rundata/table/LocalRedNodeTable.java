@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNodeInstance;
 
 /**
@@ -157,7 +158,7 @@ public class LocalRedNodeTable {
     
     private void notifyGUI() {
         if (notifyGui) {
-            App.bn.window.updateLocalRns();
+            MainWindow.getInstance().updateLocalRns(buildGUIObj());
         }
     }    
 }

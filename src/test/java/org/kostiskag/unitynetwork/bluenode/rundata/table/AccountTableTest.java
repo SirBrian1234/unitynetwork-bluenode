@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.HashUtilities;
 
 public class AccountTableTest {
@@ -65,7 +66,7 @@ public class AccountTableTest {
 		}
 		
 		try {
-			String pass = HashUtilities.SHA256(HashUtilities.SHA256(App.SALT) +  HashUtilities.SHA256("pakis") + HashUtilities.SHA256(App.SALT + "1234"));
+			String pass = HashUtilities.SHA256(HashUtilities.SHA256(CryptoUtilities.SALT) +  HashUtilities.SHA256("pakis") + HashUtilities.SHA256(CryptoUtilities.SALT + "1234"));
 			assertTrue(table.checkList("pakis-1", "pakis", pass));
 		} catch (GeneralSecurityException e) {
 			e.printStackTrace();
@@ -85,7 +86,7 @@ public class AccountTableTest {
 		}
 		System.out.println(table.toString());
 		try {
-			String pass = HashUtilities.SHA256(HashUtilities.SHA256(App.SALT) +  HashUtilities.SHA256("pakis") + HashUtilities.SHA256(App.SALT + "1234"));
+			String pass = HashUtilities.SHA256(HashUtilities.SHA256(CryptoUtilities.SALT) +  HashUtilities.SHA256("pakis") + HashUtilities.SHA256(CryptoUtilities.SALT + "1234"));
 			assertEquals(table.getVaddrIfExists("pakis-3", "pakis", pass), VirtualAddress.numberTo10ipAddr(4));
 		} catch ( GeneralSecurityException e) {
 			e.printStackTrace();

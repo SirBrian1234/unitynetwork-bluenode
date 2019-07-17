@@ -1,13 +1,18 @@
 package org.kostiskag.unitynetwork.bluenode.redthreads;
 
-import java.io.IOException;
-import java.net.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNodeInstance;
+import java.net.*;
+import java.io.IOException;
+
+import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
+
+import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
+import org.kostiskag.unitynetwork.bluenode.App;
+
 
 /**
  * down service listens for virtual packets then sends them to the target
@@ -80,18 +85,18 @@ public class RedReceive extends Thread {
                     if (UnityPacket.isUnity(packet)) {
                     	if (UnityPacket.isKeepAlive(packet)) {
                             //keep alive packet received
-                            App.bn.TrafficPrint(pre +"KEEP ALIVE RECEIVED" ,0,0);
+                            App.bn.TrafficPrint(pre +"KEEP ALIVE RECEIVED", MessageType.KEEP_ALIVE, NodeType.REDNODE);
                         }  else if (UnityPacket.isUping(packet)){
                         	//rednode uping packet received by the aspect of the red node
                         	//the red node tests its upload
                             rn.setUPing(true);
-                            App.bn.TrafficPrint(pre + "UPING RECEIVED",1,0);
+                            App.bn.TrafficPrint(pre + "UPING RECEIVED", MessageType.PINGS, NodeType.REDNODE);
                         } else if (UnityPacket.isShortRoutedAck(packet)) {
                         	//you should not do something
-                        	App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", 1, 0);
+                        	App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", MessageType.PINGS, NodeType.REDNODE);
                         } else if (UnityPacket.isLongRoutedAck(packet)){
                         	try {
-								App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED" ,2,0);
+								App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED", MessageType.ACKS, NodeType.REDNODE);
 								//now you have control over the buffer
 								// do stuff here
 								rn.getReceiveQueue().offer(packet);
@@ -100,7 +105,7 @@ public class RedReceive extends Thread {
 							}
                         } else if (UnityPacket.isMessage(packet)) {
                         	try {
-								App.bn.TrafficPrint(pre + "Message -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED" ,2,0);
+								App.bn.TrafficPrint(pre + "Message -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED", MessageType.ACKS, NodeType.REDNODE);
 								//now you have controll over the buffer
 								// do stuff here
 								rn.getReceiveQueue().offer(packet);
@@ -114,7 +119,7 @@ public class RedReceive extends Thread {
 							}
                         }                                                    
                     } else if (IPv4Packet.isIPv4(packet)){
-                        App.bn.TrafficPrint(pre + "IPv4",3,0);
+                        App.bn.TrafficPrint(pre + "IPv4", MessageType.ROUTING, NodeType.REDNODE);
                         //now you have control over the buffer
 						// do stuff here
 						rn.getReceiveQueue().offer(packet);   
@@ -124,7 +129,7 @@ public class RedReceive extends Thread {
 						rn.getSendQueue().offer(ACKS);
                     }
                     if (App.bn.gui && !didTrigger) {
-                        MainWindow.jCheckBox3.setSelected(true);
+                        MainWindow.getInstance().setReceivedLocalRnData();
                         didTrigger = true;
                     }
                 }

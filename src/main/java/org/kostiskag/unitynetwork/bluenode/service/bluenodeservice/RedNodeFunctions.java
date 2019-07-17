@@ -94,7 +94,7 @@ public class RedNodeFunctions {
                             
         } else if (App.bn.useList) {
         	//collect vaddres from list
-        	Vaddress = App.bn.accounts.getVaddrIfExists(hostname, Username, Password);    
+        	Vaddress = App.bn.accounts.getVaddrIfExists(hostname, Username, Password).asString();
         	if (Vaddress == null) {
         		try {
 					SocketUtilities.sendAESEncryptedStringData("FAILED USER 0", socketWriter, sessionKey);

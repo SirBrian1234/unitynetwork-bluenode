@@ -71,7 +71,7 @@ public class LocalRedNodeInstance {
     	//notify the gui variables
     	if (!didTrigger) {
     		if (App.bn.gui) {
-    			MainWindow.jCheckBox2.setSelected(true);
+    			MainWindow.getInstance().setOneUserAsConnected();
     		}
             didTrigger = true;
         }

@@ -2,10 +2,13 @@ package org.kostiskag.unitynetwork.bluenode.routing;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
+import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
+
+import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
 
 /**
  * An object of this class can be owned either by a blue node or a red node instance
@@ -54,7 +57,7 @@ public class Router extends Thread {
                 	try {
 						sourcevaddress = IPv4Packet.getSourceAddress(data).getHostAddress();
 						destvaddress = IPv4Packet.getDestAddress(data).getHostAddress();
-	                    App.bn.TrafficPrint(pre + "IP " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
+	                    App.bn.TrafficPrint(pre + "IP " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", MessageType.ROUTING, NodeType.REDNODE);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}                	
@@ -62,7 +65,7 @@ public class Router extends Thread {
                     try {
 						sourcevaddress = UnityPacket.getSourceAddress(data).getHostAddress();
 						destvaddress = UnityPacket.getDestAddress(data).getHostAddress();
-	                    App.bn.TrafficPrint(pre + "Unity " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", 3, 0);
+	                    App.bn.TrafficPrint(pre + "Unity " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", MessageType.ROUTING, NodeType.REDNODE);
                     } catch (Exception e) {
 						e.printStackTrace();
 					}                    
@@ -78,7 +81,7 @@ public class Router extends Thread {
 	                } else if (App.bn.localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
 	                    //load the packet data to local red node's queue
 	                    App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getSendQueue().offer(data);
-	                    App.bn.TrafficPrint(pre+"LOCAL DESTINATION", 3, 0);
+	                    App.bn.TrafficPrint(pre+"LOCAL DESTINATION", MessageType.ROUTING, NodeType.REDNODE);
 	                    
 	                } else if (App.bn.joined) {
 	                    if (App.bn.blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
@@ -87,23 +90,24 @@ public class Router extends Thread {
 							try {
 								bn = App.bn.blueNodeTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
 								bn.getSendQueue().offer(data);
-		                        App.bn.TrafficPrint(pre +"REMOTE DESTINATION -> " + bn.getName(), 3, 1);
+		                        App.bn.TrafficPrint(pre +"REMOTE DESTINATION -> " + bn.getName(), MessageType.ROUTING, NodeType.BLUENODE);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}                        
 	                    } else {
 	                    	//lookup via tracker from a bluenode with this rrd
-	                        App.bn.TrafficPrint(pre +"NOT KNOWN RRN WITH "+destvaddress+" SEEKING TARGET BN", 3, 1);
+	                        App.bn.TrafficPrint(pre +"NOT KNOWN RRN WITH "+destvaddress+" SEEKING TARGET BN", MessageType.ROUTING, NodeType.BLUENODE);
 	                        App.bn.flyreg.seekDest(sourcevaddress, destvaddress);
 	                    }
 	                } else {
-	                    App.bn.TrafficPrint(pre +"NOT IN THIS BN " + destvaddress, 3, 1);
+	                    App.bn.TrafficPrint(pre +"NOT IN THIS BN " + destvaddress, MessageType.ROUTING, NodeType.BLUENODE);
 	                }
                 } else {
-                	App.bn.TrafficPrint(pre+"source address "+sourcevaddress+" does not belong in network range.",3,1);
+                	App.bn.TrafficPrint(pre+"source address "+sourcevaddress+" does not belong in network range.",MessageType.ROUTING,NodeType.BLUENODE);
                 }
             } else {
-            	App.bn.TrafficPrint(pre+"wrong header packet detected in router.",3,1);
+            	App.bn.TrafficPrint(pre+"wrong header packet detected in router.", MessageType.ROUTING, NodeType.BLUENODE);
+				
             }           
         }
         App.bn.ConsolePrint(pre + "ended");

@@ -6,10 +6,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.redthreads.RedReceive;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
@@ -96,20 +98,20 @@ public class BlueReceive extends Thread {
                     if (UnityPacket.isUnity(packet)) {
     					if (UnityPacket.isKeepAlive(packet)) {
     						// keep alive
-    						App.bn.TrafficPrint(pre +"KEEP ALIVE RECEIVED", 0, 1);
+    						App.bn.TrafficPrint(pre +"KEEP ALIVE RECEIVED", AppLogger.MessageType.KEEP_ALIVE, NodeType.BLUENODE);
     					} else if (UnityPacket.isUping(packet)) {
                             //blue node uping!
     						blueNode.setUping(true);    
-    						App.bn.TrafficPrint(pre + "UPING RECEIVED", 1, 1);
+    						App.bn.TrafficPrint(pre + "UPING RECEIVED", AppLogger.MessageType.PINGS, NodeType.BLUENODE);
                         } else if (UnityPacket.isDping(packet)) {
                             //blue node dping!
     						blueNode.setDping(true);    
-    						App.bn.TrafficPrint(pre + "DPING RECEIVED", 1, 1);
+    						App.bn.TrafficPrint(pre + "DPING RECEIVED", AppLogger.MessageType.PINGS, NodeType.BLUENODE);
                         } else if (UnityPacket.isShortRoutedAck(packet)) {
                         	//collect the ack
                         	try {
 								blueNode.getUploadMan().gotACK(UnityPacket.getShortRoutedAckTrackNum(packet));
-								App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", 1, 1);
+								App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", AppLogger.MessageType.PINGS, NodeType.BLUENODE);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -118,13 +120,13 @@ public class BlueReceive extends Thread {
     						//route the L-ACK
                         	try {
     							blueNode.getReceiveQueue().offer(packet);
-    							App.bn.TrafficPrint(pre + "ACK-> "+UnityPacket.getDestAddress(packet)+" RECEIVED", 2, 1);
+    							App.bn.TrafficPrint(pre + "ACK-> "+UnityPacket.getDestAddress(packet)+" RECEIVED", AppLogger.MessageType.ACKS, NodeType.BLUENODE);
     						} catch (Exception e) {
     							e.printStackTrace();
     						}
     					} else if (UnityPacket.isMessage(packet)) {
     						blueNode.getReceiveQueue().offer(packet);
-    						App.bn.TrafficPrint(pre + "MESSAGE RECEIVED", 3, 1);
+    						App.bn.TrafficPrint(pre + "MESSAGE RECEIVED", AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
     						
     						//build and offer a short routed ack towards the sender bluenode
     						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(blueNode.getReceiveQueue().getlen());
@@ -132,7 +134,7 @@ public class BlueReceive extends Thread {
     					}        				
                     } else if (IPv4Packet.isIPv4(packet)) {
                     	blueNode.getReceiveQueue().offer(packet); 
-                    	App.bn.TrafficPrint(pre + "IPV4 RECEIVED", 3, 1);
+                    	App.bn.TrafficPrint(pre + "IPV4 RECEIVED", AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
                     	
                     	//build and offer a short routed ack towards the sender bluenode
 						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(blueNode.getReceiveQueue().getlen());
@@ -141,7 +143,7 @@ public class BlueReceive extends Thread {
                     
                     if (!didTrigger) {
                     	if (App.bn.gui) {
-                    		MainWindow.jCheckBox7.setSelected(true);
+                    		MainWindow.getInstance().setReceivedBnData();
                         }
                     	didTrigger = true;
                     }
@@ -199,13 +201,13 @@ public class BlueReceive extends Thread {
                 socket.send(sendPacket);
             }
         } catch (java.net.SocketException ex1) {
-            App.bn.TrafficPrint("FISH PACKET SEND ERROR",3,1);
+            App.bn.TrafficPrint("FISH PACKET SEND ERROR",AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
             return;
         } catch (IOException ex) {
-            App.bn.TrafficPrint("FISH PACKET SEND ERROR",3,1);
+            App.bn.TrafficPrint("FISH PACKET SEND ERROR", AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
             ex.printStackTrace();
             return;
         }
-        App.bn.TrafficPrint("FISH PACKET",3,1);
+        App.bn.TrafficPrint("FISH PACKET",AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
 	}
 }
