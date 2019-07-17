@@ -12,6 +12,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 
 public class UploadKeyView {
@@ -114,7 +115,7 @@ public class UploadKeyView {
 			String responce = TrackerClient.offerPubKey(textArea.getText());
 			textField.setText(responce);
 			if (responce.equals("KEY_SET") || responce.equals("KEY_IS_SET")) {
-				App.bn.ConsolePrint("Your public key has been uploaded to the tracker.\nPlease restart this BlueNode in order to connect.");
+				AppLogger.getInstance().consolePrint("Your public key has been uploaded to the tracker.\nPlease restart this BlueNode in order to connect.");
 			}
 		}
 	}

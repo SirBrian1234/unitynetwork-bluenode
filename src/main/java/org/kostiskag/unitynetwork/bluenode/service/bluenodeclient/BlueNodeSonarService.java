@@ -3,6 +3,7 @@ package org.kostiskag.unitynetwork.bluenode.service.bluenodeclient;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.service.SimpleCyclicService;
 
 /**
@@ -23,7 +24,7 @@ public class BlueNodeSonarService extends SimpleCyclicService {
 
     @Override
     protected void preActions() {
-        App.bn.ConsolePrint(pre+"started in thread "+Thread.currentThread()+" with time period "+getTime()+" milli sec");
+        AppLogger.getInstance().consolePrint(pre+"started in thread "+Thread.currentThread()+" with time period "+getTime()+" milli sec");
     }
 
     @Override
@@ -38,7 +39,7 @@ public class BlueNodeSonarService extends SimpleCyclicService {
 
     @Override
     protected void cyclicPayload() {
-        App.bn.ConsolePrint(pre+"Updating BN Tables via ping");
+        AppLogger.getInstance().consolePrint(pre+"Updating BN Tables via ping");
         App.bn.blueNodeTable.rebuildTableViaAuthClient();
     }
 }

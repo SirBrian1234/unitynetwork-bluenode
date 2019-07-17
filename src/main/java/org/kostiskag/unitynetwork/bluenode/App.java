@@ -51,7 +51,7 @@ public class App extends Thread {
 		try (FileWriter fw = new FileWriter(FileNames.LOG_FILE.getFile(), true)) {
 			fw.append(message + "\n");
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			System.out.println(ex.getLocalizedMessage());
 		}
 	}
 

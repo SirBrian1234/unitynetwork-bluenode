@@ -9,6 +9,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
@@ -91,8 +92,8 @@ public class BlueSend extends Thread {
     	} else {
     		buildClient();
     	}
-    	
-    	App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName());
+
+        AppLogger.getInstance().consolePrint(pre + "STARTED AT " + Thread.currentThread().getName());
         while (!kill.get()) {        	
         	byte packet[];
             try {
@@ -114,36 +115,36 @@ public class BlueSend extends Thread {
 						//send three keep alive packets
 						for (int i=0; i<3; i++) {
 							socket.send(sendUDPPacket);
-							App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", MessageType.KEEP_ALIVE, NodeType.BLUENODE);
+                            AppLogger.getInstance().trafficPrint(pre +"KEEP ALIVE SENT", MessageType.KEEP_ALIVE, NodeType.BLUENODE);
 						}						
 					} else if (UnityPacket.isUping(packet)) {
 						//blue node uping!
 						socket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "UPING SENT", MessageType.PINGS, NodeType.BLUENODE);
+                        AppLogger.getInstance().trafficPrint(pre + "UPING SENT", MessageType.PINGS, NodeType.BLUENODE);
 					} else if (UnityPacket.isDping(packet)) {
 						//blue node dping!
 						socket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "DPING SENT", MessageType.PINGS, NodeType.BLUENODE);
+                        AppLogger.getInstance().trafficPrint(pre + "DPING SENT", MessageType.PINGS, NodeType.BLUENODE);
 					} else if (UnityPacket.isShortRoutedAck(packet)) {
 						//short ack sent
 						socket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "SHORT ACK SENT", MessageType.PINGS, NodeType.BLUENODE);
+                        AppLogger.getInstance().trafficPrint(pre + "SHORT ACK SENT", MessageType.PINGS, NodeType.BLUENODE);
 					} else if (UnityPacket.isLongRoutedAck(packet)) {
 						socket.send(sendUDPPacket);
 						try {
-							App.bn.TrafficPrint(pre + "LONG ACK-> "+UnityPacket.getDestAddress(packet)+" SENT", MessageType.ACKS, NodeType.BLUENODE);
+                            AppLogger.getInstance().trafficPrint(pre + "LONG ACK-> "+UnityPacket.getDestAddress(packet)+" SENT", MessageType.ACKS, NodeType.BLUENODE);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					} else if (UnityPacket.isMessage(packet)) {
 						blueNode.getUploadMan().waitToSend();
 						socket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "MESSAGE SENT", MessageType.ROUTING, NodeType.BLUENODE);
+                        AppLogger.getInstance().trafficPrint(pre + "MESSAGE SENT", MessageType.ROUTING, NodeType.BLUENODE);
 					}
 				} else if (IPv4Packet.isIPv4(packet)) {
 					blueNode.getUploadMan().waitToSend();
 					socket.send(sendUDPPacket);
-					App.bn.TrafficPrint(pre + "IPV4 SENT", MessageType.ROUTING, NodeType.BLUENODE);
+                    AppLogger.getInstance().trafficPrint(pre + "IPV4 SENT", MessageType.ROUTING, NodeType.BLUENODE);
 				}
                 
                 if (!didTrigger) {
@@ -153,10 +154,10 @@ public class BlueSend extends Thread {
                 	didTrigger = true;
                 }
             } catch (java.net.SocketException ex1) {
-                App.bn.ConsolePrint(pre + " SOCKET ERROR");
+                AppLogger.getInstance().consolePrint(pre + " SOCKET ERROR");
                 break;
             } catch (IOException ex) {
-                App.bn.ConsolePrint(pre + "IO ERROR");
+                AppLogger.getInstance().consolePrint(pre + "IO ERROR");
                 break;
             }
         }
@@ -164,7 +165,7 @@ public class BlueSend extends Thread {
         if (isServer) {
         	App.bn.UDPports.releasePort(serverPort);
         }
-        App.bn.ConsolePrint(pre + "ENDED");
+        AppLogger.getInstance().consolePrint(pre + "ENDED");
     }
     
     public void kill() {
@@ -173,23 +174,23 @@ public class BlueSend extends Thread {
     }  
 
     private void buildClient() {
-    	App.bn.ConsolePrint(pre+"building client.");
+        AppLogger.getInstance().consolePrint(pre+"building client.");
 		socket = null;
 		try {
 			socket = new DatagramSocket();
 		} catch (SocketException ex) {
 			blueNode.getSendQueue().clear();
-			App.bn.ConsolePrint(pre + "socket could not be opened");
+            AppLogger.getInstance().consolePrint(pre + "socket could not be opened");
 			ex.printStackTrace();
 		}
 	}
 
 	private void buildServer() {
-		App.bn.ConsolePrint(pre+"building server.");
+        AppLogger.getInstance().consolePrint(pre+"building server.");
         try {
             socket = new DatagramSocket(serverPort);
         } catch (SocketException ex) {
-        	App.bn.ConsolePrint(pre + "socket could not be opened");
+            AppLogger.getInstance().consolePrint(pre + "socket could not be opened");
         	ex.printStackTrace();
             return;
         }
@@ -205,10 +206,10 @@ public class BlueSend extends Thread {
         try {
             socket.receive(receivedUDPPacket);
         } catch (java.net.SocketTimeoutException ex) {
-            App.bn.ConsolePrint(pre +"FISH SOCKET TIMEOUT");
+            AppLogger.getInstance().consolePrint(pre +"FISH SOCKET TIMEOUT");
             return;
         } catch (java.net.SocketException ex) {
-            App.bn.ConsolePrint(pre + "FISH SOCKET CLOSED, EXITING");
+            AppLogger.getInstance().consolePrint(pre + "FISH SOCKET CLOSED, EXITING");
             return;
         } catch (IOException ex) {
             Logger.getLogger(RedlSend.class.getName()).log(Level.SEVERE, null, ex);

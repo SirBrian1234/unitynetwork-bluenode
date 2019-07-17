@@ -9,6 +9,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
@@ -69,12 +70,12 @@ public class RedlSend extends Thread {
     
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + serverPort);        
+        AppLogger.getInstance().consolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + serverPort);
         
         try {
             serverSocket = new DatagramSocket(serverPort);
         } catch (java.net.BindException ex) {
-            App.bn.ConsolePrint(pre + "PORT ALLREADY BINDED, EXITING");
+            AppLogger.getInstance().consolePrint(pre + "PORT ALLREADY BINDED, EXITING");
             return;
         } catch (SocketException ex) {
             Logger.getLogger(RedlSend.class.getName()).log(Level.SEVERE, null, ex);
@@ -90,13 +91,13 @@ public class RedlSend extends Thread {
         try {
         	serverSocket.receive(receivedUDPPacket);
         } catch (java.net.SocketTimeoutException ex) {
-            App.bn.ConsolePrint(pre + "FISH SOCKET TIMEOUT");
+            AppLogger.getInstance().consolePrint(pre + "FISH SOCKET TIMEOUT");
             return;
         } catch (java.net.SocketException ex) {
-            App.bn.ConsolePrint(pre + "FISH SOCKET CLOSED, EXITING");
+            AppLogger.getInstance().consolePrint(pre + "FISH SOCKET CLOSED, EXITING");
             return;
         } catch (IOException ex) {
-        	App.bn.ConsolePrint(pre + "IO EXCEPTION");
+            AppLogger.getInstance().consolePrint(pre + "IO EXCEPTION");
             Logger.getLogger(RedlSend.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
@@ -128,7 +129,7 @@ public class RedlSend extends Thread {
             } else if (packet.length == 0) {
             	continue;
             } else if (packet.length > 1500) {
-            	App.bn.TrafficPrint("Throwing oversized packet of size "+packet.length, MessageType.ROUTING, NodeType.REDNODE);
+                AppLogger.getInstance().trafficPrint("Throwing oversized packet of size "+packet.length, MessageType.ROUTING, NodeType.REDNODE);
                 continue;
             }
 
@@ -139,32 +140,32 @@ public class RedlSend extends Thread {
 					if (UnityPacket.isKeepAlive(packet)) {
 						for (int i=0; i<3; i++) {
 							serverSocket.send(sendUDPPacket);
-							App.bn.TrafficPrint(pre +"KEEP ALIVE SENT", MessageType.KEEP_ALIVE, NodeType.REDNODE);
+                            AppLogger.getInstance().trafficPrint(pre +"KEEP ALIVE SENT", MessageType.KEEP_ALIVE, NodeType.REDNODE);
 						}
 					} else if (UnityPacket.isDping(packet)) {
 						serverSocket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "DPING SENT", MessageType.PINGS, NodeType.REDNODE);
+                        AppLogger.getInstance().trafficPrint(pre + "DPING SENT", MessageType.PINGS, NodeType.REDNODE);
 					} else if (UnityPacket.isShortRoutedAck(packet)) {
 						serverSocket.send(sendUDPPacket);
-						App.bn.TrafficPrint(pre + "SHORT ACK SENT", MessageType.PINGS, NodeType.REDNODE);
+                        AppLogger.getInstance().trafficPrint(pre + "SHORT ACK SENT", MessageType.PINGS, NodeType.REDNODE);
                     } else if (UnityPacket.isLongRoutedAck(packet)) {
                     	serverSocket.send(sendUDPPacket);
                     	try {
-							App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet)+" SENT", MessageType.ACKS, NodeType.REDNODE);
+                            AppLogger.getInstance().trafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet)+" SENT", MessageType.ACKS, NodeType.REDNODE);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					} else if (UnityPacket.isMessage(packet)) {
 						serverSocket.send(sendUDPPacket);
 						try {
-							App.bn.TrafficPrint(pre + "MESSAGE -> "+UnityPacket.getDestAddress(packet)+" SENT", MessageType.ROUTING, NodeType.REDNODE);
+                            AppLogger.getInstance().trafficPrint(pre + "MESSAGE -> "+UnityPacket.getDestAddress(packet)+" SENT", MessageType.ROUTING, NodeType.REDNODE);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
 				} else if (IPv4Packet.isIPv4(packet)) {
 					serverSocket.send(sendUDPPacket);
-					App.bn.TrafficPrint(pre + "IPV4 SENT", MessageType.ROUTING, NodeType.REDNODE);
+                    AppLogger.getInstance().trafficPrint(pre + "IPV4 SENT", MessageType.ROUTING, NodeType.REDNODE);
 				}
                 if (App.bn.gui && !trigger) {
                     MainWindow.getInstance().setSentDataToRn();
@@ -174,13 +175,13 @@ public class RedlSend extends Thread {
                 break;
             } catch (IOException ex) {
                 ex.printStackTrace();
-                App.bn.ConsolePrint(pre + "IO ERROR");
+                AppLogger.getInstance().consolePrint(pre + "IO ERROR");
                 break;
             }
         }
         serverSocket.close();
         App.bn.UDPports.releasePort(serverPort);
-        App.bn.ConsolePrint(pre + "ENDED");                
+        AppLogger.getInstance().consolePrint(pre + "ENDED");
     }
 
     public void kill() {

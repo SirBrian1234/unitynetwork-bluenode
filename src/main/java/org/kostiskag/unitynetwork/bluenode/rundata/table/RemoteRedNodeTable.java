@@ -3,6 +3,7 @@ package org.kostiskag.unitynetwork.bluenode.rundata.table;
 import java.util.Iterator;
 import java.util.LinkedList;
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNodeInstance;
@@ -26,7 +27,7 @@ public class RemoteRedNodeTable {
         list =  new LinkedList<RemoteRedNodeInstance>();
         verbose = true;
         notifyGui = true;
-    	App.bn.ConsolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
+		AppLogger.getInstance().consolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
     }
     
     public RemoteRedNodeTable(BlueNodeInstance blueNode, LinkedList<RemoteRedNodeInstance> list) {
@@ -34,7 +35,7 @@ public class RemoteRedNodeTable {
         this.list =  list;
         verbose = true;
         notifyGui = true;
-    	App.bn.ConsolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
+		AppLogger.getInstance().consolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
     }
     
     public RemoteRedNodeTable(BlueNodeInstance blueNode, boolean verbose, boolean notifyGui) {
@@ -43,7 +44,7 @@ public class RemoteRedNodeTable {
         this.verbose = verbose;
         this.notifyGui = notifyGui;
         if (verbose) {
-        	App.bn.ConsolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
+			AppLogger.getInstance().consolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
         }
     }
     
@@ -86,7 +87,7 @@ public class RemoteRedNodeTable {
     	RemoteRedNodeInstance rn = new RemoteRedNodeInstance(hostname, vAddress, blueNode);
     	list.add(rn);
     	if (verbose) {
-    		App.bn.ConsolePrint(pre +"LEASED " + hostname + " - " + vAddress + " ON BLUE NODE " + blueNode.getName());
+			AppLogger.getInstance().consolePrint(pre +"LEASED " + hostname + " - " + vAddress + " ON BLUE NODE " + blueNode.getName());
     	}
     	notifyGUI();
     }
@@ -98,7 +99,7 @@ public class RemoteRedNodeTable {
     		if (rn.getHostname().equals(hostname)) {
     			it.remove();
     			if (verbose) {
-    				App.bn.ConsolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getVaddress() + " FROM BLUE NODE " + blueNode.getName());
+					AppLogger.getInstance().consolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getVaddress() + " FROM BLUE NODE " + blueNode.getName());
     			}
     			notifyGUI();
     			return;
@@ -114,7 +115,7 @@ public class RemoteRedNodeTable {
     		if (rn.getVaddress().equals(vAddress)) {
     			it.remove();
     			if (verbose) {
-    				App.bn.ConsolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getVaddress() + " FROM BLUE NODE " + blueNode.getName());
+					AppLogger.getInstance().consolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getVaddress() + " FROM BLUE NODE " + blueNode.getName());
     			}
     			notifyGUI();
     			return;
@@ -157,7 +158,7 @@ public class RemoteRedNodeTable {
     public synchronized void removeAll() {
         list.clear();
         if (verbose) {
-        	App.bn.ConsolePrint(pre + "REMOVED ALL ENTRIES FOR BLUENODE "+blueNode.getName());
+			AppLogger.getInstance().consolePrint(pre + "REMOVED ALL ENTRIES FOR BLUENODE "+blueNode.getName());
         }
         notifyGUI();
     }

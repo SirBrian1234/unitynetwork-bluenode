@@ -17,7 +17,6 @@ import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerTimeBuilder;
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
-import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 /**
@@ -85,7 +84,7 @@ public class BlueNode {
 	 * @param bluenodeKeys
 	 * @param trackerPublicKey
 	 */
-	public BlueNode(
+	public BlueNode (
 		ReadBluenodePreferencesFile prefs,
 		AccountTable accounts,
 		KeyPair bluenodeKeys,
@@ -126,9 +125,11 @@ public class BlueNode {
 					this.useList);
 			MainWindow.newInstance(mainWindowPrefs);
 		}
+
+		AppLogger.newInstance(this.gui, this.log, this.soutTraffic);
 		
 		//rsa public key
-		ConsolePrint("Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
+		AppLogger.getInstance().consolePrint("Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
 		
 		/*
 		 *  2. Initialize table
@@ -159,7 +160,7 @@ public class BlueNode {
 				bnSornar = new BlueNodeSonarService(blueNodeCheckTimeSec);
 				bnSornar.start();
 			} catch (IllegalAccessException e) {
-				ConsolePrint(e.getMessage());
+				AppLogger.getInstance().consolePrint(e.getMessage());
 			}
 		}
 
@@ -189,7 +190,7 @@ public class BlueNode {
 					TrackerClient.configureTracker(this.name, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
 					TrackerTimeBuilder.newInstance(trackerCheckSec).start();
 				} else {
-					ConsolePrint("This bluenode is not connected in the network.");
+					AppLogger.getInstance().consolePrint("This bluenode is not connected in the network.");
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -197,37 +198,15 @@ public class BlueNode {
 			}
 		} else if (!useList) {
 			bucket = new IpPoll();
-			ConsolePrint("WARNING! BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nWHICH MEANS THAT ANYONE WHO KNOWS THE BN'S ADDRESS AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
+			AppLogger.getInstance().consolePrint("WARNING! BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nWHICH MEANS THAT ANYONE WHO KNOWS THE BN'S ADDRESS AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
 		}
 	}
 
-	public void ConsolePrint(String message) {		
-		System.out.println(message);
-		if (gui) {
-			MainWindow.getInstance().consolePrint(message);
-		}
-		if (log) {
-			App.writeToLogFile(message);
-		}
-	}
 
-	/**
-	 *  Prints a message to traffic console. 
-	 *  
-	 *  @param messageType ~ 0 keep alive, 1 pings, 2 acks, 3 routing
-	 *  @param hostType ~ 0 reds, 1 blues
-	 */
-	public void TrafficPrint(String message, AppLogger.MessageType messageType, NodeType hostType) {
-		if (gui) {
-			MainWindow.getInstance().trafficPrint(message, messageType, hostType);
-		} else if (soutTraffic) {
-			System.out.println(message);
-		}
-	}
 
 	public boolean joinNetwork() throws Exception {
 		if (trackerPublicKey == null) {
-			ConsolePrint("You do not have an availlable public key for the given tracker.\n" +
+			AppLogger.getInstance().consolePrint("You do not have an availlable public key for the given tracker.\n" +
 					"In order to download the key press the Collect Tracker Key button and follow the guide.\n" +
 					"After you have a Public Key for the provided tracker you may restart the bluenode.");
 			return false;
@@ -235,10 +214,10 @@ public class BlueNode {
 			TrackerClient tr = new TrackerClient();
 			boolean leased = tr.leaseBn(authPort);
 			if (tr.isConnected() && leased) {
-				ConsolePrint("^SUCCESSFULLY REGISTERED WITH THE NETWORK");
+				AppLogger.getInstance().consolePrint("^SUCCESSFULLY REGISTERED WITH THE NETWORK");
 				return true;
 			} else {
-				ConsolePrint("^FAILED TO REGISTER WITH THE NETWORK");
+				AppLogger.getInstance().consolePrint("^FAILED TO REGISTER WITH THE NETWORK");
 				return false;
 			}
 		} else {
@@ -272,7 +251,7 @@ public class BlueNode {
 	}
 
 	public void die() {
-		App.bn.ConsolePrint("Blue Node "+name+" is going to die.");
+		AppLogger.getInstance().consolePrint("Blue Node "+name+" is going to die.");
 		System.exit(1);
 	}
 }

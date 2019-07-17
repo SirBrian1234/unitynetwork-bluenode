@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNodeInstance;
 
@@ -29,7 +30,7 @@ public class LocalRedNodeTable {
         this.maxRednodeEntries = maxRednodeEntries;
         this.verbose = true;
         this.notifyGui = true;
-        App.bn.ConsolePrint(pre +"INIT LOCAL RED NODE TABLE");
+        AppLogger.getInstance().consolePrint(pre +"INIT LOCAL RED NODE TABLE");
     }
     
     public LocalRedNodeTable(int maxRednodeEntries, boolean verbose, boolean notifyGui) {
@@ -38,7 +39,7 @@ public class LocalRedNodeTable {
         this.verbose = verbose;
         this.notifyGui = notifyGui;
         if (verbose) {
-        	App.bn.ConsolePrint(pre +"INIT LOCAL RED NODE TABLE");
+            AppLogger.getInstance().consolePrint(pre +"INIT LOCAL RED NODE TABLE");
         }
     }
     
@@ -72,12 +73,12 @@ public class LocalRedNodeTable {
         if (list.size() < maxRednodeEntries) {
             list.add(redNode);
             if (verbose) {
-            	App.bn.ConsolePrint(pre + " LEASED " + redNode.getVaddress() + " ~ " + redNode.getPhAddress());
+                AppLogger.getInstance().consolePrint(pre + " LEASED " + redNode.getVaddress() + " ~ " + redNode.getPhAddress());
             }
             notifyGUI();
         } else {
-            if (verbose) { 
-            	App.bn.ConsolePrint(pre + "MAXIMUM REDNODE CAPACITY REACHED.");
+            if (verbose) {
+                AppLogger.getInstance().consolePrint(pre + "MAXIMUM REDNODE CAPACITY REACHED.");
             }
             throw new Exception(pre + "MAXIMUM REDNODE CAPACITY REACHED.");
         }
@@ -90,7 +91,7 @@ public class LocalRedNodeTable {
         	if (rn.getHostname().equals(hostname)) {
         		it.remove();
         		if (verbose) {
-        			App.bn.ConsolePrint(pre + "RELEASED LOCAL RED NODE "+hostname+" ENTRY FROM TABLE");
+                    AppLogger.getInstance().consolePrint(pre + "RELEASED LOCAL RED NODE "+hostname+" ENTRY FROM TABLE");
         		}
         		notifyGUI();
         		return;

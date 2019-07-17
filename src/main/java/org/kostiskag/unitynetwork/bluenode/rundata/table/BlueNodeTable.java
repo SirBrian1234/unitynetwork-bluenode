@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNodeInstance;
@@ -24,7 +25,7 @@ public class BlueNodeTable {
         list = new LinkedList<BlueNodeInstance>();
         verbose = true;
         notifyGui = true;
-        App.bn.ConsolePrint(pre + "INITIALIZED");
+		AppLogger.getInstance().consolePrint(pre + "INITIALIZED");
     }
     
     public BlueNodeTable(boolean verbose, boolean notifyGui) {
@@ -32,7 +33,7 @@ public class BlueNodeTable {
         this.verbose = verbose;
         this.notifyGui = notifyGui;
         if (verbose) {
-        	App.bn.ConsolePrint(pre + "INITIALIZED");
+			AppLogger.getInstance().consolePrint(pre + "INITIALIZED");
         }
     }
 
@@ -83,7 +84,7 @@ public class BlueNodeTable {
     	//add if not found
     	list.add(blueNode);
     	if (verbose) {
-    		App.bn.ConsolePrint(pre +"LEASED BLUE NODE " + blueNode.getName());
+			AppLogger.getInstance().consolePrint(pre +"LEASED BLUE NODE " + blueNode.getName());
     	}
     	notifyGUI();
     }
@@ -111,7 +112,7 @@ public class BlueNodeTable {
         		bn.killtasks();  	    			
     			it.remove();
     			if (verbose) {
-    				App.bn.ConsolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
+					AppLogger.getInstance().consolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
     			}
     			notifyGUI();
     			notifyRGUI();
@@ -145,7 +146,7 @@ public class BlueNodeTable {
     		cl.removeThisBlueNodesProjection();
     		//bn.killtasks();  	
     		if (verbose) {
-				App.bn.ConsolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
+                AppLogger.getInstance().consolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
 			}
     	}
     	list.clear();
@@ -245,7 +246,7 @@ public class BlueNodeTable {
 	            	BlueNodeClient cl = new BlueNodeClient(element);
 					if (cl.checkBlueNode()) {
 						if (verbose) {
-							App.bn.ConsolePrint(pre+"Fetching RNs from BN "+element.getName());
+							AppLogger.getInstance().consolePrint(pre+"Fetching RNs from BN "+element.getName());
 						}
 					    element.updateTime();
 					    cl = new BlueNodeClient(element);
@@ -269,7 +270,7 @@ public class BlueNodeTable {
 						element.killtasks();
 						iterator.remove();      
 						if (verbose) {
-							App.bn.ConsolePrint(pre +"RELEASED NON RESPONDING BLUE NODE " + element.getName());
+							AppLogger.getInstance().consolePrint(pre +"RELEASED NON RESPONDING BLUE NODE " + element.getName());
 						}
 					}
 				} catch (Exception e) {

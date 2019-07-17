@@ -84,8 +84,8 @@ public class BlueReceive extends Thread {
     	} else {
     		buildClient();
     	}
-    	
-    	App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName());  
+
+        AppLogger.getInstance().consolePrint(pre + "STARTED AT " + Thread.currentThread().getName());
     	byte[] receiveData = new byte[2048];
     	while (!kill.get()) {
         	DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -98,20 +98,20 @@ public class BlueReceive extends Thread {
                     if (UnityPacket.isUnity(packet)) {
     					if (UnityPacket.isKeepAlive(packet)) {
     						// keep alive
-    						App.bn.TrafficPrint(pre +"KEEP ALIVE RECEIVED", AppLogger.MessageType.KEEP_ALIVE, NodeType.BLUENODE);
+                            AppLogger.getInstance().trafficPrint(pre +"KEEP ALIVE RECEIVED", AppLogger.MessageType.KEEP_ALIVE, NodeType.BLUENODE);
     					} else if (UnityPacket.isUping(packet)) {
                             //blue node uping!
-    						blueNode.setUping(true);    
-    						App.bn.TrafficPrint(pre + "UPING RECEIVED", AppLogger.MessageType.PINGS, NodeType.BLUENODE);
+    						blueNode.setUping(true);
+                            AppLogger.getInstance().trafficPrint(pre + "UPING RECEIVED", AppLogger.MessageType.PINGS, NodeType.BLUENODE);
                         } else if (UnityPacket.isDping(packet)) {
                             //blue node dping!
-    						blueNode.setDping(true);    
-    						App.bn.TrafficPrint(pre + "DPING RECEIVED", AppLogger.MessageType.PINGS, NodeType.BLUENODE);
+    						blueNode.setDping(true);
+                            AppLogger.getInstance().trafficPrint(pre + "DPING RECEIVED", AppLogger.MessageType.PINGS, NodeType.BLUENODE);
                         } else if (UnityPacket.isShortRoutedAck(packet)) {
                         	//collect the ack
                         	try {
 								blueNode.getUploadMan().gotACK(UnityPacket.getShortRoutedAckTrackNum(packet));
-								App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", AppLogger.MessageType.PINGS, NodeType.BLUENODE);
+                                AppLogger.getInstance().trafficPrint(pre + "SHORT ACK RECEIVED", AppLogger.MessageType.PINGS, NodeType.BLUENODE);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -120,21 +120,21 @@ public class BlueReceive extends Thread {
     						//route the L-ACK
                         	try {
     							blueNode.getReceiveQueue().offer(packet);
-    							App.bn.TrafficPrint(pre + "ACK-> "+UnityPacket.getDestAddress(packet)+" RECEIVED", AppLogger.MessageType.ACKS, NodeType.BLUENODE);
+                                AppLogger.getInstance().trafficPrint(pre + "ACK-> "+UnityPacket.getDestAddress(packet)+" RECEIVED", AppLogger.MessageType.ACKS, NodeType.BLUENODE);
     						} catch (Exception e) {
     							e.printStackTrace();
     						}
     					} else if (UnityPacket.isMessage(packet)) {
     						blueNode.getReceiveQueue().offer(packet);
-    						App.bn.TrafficPrint(pre + "MESSAGE RECEIVED", AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
+                            AppLogger.getInstance().trafficPrint(pre + "MESSAGE RECEIVED", AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
     						
     						//build and offer a short routed ack towards the sender bluenode
     						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(blueNode.getReceiveQueue().getlen());
     						blueNode.getSendQueue().offer(ACKS);
     					}        				
                     } else if (IPv4Packet.isIPv4(packet)) {
-                    	blueNode.getReceiveQueue().offer(packet); 
-                    	App.bn.TrafficPrint(pre + "IPV4 RECEIVED", AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
+                    	blueNode.getReceiveQueue().offer(packet);
+                        AppLogger.getInstance().trafficPrint(pre + "IPV4 RECEIVED", AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
                     	
                     	//build and offer a short routed ack towards the sender bluenode
 						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(blueNode.getReceiveQueue().getlen());
@@ -151,16 +151,16 @@ public class BlueReceive extends Thread {
                     System.out.println(pre + "MAXIMUM LENGTH EXCEDED");
                 }
             } catch (java.net.SocketException ex1) {
-                App.bn.ConsolePrint(pre + "SOCKET ERROR");
+                AppLogger.getInstance().consolePrint(pre + "SOCKET ERROR");
             } catch (IOException ex) {
-                App.bn.ConsolePrint(pre + "IO ERROR");
+                AppLogger.getInstance().consolePrint(pre + "IO ERROR");
             }
         }
     	socket.close();
     	if (isServer) {
     		App.bn.UDPports.releasePort(serverPort);
     	}
-        App.bn.ConsolePrint(pre + "ENDED");        
+        AppLogger.getInstance().consolePrint(pre + "ENDED");
     }
 
 	public void kill() {
@@ -173,7 +173,7 @@ public class BlueReceive extends Thread {
         try {
             socket = new DatagramSocket(serverPort);
         } catch (java.net.BindException ex) {
-        	App.bn.ConsolePrint(pre + "PORT ALLREADY IN USE");
+            AppLogger.getInstance().consolePrint(pre + "PORT ALLREADY IN USE");
             ex.printStackTrace();
             return;
         } catch (SocketException ex) {
@@ -187,7 +187,7 @@ public class BlueReceive extends Thread {
         try {
             socket = new DatagramSocket();
         } catch (java.net.BindException ex) {
-            App.bn.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
+            AppLogger.getInstance().consolePrint(pre + "PORT ALLREADY IN USE, EXITING");
             return;
         } catch (SocketException ex) {
             Logger.getLogger(RedReceive.class.getName()).log(Level.SEVERE, null, ex);
@@ -201,13 +201,13 @@ public class BlueReceive extends Thread {
                 socket.send(sendPacket);
             }
         } catch (java.net.SocketException ex1) {
-            App.bn.TrafficPrint("FISH PACKET SEND ERROR",AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
+            AppLogger.getInstance().trafficPrint("FISH PACKET SEND ERROR",AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
             return;
         } catch (IOException ex) {
-            App.bn.TrafficPrint("FISH PACKET SEND ERROR", AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
+            AppLogger.getInstance().trafficPrint("FISH PACKET SEND ERROR", AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
             ex.printStackTrace();
             return;
         }
-        App.bn.TrafficPrint("FISH PACKET",AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
+        AppLogger.getInstance().trafficPrint("FISH PACKET",AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
 	}
 }

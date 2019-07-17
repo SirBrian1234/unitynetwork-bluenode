@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 
 /**
@@ -23,7 +24,7 @@ public class BlueNodeServer extends Thread{
     
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre+"started at thread "+Thread.currentThread().getName()+" on port "+authPort);
+        AppLogger.getInstance().consolePrint(pre+"started at thread "+Thread.currentThread().getName()+" on port "+authPort);
         try {
             ServerSocket serverSocket = new ServerSocket(authPort);            
             if (!didTrigger && App.bn.gui){
@@ -37,7 +38,7 @@ public class BlueNodeServer extends Thread{
                 service.start();
             }        
         } catch (java.net.BindException e){
-            App.bn.ConsolePrint(pre +"PORT ALREADY IN USE APPLICATION WILL DIE IN 3secs");             
+            AppLogger.getInstance().consolePrint(pre +"PORT ALREADY IN USE APPLICATION WILL DIE IN 3secs");
             App.bn.die();
         } catch (IOException e) {
             e.printStackTrace();

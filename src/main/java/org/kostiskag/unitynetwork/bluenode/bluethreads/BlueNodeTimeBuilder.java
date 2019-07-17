@@ -2,6 +2,7 @@ package org.kostiskag.unitynetwork.bluenode.bluethreads;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
 
 /**
@@ -24,11 +25,11 @@ public class BlueNodeTimeBuilder extends Thread {
     }
     
     @Override
-    public void run() {        
-        
-    	App.bn.ConsolePrint(pre+"JUST STARTED");
+    public void run() {
+
+        AppLogger.getInstance().consolePrint(pre+"JUST STARTED");
         while (!kill.get()){
-            App.bn.ConsolePrint(pre+"WAITING");
+            AppLogger.getInstance().consolePrint(pre+"WAITING");
             try {
                 sleep(buildStepSec*1000);
             } catch (InterruptedException ex) {
@@ -37,7 +38,7 @@ public class BlueNodeTimeBuilder extends Thread {
             if (kill.get()) break;
             int passedTime = bn.idleTime.addAndGet(buildStepSec*1000);
             if (passedTime > maxWaitTimeSec*1000) {
-            	App.bn.ConsolePrint(pre+"BlueNode is not responding releasing from the local bn table");
+                AppLogger.getInstance().consolePrint(pre+"BlueNode is not responding releasing from the local bn table");
             	try {
 					App.bn.blueNodeTable.releaseBn(bn.getName());
 				} catch (Exception e) {
@@ -45,7 +46,7 @@ public class BlueNodeTimeBuilder extends Thread {
 				}
             }
         }
-        App.bn.ConsolePrint(pre+"ENDED");
+        AppLogger.getInstance().consolePrint(pre+"ENDED");
     }
 
     public void Kill() {

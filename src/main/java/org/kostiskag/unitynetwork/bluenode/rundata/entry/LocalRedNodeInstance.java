@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.routing.QueueManager;
 import org.kostiskag.unitynetwork.bluenode.routing.Router;
@@ -211,10 +212,10 @@ public class LocalRedNodeInstance {
 							}
                         }                                                                  
                 } else if (args[0].equals("DREFRESH")) {
-                    App.bn.ConsolePrint(pre + " " + Vaddress + " UP REFRESH");
+                    AppLogger.getInstance().consolePrint(pre + " " + Vaddress + " UP REFRESH");
                     drefresh();
                 } else if (args[0].equals("UREFRESH")) {
-                    App.bn.ConsolePrint(pre + Vaddress + " DOWN REFRESH");
+                    AppLogger.getInstance().consolePrint(pre + Vaddress + " DOWN REFRESH");
                     urefresh();
                 } else if (args[0].equals("WHOAMI")) {
                     whoami();

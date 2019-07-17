@@ -87,7 +87,7 @@ public class AccountTableTest {
 		System.out.println(table.toString());
 		try {
 			String pass = HashUtilities.SHA256(HashUtilities.SHA256(CryptoUtilities.SALT) +  HashUtilities.SHA256("pakis") + HashUtilities.SHA256(CryptoUtilities.SALT + "1234"));
-			assertEquals(table.getVaddrIfExists("pakis-3", "pakis", pass), VirtualAddress.numberTo10ipAddr(4));
+			assertEquals(table.getVaddrIfExists("pakis-3", "pakis", pass), VirtualAddress.valueOf(4));
 		} catch ( GeneralSecurityException e) {
 			e.printStackTrace();
 		}

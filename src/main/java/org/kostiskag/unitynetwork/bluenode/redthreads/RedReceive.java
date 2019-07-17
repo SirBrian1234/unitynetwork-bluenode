@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.net.*;
 import java.io.IOException;
 
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
@@ -60,12 +61,12 @@ public class RedReceive extends Thread {
 
     @Override
     public void run() {
-        App.bn.ConsolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + serverPort);
+        AppLogger.getInstance().consolePrint(pre + "STARTED AT " + Thread.currentThread().getName() + " ON PORT " + serverPort);
      
         try {
             serverSocket = new DatagramSocket(serverPort);
         } catch (java.net.BindException ex) {
-            App.bn.ConsolePrint(pre + "PORT ALLREADY IN USE, EXITING");
+            AppLogger.getInstance().consolePrint(pre + "PORT ALLREADY IN USE, EXITING");
             return;
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -85,18 +86,18 @@ public class RedReceive extends Thread {
                     if (UnityPacket.isUnity(packet)) {
                     	if (UnityPacket.isKeepAlive(packet)) {
                             //keep alive packet received
-                            App.bn.TrafficPrint(pre +"KEEP ALIVE RECEIVED", MessageType.KEEP_ALIVE, NodeType.REDNODE);
+                            AppLogger.getInstance().trafficPrint(pre +"KEEP ALIVE RECEIVED", MessageType.KEEP_ALIVE, NodeType.REDNODE);
                         }  else if (UnityPacket.isUping(packet)){
                         	//rednode uping packet received by the aspect of the red node
                         	//the red node tests its upload
                             rn.setUPing(true);
-                            App.bn.TrafficPrint(pre + "UPING RECEIVED", MessageType.PINGS, NodeType.REDNODE);
+                            AppLogger.getInstance().trafficPrint(pre + "UPING RECEIVED", MessageType.PINGS, NodeType.REDNODE);
                         } else if (UnityPacket.isShortRoutedAck(packet)) {
                         	//you should not do something
-                        	App.bn.TrafficPrint(pre + "SHORT ACK RECEIVED", MessageType.PINGS, NodeType.REDNODE);
+                            AppLogger.getInstance().trafficPrint(pre + "SHORT ACK RECEIVED", MessageType.PINGS, NodeType.REDNODE);
                         } else if (UnityPacket.isLongRoutedAck(packet)){
                         	try {
-								App.bn.TrafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED", MessageType.ACKS, NodeType.REDNODE);
+                                AppLogger.getInstance().trafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED", MessageType.ACKS, NodeType.REDNODE);
 								//now you have control over the buffer
 								// do stuff here
 								rn.getReceiveQueue().offer(packet);
@@ -105,7 +106,7 @@ public class RedReceive extends Thread {
 							}
                         } else if (UnityPacket.isMessage(packet)) {
                         	try {
-								App.bn.TrafficPrint(pre + "Message -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED", MessageType.ACKS, NodeType.REDNODE);
+                                AppLogger.getInstance().trafficPrint(pre + "Message -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED", MessageType.ACKS, NodeType.REDNODE);
 								//now you have controll over the buffer
 								// do stuff here
 								rn.getReceiveQueue().offer(packet);
@@ -119,7 +120,7 @@ public class RedReceive extends Thread {
 							}
                         }                                                    
                     } else if (IPv4Packet.isIPv4(packet)){
-                        App.bn.TrafficPrint(pre + "IPv4", MessageType.ROUTING, NodeType.REDNODE);
+                        AppLogger.getInstance().trafficPrint(pre + "IPv4", MessageType.ROUTING, NodeType.REDNODE);
                         //now you have control over the buffer
 						// do stuff here
 						rn.getReceiveQueue().offer(packet);   
@@ -136,14 +137,14 @@ public class RedReceive extends Thread {
             } catch (java.net.SocketException ex1) {
                 break;
             } catch (IOException ex) {
-            	App.bn.ConsolePrint(pre + "IO ERROR");
+                AppLogger.getInstance().consolePrint(pre + "IO ERROR");
                 ex.printStackTrace();
                 break;
             }
         }               
         App.bn.UDPports.releasePort(clientPort);   
         rn.getReceiveQueue().clear();
-        App.bn.ConsolePrint(pre + "ENDED");
+        AppLogger.getInstance().consolePrint(pre + "ENDED");
     }
 
     public void kill() {

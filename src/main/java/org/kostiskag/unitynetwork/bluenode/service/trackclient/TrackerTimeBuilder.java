@@ -2,6 +2,7 @@ package org.kostiskag.unitynetwork.bluenode.service.trackclient;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.service.SimpleCyclicService;
 import org.kostiskag.unitynetwork.bluenode.App;
 
@@ -34,12 +35,12 @@ public class TrackerTimeBuilder extends SimpleCyclicService {
 
     @Override
     protected void preActions() {
-        App.bn.ConsolePrint(PRE +"JUST STARTED");
+        AppLogger.getInstance().consolePrint(PRE +"JUST STARTED");
     }
 
     @Override
     protected void postActions() {
-        App.bn.ConsolePrint(PRE +"DIED");
+        AppLogger.getInstance().consolePrint(PRE +"DIED");
     }
 
     @Override
@@ -50,10 +51,10 @@ public class TrackerTimeBuilder extends SimpleCyclicService {
     @Override
     protected void cyclicPayload() {
         int passedTime = trackerRespond.addAndGet(getTime());
-        App.bn.ConsolePrint(PRE + " BUILDING TIME " + passedTime);
+        AppLogger.getInstance().consolePrint(PRE + " BUILDING TIME " + passedTime);
 
         if (passedTime > getTime() * 60) {
-            App.bn.ConsolePrint(PRE + "GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL");
+            AppLogger.getInstance().consolePrint(PRE + "GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL");
             App.bn.localRedNodesTable.exitAll();
             App.bn.die();
         }

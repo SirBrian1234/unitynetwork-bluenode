@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNodeInstance;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
@@ -147,11 +148,11 @@ public class BlueNodeClient {
 			
 			if (name.equals(App.bn.name)) {
 				closeConnection();
-				App.bn.ConsolePrint(pre + "BNs are not allowed to create a u-turn association");
+				AppLogger.getInstance().consolePrint(pre + "BNs are not allowed to create a u-turn association");
 				throw new Exception(pre+"BNs are not allowed to create a u-turn association");
 			} else if (App.bn.blueNodeTable.checkBlueNode(name)) {
 				closeConnection();
-				App.bn.ConsolePrint(pre+"BN is already an associated memeber.");
+				AppLogger.getInstance().consolePrint(pre+"BN is already an associated memeber.");
 				throw new Exception(pre+"BN is already an associated memeber.");
 			}
 			
@@ -162,14 +163,14 @@ public class BlueNodeClient {
 			//lease
 	        String[] args = SocketUtilities.sendReceiveAESEncryptedStringData("ASSOCIATE", socketReader, socketWriter, sessionKey);
 	        if (args[0].equals("ERROR")) {
-	        	App.bn.ConsolePrint(pre + "Connection error");
+				AppLogger.getInstance().consolePrint(pre + "Connection error");
 	            closeConnection();
 	            throw new Exception(pre+"ERROR");  
 	        } 
 	        
 	        downport = Integer.parseInt(args[1]);
             upport = Integer.parseInt(args[2]);
-            App.bn.ConsolePrint(pre + " upport " + upport + " downport " + downport);
+			AppLogger.getInstance().consolePrint(pre + " upport " + upport + " downport " + downport);
 	        
 	        //build the object
 	    	BlueNodeInstance node;
@@ -185,7 +186,7 @@ public class BlueNodeClient {
 			//lease to local bn table
 			App.bn.blueNodeTable.leaseBn(node);
 			closeConnection();
-			App.bn.ConsolePrint(pre + "LEASED REMOTE BN "+name);
+			AppLogger.getInstance().consolePrint(pre + "LEASED REMOTE BN "+name);
 		}
     }		
 		

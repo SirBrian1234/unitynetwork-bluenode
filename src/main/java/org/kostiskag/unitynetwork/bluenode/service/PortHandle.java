@@ -2,6 +2,7 @@ package org.kostiskag.unitynetwork.bluenode.service;
 
 import java.util.Stack;
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 
 /**
  *
@@ -28,7 +29,7 @@ public class PortHandle {
             portToUse = startport + (int)(Math.random() * ((endport - startport) + 1));
          }
          while (checkTable(portToUse));
-         App.bn.ConsolePrint(pre + "USING A NEW PORT " + portToUse);
+        AppLogger.getInstance().consolePrint(pre + "USING A NEW PORT " + portToUse);
          tableAdd(portToUse);
          return portToUse;
     }
@@ -38,8 +39,8 @@ public class PortHandle {
         
             do {
                 portToUse = startport + (int)(Math.random() * ((endport - startport) + 1));
-            } while (checkTable(portToUse) && portToUse != oldPort);            
-            App.bn.ConsolePrint(pre + "USING A NEW PORT " + portToUse);
+            } while (checkTable(portToUse) && portToUse != oldPort);
+            AppLogger.getInstance().consolePrint(pre + "USING A NEW PORT " + portToUse);
             tableAdd(portToUse);
             return portToUse;
     }
@@ -50,7 +51,7 @@ public class PortHandle {
                 ports[i]= ports[count-1];
                 ports[count-1]=0;
                 count--;
-                App.bn.ConsolePrint(pre + "PORT " + port +" RELEASED");
+                AppLogger.getInstance().consolePrint(pre + "PORT " + port +" RELEASED");
             }                                
         }            
     }

@@ -11,6 +11,7 @@ import java.security.PublicKey;
 import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.service.GlobalSocketFunctions;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
@@ -27,7 +28,7 @@ public class BlueNodeFunctions {
     
     static void associate(String name, PublicKey bnPub, Socket connectionSocket, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {        
     	try {
-	    	App.bn.ConsolePrint(pre + "STARTING A BLUE AUTH AT " + Thread.currentThread().getName());
+			AppLogger.getInstance().consolePrint(pre + "STARTING A BLUE AUTH AT " + Thread.currentThread().getName());
 	    	InetAddress phAddress;
 	    	String phAddressStr;
 	    	int authPort = 0;
@@ -56,7 +57,7 @@ public class BlueNodeFunctions {
 	            	return;
 	            }
 	        }
-	        App.bn.ConsolePrint(pre + "BN "+name+" IS VALID AT ADDR "+phAddressStr+":"+authPort);
+			AppLogger.getInstance().consolePrint(pre + "BN "+name+" IS VALID AT ADDR "+phAddressStr+":"+authPort);
 	        
 	    	//create obj first in order to open its threads
 	        BlueNodeInstance bn = null;
@@ -69,12 +70,12 @@ public class BlueNodeFunctions {
 				return;
 			}
 	        
-			SocketUtilities.sendAESEncryptedStringData("ASSOSIATING "+bn.getServerSendPort()+" "+bn.getServerReceivePort(), socketWriter, sessionKey);        
-			App.bn.ConsolePrint(pre + "remote auth port "+bn.getRemoteAuthPort()+" upport "+bn.getServerSendPort()+" downport "+bn.getServerReceivePort());
+			SocketUtilities.sendAESEncryptedStringData("ASSOSIATING "+bn.getServerSendPort()+" "+bn.getServerReceivePort(), socketWriter, sessionKey);
+			AppLogger.getInstance().consolePrint(pre + "remote auth port "+bn.getRemoteAuthPort()+" upport "+bn.getServerSendPort()+" downport "+bn.getServerReceivePort());
 	    	
 	    	try {
 				App.bn.blueNodeTable.leaseBn(bn);
-				App.bn.ConsolePrint(pre + "LEASED REMOTE BN "+name);
+				AppLogger.getInstance().consolePrint(pre + "LEASED REMOTE BN "+name);
 			} catch (Exception e) {
 				e.printStackTrace();
 				bn.killtasks();

@@ -3,6 +3,7 @@ package org.kostiskag.unitynetwork.bluenode.routing;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.security.PublicKey;
 
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
@@ -42,12 +43,12 @@ public class FlyRegister extends Thread {
            
             String sourcevaddress = pair.sourcevaddress;
             String destvaddress = pair.destvaddress;
-            
-            App.bn.ConsolePrint(pre + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
+
+            AppLogger.getInstance().consolePrint(pre + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
 
             if (App.bn.blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
             	//check if it was associated one loop back
-                App.bn.ConsolePrint(pre + "Allready associated entry");
+                AppLogger.getInstance().consolePrint(pre + "Allready associated entry");
                 continue;
             } else {
             	//make stuff
@@ -73,7 +74,7 @@ public class FlyRegister extends Thread {
                     	tr = new TrackerClient();
                         String[] args = tr.getPhysicalBn(BNHostname);
                         if (args[0].equals("OFFLINE")) {
-                        	App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE, OFFLINE " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
+                            AppLogger.getInstance().trafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE, OFFLINE " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
                         	continue;
                         }
                         String address = args[0];
@@ -83,7 +84,7 @@ public class FlyRegister extends Thread {
                         tr = new TrackerClient();
                         PublicKey pub = tr.getBlueNodesPubKey(BNHostname);
                         if (pub == null) {
-                        	App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE, NO PUBLIC KEY " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
+                            AppLogger.getInstance().trafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE, NO PUBLIC KEY " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
                         	continue;
                         }
                         
@@ -92,10 +93,10 @@ public class FlyRegister extends Thread {
                         try {
 							cl.associateClient();
 						} catch (Exception e) {
-							 App.bn.TrafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
+                            AppLogger.getInstance().trafficPrint(pre + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
 							 continue;
-						} 
-                        App.bn.TrafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", MessageType.ROUTING, NodeType.BLUENODE);
+						}
+                        AppLogger.getInstance().trafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", MessageType.ROUTING, NodeType.BLUENODE);
                         
                         //we were associated now it's time to feed return route
                         BlueNodeInstance bn;
@@ -120,11 +121,11 @@ public class FlyRegister extends Thread {
 						} 						
                     }                    
                 } else {
-                   App.bn.ConsolePrint(pre + "NOT FOUND "+destvaddress+" ON NETWORK");                     
+                    AppLogger.getInstance().consolePrint(pre + "NOT FOUND "+destvaddress+" ON NETWORK");
                 }
             }
         }
-        App.bn.ConsolePrint(pre+"ENDED");
+        AppLogger.getInstance().consolePrint(pre+"ENDED");
     }
 
     public void seekDest(String sourcevaddress, String destvaddress) {

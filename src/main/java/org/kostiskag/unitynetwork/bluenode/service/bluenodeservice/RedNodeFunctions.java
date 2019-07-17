@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNodeInstance;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
@@ -24,7 +25,7 @@ public class RedNodeFunctions {
 	private static String pre = "^RedNodeFunctions ";
 
     static void lease(String hostname, String Username, String Password, Socket connectionSocket, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {
-    	App.bn.ConsolePrint(pre + "LEASING "+hostname);
+		AppLogger.getInstance().consolePrint(pre + "LEASING "+hostname);
     	
     	//first check if already exists
     	if (App.bn.localRedNodesTable.checkOnlineByHostname(hostname)){
@@ -48,39 +49,39 @@ public class RedNodeFunctions {
 	    		if (Vaddress.startsWith("10.")) {
 	    			
 	    		} else if (Vaddress.equals("WRONG_COMMAND")) {
-	                App.bn.ConsolePrint(pre + "WRONG_COMMAND");
+                    AppLogger.getInstance().consolePrint(pre + "WRONG_COMMAND");
 	                SocketUtilities.sendAESEncryptedStringData("FAILED BLUENODE", socketWriter, sessionKey);
 	                return;
 	            } else if (Vaddress.equals("NOT_ONLINE")) {
-	                App.bn.ConsolePrint(pre + "NOT_ONLINE");
+                    AppLogger.getInstance().consolePrint(pre + "NOT_ONLINE");
 	                SocketUtilities.sendAESEncryptedStringData("FAILED BLUENODE", socketWriter, sessionKey);
 	                return;
 	            } else if (Vaddress.equals("NOT_REGISTERED")) {
-	                App.bn.ConsolePrint(pre + "NOT_REGISTERED");
+                    AppLogger.getInstance().consolePrint(pre + "NOT_REGISTERED");
 	                SocketUtilities.sendAESEncryptedStringData("FAILED BLUENODE", socketWriter, sessionKey);
 	                return;
 	            } else if (Vaddress.equals("SYSTEM_ERROR")) {
-	                App.bn.ConsolePrint(pre + "SYSTEM_ERROR");
+                    AppLogger.getInstance().consolePrint(pre + "SYSTEM_ERROR");
 	                SocketUtilities.sendAESEncryptedStringData("FAILED BLUENODE", socketWriter, sessionKey);
 	                return;
 	            } else if (Vaddress.equals("AUTH_FAILED")) {
-	                App.bn.ConsolePrint(pre + "FAILED USER");
+                    AppLogger.getInstance().consolePrint(pre + "FAILED USER");
 	                SocketUtilities.sendAESEncryptedStringData("FAILED USER", socketWriter, sessionKey);
 	                return;
 	            } else if (Vaddress.equals("USER_HOSTNAME_MISSMATCH")) {
-	                App.bn.ConsolePrint(pre + "FAILED USER");
+                    AppLogger.getInstance().consolePrint(pre + "FAILED USER");
 	                SocketUtilities.sendAESEncryptedStringData("FAILED USER", socketWriter, sessionKey);
 	                return;
 	            } else if (Vaddress.equals("NOT_FOUND")) {
-	                App.bn.ConsolePrint(pre + "HOSTNAME FAILED 1");
+                    AppLogger.getInstance().consolePrint(pre + "HOSTNAME FAILED 1");
 	                SocketUtilities.sendAESEncryptedStringData("FAILED USER", socketWriter, sessionKey);
 	                return;
 	            } else if (Vaddress.equals("LEASE_FAILED")) {
-	                App.bn.ConsolePrint(pre + "HOSTNAME FAILED 1");
+                    AppLogger.getInstance().consolePrint(pre + "HOSTNAME FAILED 1");
 	                SocketUtilities.sendAESEncryptedStringData("FAILED USER", socketWriter, sessionKey);
 	                return;
 	            } else if (Vaddress.equals("ALLREADY_LEASED")) {
-	                App.bn.ConsolePrint(pre + "FAILED HOSTNAME");
+                    AppLogger.getInstance().consolePrint(pre + "FAILED HOSTNAME");
 	                SocketUtilities.sendAESEncryptedStringData("FAILED HOSTNAME", socketWriter, sessionKey);
 	                return;
 	            } else {
@@ -122,8 +123,8 @@ public class RedNodeFunctions {
         } else {
         	return;
         }
-               
-        App.bn.ConsolePrint(pre + "COLLECTED VADDRESS "+Vaddress);
+
+        AppLogger.getInstance().consolePrint(pre + "COLLECTED VADDRESS "+Vaddress);
         
         //building the local rn object
         String phAddress = connectionSocket.getInetAddress().getHostAddress();
@@ -147,7 +148,7 @@ public class RedNodeFunctions {
         
         try {
 			SocketUtilities.sendAESEncryptedStringData("REG_OK "+RNclient.getVaddress()+" "+RNclient.getReceive().getServerPort()+" "+RNclient.getSend().getServerPort(), socketWriter, sessionKey);
-	        App.bn.ConsolePrint(pre+"RED NODE OK " +  RNclient.getHostname() + "/" + RNclient.getVaddress() +" ~ " + RNclient.getPhAddress() + ":" + RNclient.getSend().getServerPort() + ":" + RNclient.getReceive().getServerPort());
+            AppLogger.getInstance().consolePrint(pre+"RED NODE OK " +  RNclient.getHostname() + "/" + RNclient.getVaddress() +" ~ " + RNclient.getPhAddress() + ":" + RNclient.getSend().getServerPort() + ":" + RNclient.getReceive().getServerPort());
 	        
 	        //initTerm will use the session socket and will hold this thread
 	        RNclient.initTerm();
@@ -170,6 +171,6 @@ public class RedNodeFunctions {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-        App.bn.ConsolePrint(pre+"ENDED");
+        AppLogger.getInstance().consolePrint(pre+"ENDED");
     }
 }
