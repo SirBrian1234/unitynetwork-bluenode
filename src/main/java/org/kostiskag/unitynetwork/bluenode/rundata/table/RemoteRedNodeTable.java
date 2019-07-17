@@ -1,12 +1,13 @@
 package org.kostiskag.unitynetwork.bluenode.rundata.table;
 
+import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.LinkedList;
-import org.kostiskag.unitynetwork.bluenode.App;
+
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
 
 /**
  * Here we keep all the remote red nodes leased by each blue node.
@@ -17,20 +18,20 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNodeInstance;
 public class RemoteRedNodeTable {
 
     private final String pre = "^REDNODE REMOTE TABLE ";
-    private final LinkedList<RemoteRedNodeInstance> list;
-    private final BlueNodeInstance blueNode;
+    private final LinkedList<RemoteRedNode> list;
+    private final BlueNode blueNode;
     private final boolean verbose;
     private final boolean notifyGui;
 
-    public RemoteRedNodeTable(BlueNodeInstance blueNode) {
+    public RemoteRedNodeTable(BlueNode blueNode) {
     	this.blueNode = blueNode;
-        list =  new LinkedList<RemoteRedNodeInstance>();
+        list =  new LinkedList<RemoteRedNode>();
         verbose = true;
         notifyGui = true;
 		AppLogger.getInstance().consolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
     }
     
-    public RemoteRedNodeTable(BlueNodeInstance blueNode, LinkedList<RemoteRedNodeInstance> list) {
+    public RemoteRedNodeTable(BlueNode blueNode, LinkedList<RemoteRedNode> list) {
     	this.blueNode = blueNode;
         this.list =  list;
         verbose = true;
@@ -38,9 +39,9 @@ public class RemoteRedNodeTable {
 		AppLogger.getInstance().consolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
     }
     
-    public RemoteRedNodeTable(BlueNodeInstance blueNode, boolean verbose, boolean notifyGui) {
+    public RemoteRedNodeTable(BlueNode blueNode, boolean verbose, boolean notifyGui) {
     	this.blueNode = blueNode;
-        list =  new LinkedList<RemoteRedNodeInstance>();
+        list =  new LinkedList<RemoteRedNode>();
         this.verbose = verbose;
         this.notifyGui = notifyGui;
         if (verbose) {
@@ -48,11 +49,11 @@ public class RemoteRedNodeTable {
         }
     }
     
-    public BlueNodeInstance getBlueNode() {
+    public BlueNode getBlueNode() {
 		return blueNode;
 	}
     
-    public LinkedList<RemoteRedNodeInstance> getList() {
+    public LinkedList<RemoteRedNode> getList() {
 		return list;
 	}
     
@@ -60,10 +61,10 @@ public class RemoteRedNodeTable {
     	return list.size();
     }
 
-    public synchronized RemoteRedNodeInstance getByHostname(String hostname) throws Exception {
-    	Iterator<RemoteRedNodeInstance> it = list.listIterator();
+    public synchronized RemoteRedNode getByHostname(String hostname) throws Exception {
+    	Iterator<RemoteRedNode> it = list.listIterator();
     	while(it.hasNext()){
-    		RemoteRedNodeInstance rn = it.next();
+    		RemoteRedNode rn = it.next();
     		if (rn.getHostname().equals(hostname)) {
     			return rn;
     		}
@@ -71,11 +72,11 @@ public class RemoteRedNodeTable {
     	throw new Exception(pre + "NO ENTRY FOR " + hostname + " IN TABLE");
     }
     
-    public synchronized RemoteRedNodeInstance getByVaddress(String vAddress) throws Exception {
-    	Iterator<RemoteRedNodeInstance> it = list.listIterator();
+    public synchronized RemoteRedNode getByVaddress(String vAddress) throws Exception {
+    	Iterator<RemoteRedNode> it = list.listIterator();
     	while(it.hasNext()){
-    		RemoteRedNodeInstance rn = it.next();
-    		if (rn.getVaddress().equals(vAddress)) {
+    		RemoteRedNode rn = it.next();
+    		if (rn.getAddress().asString().equals(vAddress)) {
     			return rn;
     		}
     	}
@@ -84,22 +85,27 @@ public class RemoteRedNodeTable {
     
     public synchronized void lease(String hostname, String vAddress) {
     	//the duplicate check is applied at bntable lease rn on bn
-    	RemoteRedNodeInstance rn = new RemoteRedNodeInstance(hostname, vAddress, blueNode);
-    	list.add(rn);
-    	if (verbose) {
-			AppLogger.getInstance().consolePrint(pre +"LEASED " + hostname + " - " + vAddress + " ON BLUE NODE " + blueNode.getName());
-    	}
-    	notifyGUI();
+		RemoteRedNode rn = null;
+		try {
+			rn = RemoteRedNode.newInstance(hostname, vAddress, blueNode);
+			list.add(rn);
+			if (verbose) {
+				AppLogger.getInstance().consolePrint(pre +"LEASED " + hostname + " - " + vAddress + " ON BLUE NODE " + blueNode.getName());
+			}
+			notifyGUI();
+		} catch (UnknownHostException | IllegalAccessException e) {
+			AppLogger.getInstance().consolePrint(pre +"failed to lease " + hostname + " - " + vAddress + " ON BLUE NODE " + blueNode.getName()+" "+e.getLocalizedMessage());
+		}
     }
 
     public synchronized void releaseByHostname(String hostname) throws Exception {
-    	Iterator<RemoteRedNodeInstance> it = list.listIterator();
+    	Iterator<RemoteRedNode> it = list.listIterator();
     	while(it.hasNext()){
-    		RemoteRedNodeInstance rn = it.next();
+    		RemoteRedNode rn = it.next();
     		if (rn.getHostname().equals(hostname)) {
     			it.remove();
     			if (verbose) {
-					AppLogger.getInstance().consolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getVaddress() + " FROM BLUE NODE " + blueNode.getName());
+					AppLogger.getInstance().consolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getAddress().asString() + " FROM BLUE NODE " + blueNode.getName());
     			}
     			notifyGUI();
     			return;
@@ -109,13 +115,13 @@ public class RemoteRedNodeTable {
     }
 
     public synchronized void releaseByVaddr(String vAddress) throws Exception {
-    	Iterator<RemoteRedNodeInstance> it = list.listIterator();
+    	Iterator<RemoteRedNode> it = list.listIterator();
     	while(it.hasNext()){
-    		RemoteRedNodeInstance rn = it.next();
-    		if (rn.getVaddress().equals(vAddress)) {
+    		RemoteRedNode rn = it.next();
+    		if (rn.getAddress().asString().equals(vAddress)) {
     			it.remove();
     			if (verbose) {
-					AppLogger.getInstance().consolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getVaddress() + " FROM BLUE NODE " + blueNode.getName());
+					AppLogger.getInstance().consolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getAddress().asString() + " FROM BLUE NODE " + blueNode.getName());
     			}
     			notifyGUI();
     			return;
@@ -125,9 +131,9 @@ public class RemoteRedNodeTable {
     }
         
     public synchronized Boolean checkByHostname(String hostname) {
-        Iterator<RemoteRedNodeInstance> it = list.listIterator();
+        Iterator<RemoteRedNode> it = list.listIterator();
     	while(it.hasNext()){
-    		RemoteRedNodeInstance rn = it.next();
+    		RemoteRedNode rn = it.next();
     		if (rn.getHostname().equals(hostname)) {
     			return true;
     		}
@@ -136,10 +142,10 @@ public class RemoteRedNodeTable {
     }
     
     public synchronized Boolean checkByVaddr(String vAddress) {
-    	Iterator<RemoteRedNodeInstance> it = list.listIterator();
+    	Iterator<RemoteRedNode> it = list.listIterator();
     	while(it.hasNext()){
-    		RemoteRedNodeInstance rn = it.next();
-    		if (rn.getVaddress().equals(vAddress)) {
+    		RemoteRedNode rn = it.next();
+    		if (rn.getAddress().asString().equals(vAddress)) {
     			return true;
     		}
     	}
@@ -147,10 +153,10 @@ public class RemoteRedNodeTable {
     }
     
     public synchronized void renewAll() {
-    	Iterator<RemoteRedNodeInstance> it = list.listIterator();
+    	Iterator<RemoteRedNode> it = list.listIterator();
     	while(it.hasNext()){
-    		RemoteRedNodeInstance rn = it.next();
-    		rn.updateTime();
+    		RemoteRedNode rn = it.next();
+    		rn.updateTimestamp();
     	}
     	notifyGUI();
     }

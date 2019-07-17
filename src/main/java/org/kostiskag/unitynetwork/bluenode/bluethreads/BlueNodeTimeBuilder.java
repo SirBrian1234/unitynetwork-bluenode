@@ -3,7 +3,7 @@ package org.kostiskag.unitynetwork.bluenode.bluethreads;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 
 /**
  *
@@ -12,12 +12,12 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
 public class BlueNodeTimeBuilder extends Thread {
 
     private final String pre;
-    private final BlueNodeInstance bn;
+    private final BlueNode bn;
     private final int buildStepSec;
     private final int maxWaitTimeSec;
     private AtomicBoolean kill = new AtomicBoolean(false);
     
-    public BlueNodeTimeBuilder(BlueNodeInstance bn, int buildStepSec, int maxWaitTimeSec) {
+    public BlueNodeTimeBuilder(BlueNode bn, int buildStepSec, int maxWaitTimeSec) {
     	this.bn = bn;
     	this.pre = "^BlueNodeTimeBuilder "+bn.getName()+" ";
     	this.buildStepSec = buildStepSec;

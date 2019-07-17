@@ -11,7 +11,7 @@ import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
@@ -129,7 +129,7 @@ public class RedNodeFunctions {
         //building the local rn object
         String phAddress = connectionSocket.getInetAddress().getHostAddress();
         int port = connectionSocket.getPort();
-    	LocalRedNodeInstance RNclient = new LocalRedNodeInstance( hostname, Vaddress, phAddress, port, socketReader, socketWriter, sessionKey);
+    	LocalRedNode RNclient = new LocalRedNode( hostname, Vaddress, phAddress, port, socketReader, socketWriter, sessionKey);
         
     	//leasing it to the local red node table
 		try {

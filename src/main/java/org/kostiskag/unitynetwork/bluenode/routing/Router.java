@@ -9,7 +9,7 @@ import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
 import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 
 /**
  * An object of this class can be owned either by a blue node or a red node instance
@@ -87,7 +87,7 @@ public class Router extends Thread {
 	                } else if (App.bn.joined) {
 	                    if (App.bn.blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
 	                    	//load the packet to remote blue node's queue
-	                        BlueNodeInstance bn;
+	                        BlueNode bn;
 							try {
 								bn = App.bn.blueNodeTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
 								bn.getSendQueue().offer(data);

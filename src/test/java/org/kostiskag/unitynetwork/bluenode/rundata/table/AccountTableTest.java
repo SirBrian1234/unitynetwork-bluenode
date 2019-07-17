@@ -5,14 +5,21 @@ import static org.junit.Assert.*;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.HashUtilities;
 
 public class AccountTableTest {
+
+	@BeforeClass
+	public static void before() {
+		AppLogger.newInstance(false,false,false);
+	}
 	
 	@Test
 	public void initTest() {

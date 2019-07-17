@@ -4,19 +4,26 @@ import static org.junit.Assert.*;
 
 import java.util.LinkedList;
 
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 
 public class LocalRedNodesTableTest {
+
+	@BeforeClass
+	public static void before() {
+		AppLogger.newInstance(false,false,false);
+	}
 
 	@Test
 	public void initTest() {
 		LocalRedNodeTable table = new LocalRedNodeTable(2, false, false);
-		LocalRedNodeInstance rn1 = new LocalRedNodeInstance();
-		LocalRedNodeInstance rn2 = new LocalRedNodeInstance();
-		LocalRedNodeInstance rn3 = new LocalRedNodeInstance();
+		LocalRedNode rn1 = new LocalRedNode();
+		LocalRedNode rn2 = new LocalRedNode();
+		LocalRedNode rn3 = new LocalRedNode();
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -29,9 +36,9 @@ public class LocalRedNodesTableTest {
 	@Test
 	public void maxCapTest() {
 		LocalRedNodeTable table = new LocalRedNodeTable(2, false, false);
-		LocalRedNodeInstance rn1 = new LocalRedNodeInstance();
-		LocalRedNodeInstance rn2 = new LocalRedNodeInstance();
-		LocalRedNodeInstance rn3 = new LocalRedNodeInstance();
+		LocalRedNode rn1 = new LocalRedNode();
+		LocalRedNode rn2 = new LocalRedNode();
+		LocalRedNode rn3 = new LocalRedNode();
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -45,9 +52,9 @@ public class LocalRedNodesTableTest {
 	@Test
 	public void getByHnTest() {
 		LocalRedNodeTable table = new LocalRedNodeTable(10, false, false);
-		LocalRedNodeInstance rn1 = new LocalRedNodeInstance("pakis-laptop","10.0.0.1");
-		LocalRedNodeInstance rn2 = new LocalRedNodeInstance("pakis-laptop2","10.0.0.2");
-		LocalRedNodeInstance rn3 = new LocalRedNodeInstance("pakis-laptop3","10.0.0.3");
+		LocalRedNode rn1 = new LocalRedNode("pakis-laptop","10.0.0.1");
+		LocalRedNode rn2 = new LocalRedNode("pakis-laptop2","10.0.0.2");
+		LocalRedNode rn3 = new LocalRedNode("pakis-laptop3","10.0.0.3");
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -63,9 +70,9 @@ public class LocalRedNodesTableTest {
 	@Test
 	public void getByVaddrTest() {
 		LocalRedNodeTable table = new LocalRedNodeTable(10, false, false);
-		LocalRedNodeInstance rn1 = new LocalRedNodeInstance("pakis-laptop","10.0.0.1");
-		LocalRedNodeInstance rn2 = new LocalRedNodeInstance("pakis-laptop2","10.0.0.2");
-		LocalRedNodeInstance rn3 = new LocalRedNodeInstance("pakis-laptop3","10.0.0.3");
+		LocalRedNode rn1 = new LocalRedNode("pakis-laptop","10.0.0.1");
+		LocalRedNode rn2 = new LocalRedNode("pakis-laptop2","10.0.0.2");
+		LocalRedNode rn3 = new LocalRedNode("pakis-laptop3","10.0.0.3");
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -81,9 +88,9 @@ public class LocalRedNodesTableTest {
 	@Ignore
 	public void releaseByHnTest() {
 		LocalRedNodeTable table = new LocalRedNodeTable(10, false, false);
-		LocalRedNodeInstance rn1 = new LocalRedNodeInstance("pakis-laptop","10.0.0.1");
-		LocalRedNodeInstance rn2 = new LocalRedNodeInstance("pakis-laptop2","10.0.0.2");
-		LocalRedNodeInstance rn3 = new LocalRedNodeInstance("pakis-laptop3","10.0.0.3");
+		LocalRedNode rn1 = new LocalRedNode("pakis-laptop","10.0.0.1");
+		LocalRedNode rn2 = new LocalRedNode("pakis-laptop2","10.0.0.2");
+		LocalRedNode rn3 = new LocalRedNode("pakis-laptop3","10.0.0.3");
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -114,9 +121,9 @@ public class LocalRedNodesTableTest {
 	@Test
 	public void checkOnlineTest() {
 		LocalRedNodeTable table = new LocalRedNodeTable(10, false, false);
-		LocalRedNodeInstance rn1 = new LocalRedNodeInstance("pakis-laptop","10.0.0.1");
-		LocalRedNodeInstance rn2 = new LocalRedNodeInstance("pakis-laptop2","10.0.0.2");
-		LocalRedNodeInstance rn3 = new LocalRedNodeInstance("pakis-laptop3","10.0.0.3");
+		LocalRedNode rn1 = new LocalRedNode("pakis-laptop","10.0.0.1");
+		LocalRedNode rn2 = new LocalRedNode("pakis-laptop2","10.0.0.2");
+		LocalRedNode rn3 = new LocalRedNode("pakis-laptop3","10.0.0.3");
 		try {
 			table.lease(rn1);
 			table.lease(rn2);
@@ -137,9 +144,9 @@ public class LocalRedNodesTableTest {
 	@Test
 	public void buildStringTest() {
 		LocalRedNodeTable table = new LocalRedNodeTable(10, false, false);
-		LocalRedNodeInstance rn1 = new LocalRedNodeInstance("pakis-laptop","10.0.0.1");
-		LocalRedNodeInstance rn2 = new LocalRedNodeInstance("pakis-laptop2","10.0.0.2");
-		LocalRedNodeInstance rn3 = new LocalRedNodeInstance("pakis-laptop3","10.0.0.3");
+		LocalRedNode rn1 = new LocalRedNode("pakis-laptop","10.0.0.1");
+		LocalRedNode rn2 = new LocalRedNode("pakis-laptop2","10.0.0.2");
+		LocalRedNode rn3 = new LocalRedNode("pakis-laptop3","10.0.0.3");
 		try {
 			table.lease(rn1);
 			table.lease(rn2);

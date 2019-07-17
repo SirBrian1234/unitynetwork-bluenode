@@ -10,7 +10,7 @@ import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
@@ -179,7 +179,7 @@ public class BlueNodeService extends Thread {
                 BlueNodeFunctions.associate(blueNodeName, bnPub, sessionSocket,socketReader,socketWriter, sessionKey);
             } else if (associated) {            	
             	//these options are only for leased bns
-            	BlueNodeInstance bn = App.bn.blueNodeTable.getBlueNodeInstanceByName(blueNodeName);
+            	BlueNode bn = App.bn.blueNodeTable.getBlueNodeInstanceByName(blueNodeName);
 				if (args.length == 1 && args[0].equals("UPING")) {
 					AppLogger.getInstance().consolePrint(pre+prebn+"UPING"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.Uping(bn, socketWriter, sessionKey);

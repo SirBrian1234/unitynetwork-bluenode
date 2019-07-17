@@ -7,10 +7,11 @@ import java.util.LinkedList;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNodeInstance;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
+import org.kostiskag.unitynetwork.bluenode.App;
 
 /**
  * 
@@ -34,7 +35,7 @@ public class GlobalSocketFunctions {
 		}            
     }
 	
-	public static void getRemoteRedNodes(BlueNodeInstance bn, DataInputStream socketReader, SecretKey sessionKey) {
+	public static void getRemoteRedNodes(BlueNode bn, DataInputStream socketReader, SecretKey sessionKey) {
 		try {
 			String received = SocketUtilities.receiveAESEncryptedString(socketReader, sessionKey);
 			String[] lines = received.split("\n+"); //split into sentences
@@ -60,8 +61,8 @@ public class GlobalSocketFunctions {
 	 * 
 	 * @return a linked list with all the retrieved RemoteRedNodeInstance
 	 */
-	public static LinkedList<RemoteRedNodeInstance> getRemoteRedNodesObj(BlueNodeInstance bn, DataInputStream socketReader, SecretKey sessionKey) {
-		LinkedList<RemoteRedNodeInstance> fetched = new LinkedList<RemoteRedNodeInstance>();
+	public static LinkedList<RemoteRedNode> getRemoteRedNodesObj(BlueNode bn, DataInputStream socketReader, SecretKey sessionKey) {
+		LinkedList<RemoteRedNode> fetched = new LinkedList<RemoteRedNode>();
 		try {
 			String received = SocketUtilities.receiveAESEncryptedString(socketReader, sessionKey);
 			String[] lines = received.split("\n+"); //split into sentences
@@ -70,7 +71,7 @@ public class GlobalSocketFunctions {
 	        for (int i = 1; i < count+1; i++) {        	
 				args = lines[i].split("\\s+");
 	            try {
-	            	RemoteRedNodeInstance r =  new RemoteRedNodeInstance(args[0], args[1], bn);                    
+	            	RemoteRedNode r =   RemoteRedNode.newInstance(args[0], args[1], bn);
 		            fetched.add(r); 
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -10,7 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
 
 /**
@@ -27,7 +27,7 @@ public class AssociatedBlueNodeClientView {
 	private JTextField textField_4;
 	private JTextField textField_5;
 	private final String name;
-	private final BlueNodeInstance bn;
+	private final BlueNode bn;
 	private JLabel lblName;
 	private JTextField textField_6;
 

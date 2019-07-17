@@ -14,7 +14,7 @@ import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.redthreads.RedlSend;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
@@ -28,7 +28,7 @@ import org.kostiskag.unitynetwork.bluenode.App;
 public class BlueSend extends Thread {
 
     private final String pre;
-    private final BlueNodeInstance blueNode;
+    private final BlueNode blueNode;
     private final boolean isServer;
     //connection
     private int serverPort;
@@ -44,7 +44,7 @@ public class BlueSend extends Thread {
      * It builds a socket based on a port collected from the available 
      * port pool
      */
-    public BlueSend(BlueNodeInstance blueNode) {    	
+    public BlueSend(BlueNode blueNode) {
     	this.isServer = true;
     	this.blueNode = blueNode;
     	this.pre = "^BlueSend "+blueNode.getName()+" ";
@@ -56,7 +56,7 @@ public class BlueSend extends Thread {
      * This is the client constructor
      * It collects a port to send from the auth
      */
-    public BlueSend(BlueNodeInstance blueNode, int portToSend) {
+    public BlueSend(BlueNode blueNode, int portToSend) {
     	this.isServer = false;
 		this.blueNode = blueNode;
 		this.pre = "^BlueSend " + blueNode.getName() + " ";
@@ -77,7 +77,7 @@ public class BlueSend extends Thread {
 		return portToSend;
 	}
     
-    public BlueNodeInstance getBlueNode() {
+    public BlueNode getBlueNode() {
 		return blueNode;
 	}
     

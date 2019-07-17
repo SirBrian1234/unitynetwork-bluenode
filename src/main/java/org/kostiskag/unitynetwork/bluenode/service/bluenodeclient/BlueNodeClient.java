@@ -15,8 +15,8 @@ import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
@@ -34,7 +34,7 @@ public class BlueNodeClient {
 	private final String name;
 	private final String phAddressStr;
 	private final int authPort;
-	private final BlueNodeInstance bn;
+	private final BlueNode bn;
 	private final PublicKey pub;
 	private SecretKey sessionKey;
 	private InetAddress phAddress;
@@ -43,7 +43,7 @@ public class BlueNodeClient {
 	private DataOutputStream socketWriter;
 	private boolean connected = false;
 
-	public BlueNodeClient(BlueNodeInstance bn) {
+	public BlueNodeClient(BlueNode bn) {
 		this.bn = bn;
 		this.name = bn.getName();
 		this.phAddressStr = bn.getPhAddressStr();
@@ -173,9 +173,9 @@ public class BlueNodeClient {
 			AppLogger.getInstance().consolePrint(pre + " upport " + upport + " downport " + downport);
 	        
 	        //build the object
-	    	BlueNodeInstance node;
+	    	BlueNode node;
 			try {
-				node = new BlueNodeInstance(name, pub, phAddressStr, authPort, upport, downport);	        
+				node = new BlueNode(name, pub, phAddressStr, authPort, upport, downport);
 			} catch (Exception e) {
 				e.printStackTrace();
 				bn.killtasks();
@@ -283,7 +283,7 @@ public class BlueNodeClient {
 		}
 	}
 	
-	public LinkedList<RemoteRedNodeInstance> getRemoteRedNodesObj() {
+	public LinkedList<RemoteRedNode> getRemoteRedNodesObj() {
 		return GlobalSocketFunctions.getRemoteRedNodesObj(bn, socketReader, sessionKey);
 	}
 	

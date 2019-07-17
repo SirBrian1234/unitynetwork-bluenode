@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.security.PublicKey;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,15 +16,15 @@ import org.kostiskag.unitynetwork.bluenode.bluethreads.BlueReceive;
 import org.kostiskag.unitynetwork.bluenode.bluethreads.BlueNodeTimeBuilder;
 import org.kostiskag.unitynetwork.bluenode.bluethreads.BlueSend;
 import org.kostiskag.unitynetwork.bluenode.bluethreads.UploadManager;
-import org.kostiskag.unitynetwork.bluenode.utilities.GetTime;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
+import org.kostiskag.unitynetwork.common.utilities.FixedDate;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 /**
  *
  * @author Konstantinos Kagiampakis
  */
-public class BlueNodeInstance {
+public class BlueNode {
 
     private final String pre;
     private final String name;
@@ -55,7 +56,7 @@ public class BlueNodeInstance {
      * 
      * @throws Exception 
      */
-    public BlueNodeInstance(String name) throws GeneralSecurityException, UnknownHostException {
+    public BlueNode(String name) throws GeneralSecurityException, UnknownHostException {
     	this.name = name;    
     	this.pub =  CryptoUtilities.generateRSAkeyPair().getPublic();
     	this.isServer = false;
@@ -64,17 +65,17 @@ public class BlueNodeInstance {
     	this.remoteAuthPort = 7000;
     	this.pre = "^BlueNodeInstance "+name+" ";
     	this.state = 0;                  
-        this.sendQueue = new QueueManager(20, App.bn.trackerMaxIdleTime);
+        this.sendQueue = new QueueManager(20, 5); //App.bn.trackerMaxIdleTime
         this.uploadMan = new UploadManager();
         this.table = new RemoteRedNodeTable(this);    
-        this.timestamp = GetTime.getSmallTimestamp();
+        this.timestamp = FixedDate.getSmallTimestamp(new Date());
     }
 
     /**
      * This is the server constructor.
      * 
      */
-    public BlueNodeInstance(String name, PublicKey pub, String phAddressStr, int authPort) throws Exception {
+    public BlueNode(String name, PublicKey pub, String phAddressStr, int authPort) throws Exception {
     	this.isServer = true;
     	this.name = name;
     	this.pub = pub;
@@ -83,7 +84,7 @@ public class BlueNodeInstance {
     	this.phAddressStr = phAddressStr;
     	this.phAddress = SocketUtilities.getAddress(phAddressStr);
         this.table = new RemoteRedNodeTable(this);
-        this.timestamp = GetTime.getSmallTimestamp();
+        this.timestamp = FixedDate.getSmallTimestamp(new Date());
         
         //setting upload manager
         this.uploadMan = new UploadManager();
@@ -111,7 +112,7 @@ public class BlueNodeInstance {
      * This is the client constructor.
      * 
      */
-    public BlueNodeInstance(String name, PublicKey pub, String phAddress, int authPort, int upPort, int downPort) throws Exception {
+    public BlueNode(String name, PublicKey pub, String phAddress, int authPort, int upPort, int downPort) throws Exception {
     	this.isServer = false;
     	this.name = name;
     	this.pub = pub;
@@ -120,7 +121,7 @@ public class BlueNodeInstance {
         this.phAddress = SocketUtilities.getAddress(phAddressStr);
         this.remoteAuthPort = authPort;
         this.table = new RemoteRedNodeTable(this);
-        this.timestamp = GetTime.getSmallTimestamp();
+        this.timestamp = FixedDate.getSmallTimestamp(new Date());
         
         //setting upload manager
         this.uploadMan = new UploadManager();
@@ -247,7 +248,7 @@ public class BlueNodeInstance {
     }
     
     public void updateTime() {
-        this.timestamp = GetTime.getSmallTimestamp();
+        this.timestamp = FixedDate.getSmallTimestamp(new Date());
     }
     
     public void resetIdleTime() {

@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.AccountInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalAccount;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 
 
@@ -18,10 +18,10 @@ import org.kostiskag.unitynetwork.common.address.VirtualAddress;
  */
 public class AccountTable {
     private final String pre = "^AccountsTable ";
-    private final List<AccountInstance> list;
+    private final List<LocalAccount> list;
 
     public AccountTable() {
-        list = new LinkedList<AccountInstance>();
+        list = new LinkedList<LocalAccount>();
     }
     
     public int getSize() {
@@ -35,15 +35,15 @@ public class AccountTable {
     			if (vadressNum > 0 && vadressNum <= (NumericConstraints.VIRTUAL_NETWORK_ADDRESS_EFFECTIVE_CAPACITY.size())) {
 	    			//check if unique
 	    			VirtualAddress effectveVaddress = VirtualAddress.valueOf(vadressNum);
-	    			Iterator<AccountInstance> it = list.listIterator();
+	    			Iterator<LocalAccount> it = list.listIterator();
 	    	        while(it.hasNext()) {
-	    	        	AccountInstance element = it.next();
+	    	        	LocalAccount element = it.next();
 	    	        	if (element.getHostname().equals(hostname) || element.getVaddress().equals(effectveVaddress)) {
 	    	        		throw new Exception(pre+"duplicate hostname or vaddress entry.\nHostnames and addresses have to be unique");
 	    	        	}
 	    	        }
 	    	        //insert
-	    	        list.add(new AccountInstance(username, password, hostname, effectveVaddress));
+	    	        list.add(new LocalAccount(username, password, hostname, effectveVaddress));
     			} else {
     				throw new Exception(pre+"bad numeric address was given.");
     			}
@@ -56,9 +56,9 @@ public class AccountTable {
     }
     
     public synchronized boolean checkList(String hostname, String username, String password) {
-        Iterator<AccountInstance> it = list.listIterator();
+        Iterator<LocalAccount> it = list.listIterator();
         while(it.hasNext()) {
-        	AccountInstance element = it.next();
+        	LocalAccount element = it.next();
         	if (element.check(username, password, hostname)) {
         		return true;
         	}
@@ -67,9 +67,9 @@ public class AccountTable {
     }
     
     public synchronized VirtualAddress getVaddrIfExists(String hostname, String username, String password) {
-        Iterator<AccountInstance> it = list.listIterator();
+        Iterator<LocalAccount> it = list.listIterator();
         while(it.hasNext()) {
-        	AccountInstance element = it.next();
+        	LocalAccount element = it.next();
         	VirtualAddress vaddr = element.checkAndGetVaddr(username, password, hostname);
         	if (vaddr != null) {
         		return vaddr;
@@ -81,7 +81,7 @@ public class AccountTable {
     @Override
 	public synchronized String toString() {
 		StringBuilder strB = new StringBuilder();
-		for(AccountInstance a : this.list) {
+		for(LocalAccount a : this.list) {
 			strB.append(a.toString()+"\n");
 		}
     	return strB.toString();

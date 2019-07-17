@@ -3,10 +3,17 @@ package org.kostiskag.unitynetwork.bluenode.scenarios;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 
+import org.junit.BeforeClass;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 public class MultipleBlueNodesWithRedNodesScenario {
+
+	@BeforeClass
+	public static void before() {
+		AppLogger.newInstance(false,false,false);
+	}
 	
 	public static void main(String[] args) throws GeneralSecurityException {
 		boolean network = true;

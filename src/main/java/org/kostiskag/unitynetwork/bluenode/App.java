@@ -6,13 +6,15 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.Date;
 
 import javax.swing.UIManager;
 
+import org.kostiskag.unitynetwork.common.utilities.FixedDate;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
-import org.kostiskag.unitynetwork.bluenode.utilities.GetTime;
+
 
 /**
  * This class keeps the application's main method. 
@@ -198,7 +200,7 @@ public class App extends Thread {
 		// init bluenode.log
 		System.out.println(pre+"initializing log file...");
 		if (prefs.log) {
-			writeToLogFile("-------------"+GetTime.getFullTimestamp()+"-------------");
+			writeToLogFile("-------------"+ FixedDate.getFullTimestamp(new Date())+"-------------");
 		}
 
 		// init a bluenode object

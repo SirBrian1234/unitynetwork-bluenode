@@ -22,7 +22,7 @@ import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class LocalRedNodeInstance {
+public class LocalRedNode {
 
 	//to check if a RN is connected in another BN before auth
 	private final String pre = "^AUTH ";
@@ -46,20 +46,20 @@ public class LocalRedNodeInstance {
     private boolean uping = false;
     private boolean didTrigger = false;
 
-    public LocalRedNodeInstance() {
+    public LocalRedNode() {
         state = 0;
     }
     
     /**
      * This is a test constructor
      */
-    public LocalRedNodeInstance(String Hostname, String Vaddress) {
+    public LocalRedNode(String Hostname, String Vaddress) {
         this.Hostname = Hostname;
         this.Vaddress = Vaddress;
         this.state = 0;
     }
 
-    public LocalRedNodeInstance(String hostname, String vAddress, String phAddress, int port, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {
+    public LocalRedNode(String hostname, String vAddress, String phAddress, int port, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {
     	this.Hostname = hostname;
         this.Vaddress = vAddress;
         this.sessionKey = sessionKey;

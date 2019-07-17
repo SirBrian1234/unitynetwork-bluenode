@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.redthreads.RedReceive;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
@@ -26,7 +26,7 @@ import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 public class BlueReceive extends Thread {
 
     private final String pre;
-    private final BlueNodeInstance blueNode;
+    private final BlueNode blueNode;
     private final boolean isServer;
     //connection
     private int serverPort;
@@ -40,7 +40,7 @@ public class BlueReceive extends Thread {
     /**
      * This is the server constructor. 
      */
-    public BlueReceive(BlueNodeInstance blueNode) {
+    public BlueReceive(BlueNode blueNode) {
     	this.isServer = true;
         this.serverPort = App.bn.UDPports.requestPort();
         this.blueNode = blueNode;
@@ -52,7 +52,7 @@ public class BlueReceive extends Thread {
     /**
      * This is the client constructor
      */
-    public BlueReceive(BlueNodeInstance blueNode, int portToReceive) {
+    public BlueReceive(BlueNode blueNode, int portToReceive) {
     	this.isServer = false;
         this.blueNode = blueNode;
         this.pre = "^BlueReceive "+blueNode.getName()+" ";
@@ -69,7 +69,7 @@ public class BlueReceive extends Thread {
 		return portToReceive;
 	}
 
-    public BlueNodeInstance getBlueNode() {
+    public BlueNode getBlueNode() {
 		return blueNode;
 	}
     

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -12,6 +13,11 @@ import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 public class BlueNodeTest {
+
+	@BeforeClass
+	public static void before() {
+		AppLogger.newInstance(false,false,false);
+	}
 	
 	@Test
 	public void evaluatesExpression() {

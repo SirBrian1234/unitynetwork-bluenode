@@ -4,7 +4,6 @@ package org.kostiskag.unitynetwork.bluenode.rundata.entry;
 import java.security.GeneralSecurityException;
 import java.util.Objects;
 
-import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.HashUtilities;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
@@ -15,14 +14,14 @@ import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
  *
  * @author Konstantinos Kagiampakis
  */
-public final class AccountInstance {
+public final class LocalAccount {
 
     private final String username;
     private final String password;
     private final String hostname;
     private final VirtualAddress vaddress;
 
-    public AccountInstance(String username, String password, String hostname, VirtualAddress vadress) throws GeneralSecurityException {
+    public LocalAccount(String username, String password, String hostname, VirtualAddress vadress) throws GeneralSecurityException {
             this.username = username;
             //derive from common
             this.password = HashUtilities.SHA256(HashUtilities.SHA256(CryptoUtilities.SALT) +  HashUtilities.SHA256(username) + HashUtilities.SHA256(CryptoUtilities.SALT + password));
@@ -67,7 +66,7 @@ public final class AccountInstance {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AccountInstance that = (AccountInstance) o;
+        LocalAccount that = (LocalAccount) o;
         return hostname.equals(that.hostname) ||
                 vaddress.equals(that.vaddress);
     }

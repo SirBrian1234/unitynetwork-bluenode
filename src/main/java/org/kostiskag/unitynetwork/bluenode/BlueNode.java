@@ -57,6 +57,7 @@ public class BlueNode {
 	public final int blueNodeTimeStepSec = 20;
 	public final int blueNodeCheckTimeSec = 120;
 	public final int blueNodeMaxIdleTimeSec = 2*blueNodeCheckTimeSec;	
+
 	// our most important tables
 	public LocalRedNodeTable localRedNodesTable;
 	public BlueNodeTable blueNodeTable;
@@ -204,7 +205,7 @@ public class BlueNode {
 
 
 
-	public boolean joinNetwork() throws Exception {
+	public boolean joinNetwork() throws IllegalAccessException {
 		if (trackerPublicKey == null) {
 			AppLogger.getInstance().consolePrint("You do not have an availlable public key for the given tracker.\n" +
 					"In order to download the key press the Collect Tracker Key button and follow the guide.\n" +
@@ -221,11 +222,11 @@ public class BlueNode {
 				return false;
 			}
 		} else {
-			throw new Exception("bad credentials");
+			throw new IllegalAccessException("bad credentials");
 		}
 	}
 
-	public void leaveNetworkAndDie() throws Exception {
+	public void leaveNetworkAndDie() throws IllegalAccessException {
 		if (joined) {
 			//release from tracker
 			TrackerClient tr = new TrackerClient();
@@ -234,11 +235,11 @@ public class BlueNode {
 		leave();
 	}
 	
-	public void leaveNetworkAfterRevoke() throws Exception {
+	public void leaveNetworkAfterRevoke() throws IllegalAccessException {
 		leave();
 	}
 
-	private void leave() throws Exception {
+	private void leave() throws IllegalAccessException {
 		if (joined) {
 			//release from bns
 			blueNodeTable.sendKillSigsAndReleaseForAll();
@@ -246,7 +247,7 @@ public class BlueNode {
 			trackerTimeBuilder.kill();
 			die();
 		} else {
-			throw new Exception("called leaveNetwork whithout join first.");
+			throw new IllegalAccessException("called leaveNetwork whithout join first.");
 		}
 	}
 

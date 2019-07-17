@@ -10,7 +10,7 @@ import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
 import org.kostiskag.unitynetwork.bluenode.App;
 
@@ -28,7 +28,7 @@ import org.kostiskag.unitynetwork.bluenode.App;
 public class RedReceive extends Thread {
 
     private final String pre;
-    private final LocalRedNodeInstance rn;
+    private final LocalRedNode rn;
     //socket
     private DatagramSocket serverSocket;
     private int clientPort;
@@ -37,7 +37,7 @@ public class RedReceive extends Thread {
     private Boolean didTrigger = false;
     private AtomicBoolean kill = new AtomicBoolean(false);
 
-    public RedReceive(LocalRedNodeInstance rn) {
+    public RedReceive(LocalRedNode rn) {
         this.rn = rn;
     	pre =  "^RedReceive "+rn.getHostname()+" ";
     	serverPort = App.bn.UDPports.requestPort();
@@ -51,7 +51,7 @@ public class RedReceive extends Thread {
 		return clientPort;
 	}
     
-    public LocalRedNodeInstance getRn() {
+    public LocalRedNode getRn() {
 		return rn;
 	}
     

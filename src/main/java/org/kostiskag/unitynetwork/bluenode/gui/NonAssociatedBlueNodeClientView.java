@@ -5,7 +5,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
@@ -25,7 +25,7 @@ import javax.swing.JLabel;
  */
 public class NonAssociatedBlueNodeClientView extends javax.swing.JFrame {
 
-	BlueNodeInstance bn;
+	BlueNode bn;
 	
     /**
      * Creates new form AddBlueNode

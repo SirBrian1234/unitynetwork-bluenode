@@ -6,7 +6,7 @@ import java.security.PublicKey;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNodeInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
@@ -57,7 +57,7 @@ public class FlyRegister extends Thread {
                 if (BNHostname != null) {                    
                     if (App.bn.blueNodeTable.checkBlueNode(BNHostname)) {
                     	//we might have him associated but we may not have his rrd
-                    	BlueNodeInstance bn;
+                    	BlueNode bn;
 						try {
 							bn = App.bn.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
 							BlueNodeClient cl = new BlueNodeClient(bn);
@@ -99,7 +99,7 @@ public class FlyRegister extends Thread {
                         AppLogger.getInstance().trafficPrint(pre + "BLUE NODE " + BNHostname + " ASSOCIATED", MessageType.ROUTING, NodeType.BLUENODE);
                         
                         //we were associated now it's time to feed return route
-                        BlueNodeInstance bn;
+                        BlueNode bn;
 						try {
 							bn = App.bn.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
 							cl = new BlueNodeClient(bn);

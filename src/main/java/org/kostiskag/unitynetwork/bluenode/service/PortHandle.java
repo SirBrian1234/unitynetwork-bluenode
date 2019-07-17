@@ -1,6 +1,9 @@
 package org.kostiskag.unitynetwork.bluenode.service;
 
-import java.util.Stack;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 
@@ -10,64 +13,55 @@ import org.kostiskag.unitynetwork.bluenode.AppLogger;
  */
 public class PortHandle {
 
-    public String pre = "^PORTHANDLE ";
-    public Stack<Integer> udpSourcePorts;
-    public int startport;
-    public int endport;
-    public int[] ports;
-    public int count=0;
-    
-    public PortHandle(int startport,int endport) {        
-        this.startport = startport;
-        this.endport = endport;
-        ports = new int[endport-startport];
+    public final String pre = "^PORTHANDLE ";
+    public final int startport;
+    public final int endport;
+
+    public Deque<Integer> udpAvaillableSourcePorts;
+    public Deque<Integer> udpBurnedSourcePorts;
+
+    public PortHandle(int startportInclusive,int endportInclusive) {
+        this.startport = startportInclusive;
+        this.endport = endportInclusive;
+
+        List<Integer> range = IntStream.range(startportInclusive,endportInclusive+1).boxed().collect(Collectors.toList());
+        Collections.shuffle(range);
+        udpAvaillableSourcePorts = new ArrayDeque<>(range);
+        udpBurnedSourcePorts = new ArrayDeque<>();
     }
 
     public int requestPort() {
-        int portToUse;
-        do {
-            portToUse = startport + (int)(Math.random() * ((endport - startport) + 1));
-         }
-         while (checkTable(portToUse));
-        AppLogger.getInstance().consolePrint(pre + "USING A NEW PORT " + portToUse);
-         tableAdd(portToUse);
-         return portToUse;
+        var portToUse = udpAvaillableSourcePorts.pop();
+        udpBurnedSourcePorts.push(portToUse);
+        return portToUse;
     }
 
-    public int requestNewPort(int oldPort) {
-        int portToUse;
-        
-            do {
-                portToUse = startport + (int)(Math.random() * ((endport - startport) + 1));
-            } while (checkTable(portToUse) && portToUse != oldPort);
-            AppLogger.getInstance().consolePrint(pre + "USING A NEW PORT " + portToUse);
-            tableAdd(portToUse);
-            return portToUse;
+    public int requestPort(int oldPort) {
+        int portToUse = this.requestPort();
+        releasePort(oldPort);
+        return portToUse;
     }
     
     public void releasePort(int port) {
-        for (int i=0; i<count; i++){
-            if (ports[i] == port){                
-                ports[i]= ports[count-1];
-                ports[count-1]=0;
-                count--;
-                AppLogger.getInstance().consolePrint(pre + "PORT " + port +" RELEASED");
-            }                                
-        }            
+        udpBurnedSourcePorts.remove(port);
+        udpAvaillableSourcePorts.push(port);
     }
     
-    public boolean checkTable(int port){
-        for (int i=0; i<count; i++){
-            if (ports[i] == port){
-                return true;
-            }
-        }
-        return false;
+    public boolean checkIfAvailablePort(int port){
+        return udpAvaillableSourcePorts.contains(port);
     }
 
-    public void tableAdd(int portToUse) {
-        count++; 
-        ports[count-1] = portToUse;               
+    public int getSizeOfAvaillablePorts() {
+        return udpAvaillableSourcePorts.size();
     }
+
+    public int getStartport() {
+        return startport;
+    }
+
+    public int getEndport() {
+        return endport;
+    }
+
 }
 

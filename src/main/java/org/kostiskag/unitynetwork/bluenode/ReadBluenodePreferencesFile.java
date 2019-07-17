@@ -12,7 +12,7 @@ import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.ReadPreferencesFile;
 
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.AccountInstance;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalAccount;
 
 
 /**
@@ -55,14 +55,14 @@ public class ReadBluenodePreferencesFile extends ReadPreferencesFile {
         return new ReadBluenodePreferencesFile(file);
     }
 
-    public static List<AccountInstance> ParseHostClientList(File hostListFile) throws GeneralSecurityException, IOException {
-		List<AccountInstance> list = new ArrayList<>();
+    public static List<LocalAccount> ParseHostClientList(File hostListFile) throws GeneralSecurityException, IOException {
+		List<LocalAccount> list = new ArrayList<>();
         try(BufferedReader br = new BufferedReader(new FileReader(hostListFile))) {
 			while (br.ready()) {
 				String line = br.readLine();
 				if (!line.isEmpty() && !line.startsWith("#") && !line.startsWith("\n") && !line.startsWith(" ")) {
 					String[] validline = line.split("\\s+");
-					list.add(new AccountInstance(validline[0], validline[1], validline[2], VirtualAddress.valueOf(validline[3])));
+					list.add(new LocalAccount(validline[0], validline[1], validline[2], VirtualAddress.valueOf(validline[3])));
 				}
 			}
 		};
