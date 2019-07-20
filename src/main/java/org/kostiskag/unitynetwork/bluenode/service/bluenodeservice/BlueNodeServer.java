@@ -3,16 +3,17 @@ package org.kostiskag.unitynetwork.bluenode.service.bluenodeservice;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
+
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
 /**
  * A proper bluenode server should have one port to listen for every request.
  *
  * @author Konstantinos Kagiampakis
  */
-public class BlueNodeServer extends Thread{
+public class BlueNodeServer extends Thread {
 
 	public final String pre = "^AUTH SERVER ";    
 	public final int authPort;
@@ -27,7 +28,7 @@ public class BlueNodeServer extends Thread{
         AppLogger.getInstance().consolePrint(pre+"started at thread "+Thread.currentThread().getName()+" on port "+authPort);
         try {
             ServerSocket serverSocket = new ServerSocket(authPort);            
-            if (!didTrigger && App.bn.gui){
+            if (!didTrigger && Bluenode.getInstance().gui){
                 MainWindow.getInstance().setAuthServiceAsEnabled();
                 didTrigger = true;
             }            
@@ -39,10 +40,10 @@ public class BlueNodeServer extends Thread{
             }        
         } catch (java.net.BindException e){
             AppLogger.getInstance().consolePrint(pre +"PORT ALREADY IN USE APPLICATION WILL DIE IN 3secs");
-            App.bn.die();
+            Bluenode.getInstance().die();
         } catch (IOException e) {
             e.printStackTrace();
-            App.bn.die();
+            Bluenode.getInstance().die();
         }        
     }
 }

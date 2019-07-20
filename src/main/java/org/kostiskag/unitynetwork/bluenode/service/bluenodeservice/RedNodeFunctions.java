@@ -9,12 +9,15 @@ import java.net.UnknownHostException;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
-import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+
+import org.kostiskag.unitynetwork.bluenode.service.NextIpPoll;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
+import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
+
 
 /**
  *
@@ -28,7 +31,7 @@ public class RedNodeFunctions {
 		AppLogger.getInstance().consolePrint(pre + "LEASING "+hostname);
     	
     	//first check if already exists
-    	if (App.bn.localRedNodesTable.checkOnlineByHostname(hostname)){
+    	if (Bluenode.getInstance().localRedNodesTable.checkOnlineByHostname(hostname)){
     		try {
 				SocketUtilities.sendAESEncryptedStringData("FAILED", socketWriter, sessionKey);
 			} catch (Exception e) {
@@ -39,7 +42,7 @@ public class RedNodeFunctions {
     	
     	//get a virtual IP address
     	String Vaddress = null;
-    	if (App.bn.network && App.bn.joined) {            
+    	if (Bluenode.getInstance().network && Bluenode.getInstance().joined) {            
     		//collect vaddress from tracker
     		TrackerClient tr = new TrackerClient();
     		Vaddress = tr.leaseRn(hostname, Username, Password);
@@ -93,9 +96,9 @@ public class RedNodeFunctions {
     			return;
     		}
                             
-        } else if (App.bn.useList) {
+        } else if (Bluenode.getInstance().useList) {
         	//collect vaddres from list
-        	Vaddress = App.bn.accounts.getVaddrIfExists(hostname, Username, Password).asString();
+        	Vaddress = Bluenode.getInstance().accounts.getVaddrIfExists(hostname, Username, Password).asString();
         	if (Vaddress == null) {
         		try {
 					SocketUtilities.sendAESEncryptedStringData("FAILED USER 0", socketWriter, sessionKey);
@@ -104,9 +107,9 @@ public class RedNodeFunctions {
 				}
         		return;
         	}
-        } else if (!App.bn.useList && !App.bn.network) {
+        } else if (!Bluenode.getInstance().useList && !Bluenode.getInstance().network) {
         	//no network, no list - each red node collects a ticket
-            int addr_num = App.bn.bucket.poll();
+            int addr_num = NextIpPoll.getInstance().poll();
 			try {
 				Vaddress = VirtualAddress.numberTo10ipAddr(addr_num);
 			} catch (UnknownHostException e) {
@@ -133,7 +136,7 @@ public class RedNodeFunctions {
         
     	//leasing it to the local red node table
 		try {
-			App.bn.localRedNodesTable.lease(RNclient);
+			Bluenode.getInstance().localRedNodesTable.lease(RNclient);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
@@ -159,15 +162,15 @@ public class RedNodeFunctions {
 		}
 
         //release from the network
-        if (App.bn.network && App.bn.joined) {
+        if (Bluenode.getInstance().network && Bluenode.getInstance().joined) {
         	TrackerClient tr = new TrackerClient();
             tr.releaseRnByHostname(RNclient.getHostname());
-            App.bn.blueNodeTable.releaseLocalRedNodeByHostnameFromAll(hostname);
+            Bluenode.getInstance().blueNodeTable.releaseLocalRedNodeByHostnameFromAll(hostname);
         }
         
         //release from local red node table
         try {
-			App.bn.localRedNodesTable.releaseByHostname(hostname);
+			Bluenode.getInstance().localRedNodesTable.releaseByHostname(hostname);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -8,11 +8,12 @@ import java.security.GeneralSecurityException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.HashUtilities;
+
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+
 
 public class AccountTableTest {
 

@@ -3,8 +3,8 @@ package org.kostiskag.unitynetwork.bluenode.service.trackclient;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.common.service.SimpleCyclicService;
-import org.kostiskag.unitynetwork.bluenode.App;
 
 /**
  *
@@ -55,8 +55,8 @@ public class TrackerTimeBuilder extends SimpleCyclicService {
 
         if (passedTime > getTime() * 60) {
             AppLogger.getInstance().consolePrint(PRE + "GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL");
-            App.bn.localRedNodesTable.exitAll();
-            App.bn.die();
+            Bluenode.getInstance().localRedNodesTable.exitAll();
+            Bluenode.getInstance().die();
         }
     }
 

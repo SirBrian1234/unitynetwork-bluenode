@@ -2,8 +2,8 @@ package org.kostiskag.unitynetwork.bluenode.service.bluenodeclient;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.common.service.SimpleCyclicService;
 
 /**
@@ -14,11 +14,24 @@ import org.kostiskag.unitynetwork.common.service.SimpleCyclicService;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class BlueNodeSonarService extends SimpleCyclicService {
+public final class BlueNodeSonarService extends SimpleCyclicService {
 
     private final String pre = "^BlueNodeSonarService ";
-    
-    public BlueNodeSonarService(int timeInSec) throws IllegalAccessException {
+    private static BlueNodeSonarService BLUENODE_SONAR_SERVICE;
+
+    public static BlueNodeSonarService newInstance(int timeInSec) throws IllegalAccessException {
+        if (BLUENODE_SONAR_SERVICE == null) {
+            BLUENODE_SONAR_SERVICE = new BlueNodeSonarService(timeInSec);
+        }
+        return BLUENODE_SONAR_SERVICE;
+    }
+
+    public static BlueNodeSonarService getInstance() {
+        return BLUENODE_SONAR_SERVICE;
+    }
+
+
+    private BlueNodeSonarService(int timeInSec) throws IllegalAccessException {
         super(timeInSec);
     }
 
@@ -40,6 +53,6 @@ public class BlueNodeSonarService extends SimpleCyclicService {
     @Override
     protected void cyclicPayload() {
         AppLogger.getInstance().consolePrint(pre+"Updating BN Tables via ping");
-        App.bn.blueNodeTable.rebuildTableViaAuthClient();
+        Bluenode.getInstance().blueNodeTable.rebuildTableViaAuthClient();
     }
 }

@@ -12,7 +12,7 @@ import org.junit.Test;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
-public class BlueNodeTest {
+public class BluenodeTest {
 
 	@BeforeClass
 	public static void before() {

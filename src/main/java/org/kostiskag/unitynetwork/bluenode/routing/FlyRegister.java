@@ -4,19 +4,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.security.PublicKey;
 
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
-import org.kostiskag.unitynetwork.bluenode.App;
 
 
 /**
  *
  * @author Konstantinos Kagiampakis
  */
+
+//TODO: singleton extends simpleunstoppedcyclic service
 public class FlyRegister extends Thread {
 
     private String pre = "^FlyRegister ";
@@ -46,7 +48,7 @@ public class FlyRegister extends Thread {
 
             AppLogger.getInstance().consolePrint(pre + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
 
-            if (App.bn.blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
+            if (Bluenode.getInstance().blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
             	//check if it was associated one loop back
                 AppLogger.getInstance().consolePrint(pre + "Allready associated entry");
                 continue;
@@ -55,15 +57,15 @@ public class FlyRegister extends Thread {
             	TrackerClient tr = new TrackerClient();
                 String BNHostname = tr.checkRnOnlineByVaddr(destvaddress);                
                 if (BNHostname != null) {                    
-                    if (App.bn.blueNodeTable.checkBlueNode(BNHostname)) {
+                    if (Bluenode.getInstance().blueNodeTable.checkBlueNode(BNHostname)) {
                     	//we might have him associated but we may not have his rrd
                     	BlueNode bn;
 						try {
-							bn = App.bn.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
+							bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(BNHostname);
 							BlueNodeClient cl = new BlueNodeClient(bn);
 							String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
 	                    	if (!remoteHostname.equals("OFFLINE")) {
-	                    		App.bn.blueNodeTable.leaseRRn(bn, remoteHostname, destvaddress);
+	                    		Bluenode.getInstance().blueNodeTable.leaseRRn(bn, remoteHostname, destvaddress);
 	                    	}
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -101,20 +103,20 @@ public class FlyRegister extends Thread {
                         //we were associated now it's time to feed return route
                         BlueNode bn;
 						try {
-							bn = App.bn.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
+							bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(BNHostname);
 							cl = new BlueNodeClient(bn);
-							cl.feedReturnRoute(App.bn.localRedNodesTable.getRedNodeInstanceByAddr(sourcevaddress).getHostname(), sourcevaddress);
+							cl.feedReturnRoute(Bluenode.getInstance().localRedNodesTable.getRedNodeInstanceByAddr(sourcevaddress).getHostname(), sourcevaddress);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 						
                         //and then request the dest rn hotsname
                         try {
-							bn = App.bn.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
+							bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(BNHostname);
 							cl = new BlueNodeClient(bn);
 	                    	String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
 	                    	if (!remoteHostname.equals("OFFLINE")) {
-	                    		App.bn.blueNodeTable.leaseRRn(bn, remoteHostname, destvaddress);
+	                    		Bluenode.getInstance().blueNodeTable.leaseRRn(bn, remoteHostname, destvaddress);
 	                    	}
 						} catch (Exception e) {
 							e.printStackTrace();

@@ -19,7 +19,7 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalAccount;
  *
  * @author Konstantinos Kagiampakis
  */
-public class ReadBluenodePreferencesFile extends ReadPreferencesFile {
+final class ReadBluenodePreferencesFile extends ReadPreferencesFile {
 	public boolean network;
 	public PhysicalAddress trackerAddress;
 	public int trackerPort;

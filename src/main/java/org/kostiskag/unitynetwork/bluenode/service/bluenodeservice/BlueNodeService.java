@@ -8,8 +8,8 @@ import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
@@ -53,18 +53,18 @@ public class BlueNodeService extends Thread {
 			String receivedStr = new String(received, "utf-8");
 			String[] args = receivedStr.split("\\s+");
 			
-			if (!App.bn.network && args[0].equals("GETPUB")) {
+			if (!Bluenode.getInstance().network && args[0].equals("GETPUB")) {
 				// if this bluenode is standalone it is allowed to distribute its public
-				SocketUtilities.sendPlainStringData(CryptoUtilities.objectToBase64StringRepresentation(App.bn.bluenodeKeys.getPublic()), socketWriter);
+				SocketUtilities.sendPlainStringData(CryptoUtilities.objectToBase64StringRepresentation(Bluenode.getInstance().bluenodeKeys.getPublic()), socketWriter);
 			} else {
 				//client uses server's public key collected from the network to send a session key
-				String decrypted = CryptoUtilities.decryptWithPrivate(received, App.bn.bluenodeKeys.getPrivate());
+				String decrypted = CryptoUtilities.decryptWithPrivate(received, Bluenode.getInstance().bluenodeKeys.getPrivate());
 				sessionKey = (SecretKey) CryptoUtilities.base64StringRepresentationToObject(decrypted);
-				args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+App.bn.name, socketReader, socketWriter, sessionKey);
+				args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+Bluenode.getInstance().name, socketReader, socketWriter, sessionKey);
 	
 				if (args.length == 2 && args[0].equals("REDNODE")) {
 	                redNodeService(args[1]);
-	            } else if (App.bn.network) {
+	            } else if (Bluenode.getInstance().network) {
 	            	if (args.length == 2 && args[0].equals("BLUENODE")) {
 	                    blueNodeService(args[1]);
 	                } else if (args.length == 1 && args[0].equals("TRACKER")) {
@@ -86,7 +86,7 @@ public class BlueNodeService extends Thread {
     private void redNodeService(String hostname) {
     	String[] args;
     	try {
-	    	if (App.bn.network) {
+	    	if (Bluenode.getInstance().network) {
 	       		//when bluenode is in network mode, it offers an auth question based on rn's pub key and then is verified
 	       		//with usrer credentials
 	       		
@@ -137,9 +137,9 @@ public class BlueNodeService extends Thread {
     		//collect bn's public either from tracker of from table
     		PublicKey bnPub;
     		boolean associated = false;
-    		if (App.bn.blueNodeTable.checkBlueNode(blueNodeName)) {
+    		if (Bluenode.getInstance().blueNodeTable.checkBlueNode(blueNodeName)) {
     			associated = true;
-    			bnPub = App.bn.blueNodeTable.getBlueNodeInstanceByName(blueNodeName).getPub();
+    			bnPub = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(blueNodeName).getPub();
     		} else {
     			TrackerClient tr = new TrackerClient();
     			bnPub = tr.getBlueNodesPubKey(blueNodeName);
@@ -179,7 +179,7 @@ public class BlueNodeService extends Thread {
                 BlueNodeFunctions.associate(blueNodeName, bnPub, sessionSocket,socketReader,socketWriter, sessionKey);
             } else if (associated) {            	
             	//these options are only for leased bns
-            	BlueNode bn = App.bn.blueNodeTable.getBlueNodeInstanceByName(blueNodeName);
+            	BlueNode bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(blueNodeName);
 				if (args.length == 1 && args[0].equals("UPING")) {
 					AppLogger.getInstance().consolePrint(pre+prebn+"UPING"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.Uping(bn, socketWriter, sessionKey);
@@ -232,7 +232,7 @@ public class BlueNodeService extends Thread {
 	    	String question = CryptoUtilities.generateQuestion();
 	
 	    	// encrypt question with target's public
-	    	byte[] questionb = CryptoUtilities.encryptWithPublic(question, App.bn.trackerPublicKey);
+	    	byte[] questionb = CryptoUtilities.encryptWithPublic(question, Bluenode.getInstance().trackerPublicKey);
 	
 	    	// encode it to base 64
 	    	String encq = CryptoUtilities.bytesToBase64String(questionb);

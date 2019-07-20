@@ -4,10 +4,11 @@ import java.io.DataOutputStream;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.service.GlobalSocketFunctions;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerTimeBuilder;
-import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 /**
  *
@@ -30,7 +31,7 @@ class TrackingFunctions {
     }
     
     public static void killsig(DataOutputStream outputWriter, SecretKey sessionKey) {
-    	App.bn.localRedNodesTable.exitAll();
-        App.bn.die();
+    	Bluenode.getInstance().localRedNodesTable.exitAll();
+        Bluenode.getInstance().die();
     }
 }

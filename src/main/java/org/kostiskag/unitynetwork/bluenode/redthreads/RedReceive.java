@@ -5,6 +5,8 @@ import java.net.*;
 import java.io.IOException;
 
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
@@ -12,7 +14,6 @@ import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
-import org.kostiskag.unitynetwork.bluenode.App;
 
 
 /**
@@ -40,7 +41,7 @@ public class RedReceive extends Thread {
     public RedReceive(LocalRedNode rn) {
         this.rn = rn;
     	pre =  "^RedReceive "+rn.getHostname()+" ";
-    	serverPort = App.bn.UDPports.requestPort();
+    	serverPort = PortHandle.getInstance().requestPort();
     }
 
     public int getServerPort() {
@@ -129,7 +130,7 @@ public class RedReceive extends Thread {
 						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(rn.getReceiveQueue().getlen());
 						rn.getSendQueue().offer(ACKS);
                     }
-                    if (App.bn.gui && !didTrigger) {
+                    if (Bluenode.getInstance().gui && !didTrigger) {
                         MainWindow.getInstance().setReceivedLocalRnData();
                         didTrigger = true;
                     }
@@ -142,7 +143,7 @@ public class RedReceive extends Thread {
                 break;
             }
         }               
-        App.bn.UDPports.releasePort(clientPort);   
+        PortHandle.getInstance().releasePort(clientPort);
         rn.getReceiveQueue().clear();
         AppLogger.getInstance().consolePrint(pre + "ENDED");
     }

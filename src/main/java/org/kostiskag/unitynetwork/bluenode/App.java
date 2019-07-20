@@ -23,7 +23,7 @@ import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class App extends Thread {
+final class App extends Thread {
 
 	private static final String pre = "^App ";
 
@@ -46,9 +46,6 @@ public class App extends Thread {
 		}
 	}
 
-	// bluenode
-	public static BlueNode bn;
-	
 	public static synchronized void writeToLogFile(String message) {
 		try (FileWriter fw = new FileWriter(FileNames.LOG_FILE.getFile(), true)) {
 			fw.append(message + "\n");
@@ -57,10 +54,9 @@ public class App extends Thread {
 		}
 	}
 
-	public static void writeTrackerPublicKey(PublicKey trackerKey) throws IOException {
+	public static synchronized void writeTrackerPublicKey(PublicKey trackerKey) throws IOException {
 		CryptoUtilities.objectToFile(trackerKey, FileNames.TRACKER_KEY_FILE.getFile());
 	}
-
 
 	/**
 	 * The app's main method here.
@@ -204,7 +200,7 @@ public class App extends Thread {
 		}
 
 		// init a bluenode object
-		System.out.println(pre+"starting a BlueNode instance...");
-		new BlueNode(prefs, accounts, keys, trackerKey);
+		System.out.println(pre+"starting Bluenode instance...");
+		Bluenode.newInstance(prefs, accounts, keys, trackerKey);
 	}
 }

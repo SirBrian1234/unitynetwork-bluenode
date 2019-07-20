@@ -17,10 +17,10 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.*;
 
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 
-import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
 
 /**
@@ -206,16 +206,16 @@ public final class MainWindow extends JFrame {
                 int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you wish to terminate this Blue Node?\nThis may result in a partial network termination.\nIf you decide to close the BLue Node, it will send the appropriate kill signals to the connected Red Nodes.","",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
                 if(PromptResult==JOptionPane.YES_OPTION)
                 {
-                    App.bn.localRedNodesTable.exitAll();
-                    if (App.bn.joined) {
+                    Bluenode.getInstance().localRedNodesTable.exitAll();
+                    if (Bluenode.getInstance().joined) {
             			try {
-            				App.bn.leaveNetworkAndDie();
+            				Bluenode.getInstance().leaveNetworkAndDie();
             			} catch (Exception e) {
             				e.printStackTrace();
-            				App.bn.die();
+            				Bluenode.getInstance().die();
             			}
                     }
-                	App.bn.die();
+                	Bluenode.getInstance().die();
                 }
             }
         });
@@ -974,7 +974,7 @@ public final class MainWindow extends JFrame {
     }
 
     public void updateLocalRns() {
-        String[][] guiObj = App.bn.localRedNodesTable.buildGUIObj();
+        String[][] guiObj = Bluenode.getInstance().localRedNodesTable.buildGUIObj();
         updateLocalRns(guiObj);
     }
 
@@ -992,7 +992,7 @@ public final class MainWindow extends JFrame {
     }
 
     public void updateRemoteRns() {
-        String[][] guiObj = App.bn.blueNodeTable.buildRRNGUIObj();
+        String[][] guiObj = Bluenode.getInstance().blueNodeTable.buildRRNGUIObj();
         updateRemoteRns(guiObj);
     }
 
@@ -1010,7 +1010,7 @@ public final class MainWindow extends JFrame {
     }
 
     public void updateBNs() {
-        String[][] guiObj = App.bn.blueNodeTable.buildBNGUIObj();
+        String[][] guiObj = Bluenode.getInstance().blueNodeTable.buildBNGUIObj();
         updateBNs(guiObj);
     }
 

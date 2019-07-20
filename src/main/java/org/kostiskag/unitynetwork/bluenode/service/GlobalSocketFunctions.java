@@ -9,9 +9,10 @@ import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
-import org.kostiskag.unitynetwork.bluenode.App;
+
 
 /**
  * 
@@ -20,7 +21,7 @@ import org.kostiskag.unitynetwork.bluenode.App;
 public class GlobalSocketFunctions {
 
 	public static void sendLocalRedNodes(DataOutputStream socketWriter, SecretKey sessionKey) {
-		LinkedList<String> fetched = App.bn.localRedNodesTable.buildAddrHostStringList();
+		LinkedList<String> fetched = Bluenode.getInstance().localRedNodesTable.buildAddrHostStringList();
         int size = fetched.size();
         try {
         	StringBuilder str = new StringBuilder();
@@ -44,7 +45,7 @@ public class GlobalSocketFunctions {
 	        for (int i = 1; i < count+1; i++) {        	
 				args = lines[i].split("\\s+");
 	            try {
-	            	App.bn.blueNodeTable.leaseRRn(bn, args[0], args[1]);
+	            	Bluenode.getInstance().blueNodeTable.leaseRRn(bn, args[0], args[1]);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}				

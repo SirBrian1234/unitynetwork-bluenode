@@ -10,6 +10,8 @@ import java.net.InetAddress;
 import java.net.SocketException;
 
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
@@ -17,7 +19,6 @@ import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
-import org.kostiskag.unitynetwork.bluenode.App;
 
 
 /**
@@ -49,7 +50,7 @@ public class RedlSend extends Thread {
     public RedlSend(LocalRedNode rn) {
         this.rn = rn;
         pre = "^RedlSend "+rn.getHostname()+" ";
-        serverPort = App.bn.UDPports.requestPort();
+        serverPort = PortHandle.getInstance().requestPort();
     }
     
     public int getServerPort() {
@@ -167,7 +168,7 @@ public class RedlSend extends Thread {
 					serverSocket.send(sendUDPPacket);
                     AppLogger.getInstance().trafficPrint(pre + "IPV4 SENT", MessageType.ROUTING, NodeType.REDNODE);
 				}
-                if (App.bn.gui && !trigger) {
+                if (Bluenode.getInstance().gui && !trigger) {
                     MainWindow.getInstance().setSentDataToRn();
                     trigger = true;
                 }
@@ -180,7 +181,7 @@ public class RedlSend extends Thread {
             }
         }
         serverSocket.close();
-        App.bn.UDPports.releasePort(serverPort);
+        PortHandle.getInstance().releasePort(serverPort);
         AppLogger.getInstance().consolePrint(pre + "ENDED");
     }
 

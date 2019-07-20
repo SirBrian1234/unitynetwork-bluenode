@@ -2,14 +2,14 @@ package org.kostiskag.unitynetwork.bluenode.routing;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
-import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
 /**
  * An object of this class can be owned either by a blue node or a red node instance
@@ -79,17 +79,17 @@ public class Router extends Thread {
 	                } else if (destvaddress.equals("10.0.0.1")) {
 	                	// the first address is reserved
 	                	
-	                } else if (App.bn.localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
+	                } else if (Bluenode.getInstance().localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
 	                    //load the packet data to local red node's queue
-	                    App.bn.localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getSendQueue().offer(data);
+	                    Bluenode.getInstance().localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getSendQueue().offer(data);
 						AppLogger.getInstance().trafficPrint(pre+"LOCAL DESTINATION", MessageType.ROUTING, NodeType.REDNODE);
 	                    
-	                } else if (App.bn.joined) {
-	                    if (App.bn.blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
+	                } else if (Bluenode.getInstance().joined) {
+	                    if (Bluenode.getInstance().blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
 	                    	//load the packet to remote blue node's queue
 	                        BlueNode bn;
 							try {
-								bn = App.bn.blueNodeTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
+								bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
 								bn.getSendQueue().offer(data);
 								AppLogger.getInstance().trafficPrint(pre +"REMOTE DESTINATION -> " + bn.getName(), MessageType.ROUTING, NodeType.BLUENODE);
 							} catch (Exception e) {
@@ -98,7 +98,7 @@ public class Router extends Thread {
 	                    } else {
 	                    	//lookup via tracker from a bluenode with this rrd
 							AppLogger.getInstance().trafficPrint(pre +"NOT KNOWN RRN WITH "+destvaddress+" SEEKING TARGET BN", MessageType.ROUTING, NodeType.BLUENODE);
-	                        App.bn.flyreg.seekDest(sourcevaddress, destvaddress);
+	                        Bluenode.getInstance().flyreg.seekDest(sourcevaddress, destvaddress);
 	                    }
 	                } else {
 						AppLogger.getInstance().trafficPrint(pre +"NOT IN THIS BN " + destvaddress, MessageType.ROUTING, NodeType.BLUENODE);

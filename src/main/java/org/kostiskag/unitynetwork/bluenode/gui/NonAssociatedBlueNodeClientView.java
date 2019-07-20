@@ -1,23 +1,25 @@
 package org.kostiskag.unitynetwork.bluenode.gui;
 
+import java.io.IOException;
+import java.security.PublicKey;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JLabel;
+import javax.swing.JButton;
+import javax.swing.JTextField;
 
-import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
-import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
-import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
-import javax.swing.JButton;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.security.PublicKey;
-import java.awt.event.ActionEvent;
-import javax.swing.JTextField;
-import javax.swing.JLabel;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
+import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
+import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
+
 
 /**
  *
@@ -110,7 +112,7 @@ public class NonAssociatedBlueNodeClientView extends javax.swing.JFrame {
 
     
 	private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (App.bn.joined) {
+        if (Bluenode.getInstance().joined) {
 	    	if (!jTextField1.getText().isEmpty() && jTextField1.getText().length() <= NumericConstraints.MAX_STR_LEN_SMALL.size()) {
 	    		String bnName = jTextField1.getText();
 	    		TrackerClient tr = new TrackerClient();	
@@ -149,7 +151,7 @@ public class NonAssociatedBlueNodeClientView extends javax.swing.JFrame {
     }
 
 	protected void jButton2ActionPerformed(ActionEvent arg0) {
-		if (App.bn.joined) {
+		if (Bluenode.getInstance().joined) {
 	    	if (!jTextField1.getText().isEmpty() && jTextField1.getText().length() <= NumericConstraints.MAX_STR_LEN_SMALL.size()) {
 	    		TrackerClient tr = new TrackerClient();	
 	        	String[] args = tr.getPhysicalBn(jTextField1.getText());	 

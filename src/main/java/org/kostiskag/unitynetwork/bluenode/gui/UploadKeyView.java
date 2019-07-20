@@ -11,9 +11,9 @@ import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
 public class UploadKeyView {
 
@@ -28,7 +28,7 @@ public class UploadKeyView {
 	 */
 	public UploadKeyView() {
 		initialize();
-		if (App.bn.joined) {
+		if (Bluenode.getInstance().joined) {
 			textArea.setEditable(false);
 			btnNewButton.setEnabled(false);
 			btnNewButton_1.setEnabled(true);
@@ -126,7 +126,7 @@ public class UploadKeyView {
 		textField.setText(responce);
 		if (responce.equals("KEY_REVOKED")){
 			try {
-				App.bn.leaveNetworkAfterRevoke();
+				Bluenode.getInstance().leaveNetworkAfterRevoke();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

@@ -9,16 +9,17 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
+import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.redthreads.RedlSend;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
-import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
 
 /**
@@ -49,7 +50,7 @@ public class BlueSend extends Thread {
     	this.blueNode = blueNode;
     	this.pre = "^BlueSend "+blueNode.getName()+" ";
         this.blueNodePhAddress = blueNode.getPhaddress();
-        this.serverPort = App.bn.UDPports.requestPort();
+        this.serverPort = PortHandle.getInstance().requestPort();
     }
     
     /**
@@ -148,7 +149,7 @@ public class BlueSend extends Thread {
 				}
                 
                 if (!didTrigger) {
-                	if (App.bn.gui) {
+                	if (Bluenode.getInstance().gui) {
                 		MainWindow.getInstance().setSentDataToRn();
                 	}
                 	didTrigger = true;
@@ -163,7 +164,7 @@ public class BlueSend extends Thread {
         }
         socket.close();
         if (isServer) {
-        	App.bn.UDPports.releasePort(serverPort);
+        	PortHandle.getInstance().releasePort(serverPort);
         }
         AppLogger.getInstance().consolePrint(pre + "ENDED");
     }

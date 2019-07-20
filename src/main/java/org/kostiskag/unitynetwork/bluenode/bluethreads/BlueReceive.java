@@ -1,19 +1,22 @@
 package org.kostiskag.unitynetwork.bluenode.bluethreads;
 
-import java.io.IOException;
-import java.net.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.io.IOException;
+import java.net.*;
 
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import org.kostiskag.unitynetwork.bluenode.redthreads.RedReceive;
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
-import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
+
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
+import org.kostiskag.unitynetwork.bluenode.redthreads.RedReceive;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
+import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
+
 
 /**
  * In matters of communication this class it tricky. Do not expect BlueReceive to be a client or server
@@ -42,7 +45,7 @@ public class BlueReceive extends Thread {
      */
     public BlueReceive(BlueNode blueNode) {
     	this.isServer = true;
-        this.serverPort = App.bn.UDPports.requestPort();
+        this.serverPort = PortHandle.getInstance().requestPort();
         this.blueNode = blueNode;
         this.pre = "^BlueDownServiceServer "+blueNode.getName()+" ";
         //simply since the server listens the port to receive is the server port
@@ -142,7 +145,7 @@ public class BlueReceive extends Thread {
                     }
                     
                     if (!didTrigger) {
-                    	if (App.bn.gui) {
+                    	if (Bluenode.getInstance().gui) {
                     		MainWindow.getInstance().setReceivedBnData();
                         }
                     	didTrigger = true;
@@ -158,7 +161,7 @@ public class BlueReceive extends Thread {
         }
     	socket.close();
     	if (isServer) {
-    		App.bn.UDPports.releasePort(serverPort);
+    		PortHandle.getInstance().releasePort(serverPort);
     	}
         AppLogger.getInstance().consolePrint(pre + "ENDED");
     }

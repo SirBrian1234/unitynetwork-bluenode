@@ -3,7 +3,7 @@ package org.kostiskag.unitynetwork.bluenode;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 
-public class AppLogger {
+public final class AppLogger {
 
     public static AppLogger APP_LOGGER;
 

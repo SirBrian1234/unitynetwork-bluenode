@@ -1,17 +1,19 @@
 package org.kostiskag.unitynetwork.bluenode.gui;
 
-import javax.swing.JFrame;
-import javax.swing.JButton;
-import javax.swing.JTextField;
-import javax.swing.JLabel;
 import java.awt.Font;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-import org.kostiskag.unitynetwork.bluenode.App;
+import javax.swing.JFrame;
+import javax.swing.JButton;
+import javax.swing.JTextField;
+import javax.swing.JLabel;
+
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
+
 
 /**
  * 
@@ -37,7 +39,7 @@ public class AssociatedBlueNodeClientView {
 	 */
 	public AssociatedBlueNodeClientView(String name) throws Exception {
 		this.name = name;
-		this.bn = App.bn.blueNodeTable.getBlueNodeInstanceByName(name);
+		this.bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(name);
 		initialize();
 		lblName.setText(name);
 		
@@ -356,7 +358,7 @@ public class AssociatedBlueNodeClientView {
 
 	protected void releaseBn() {
 		try {
-			App.bn.blueNodeTable.releaseBn(name);
+			Bluenode.getInstance().blueNodeTable.releaseBn(name);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

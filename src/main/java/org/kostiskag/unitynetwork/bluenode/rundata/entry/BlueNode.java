@@ -1,14 +1,18 @@
 package org.kostiskag.unitynetwork.bluenode.rundata.entry;
 
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.security.PublicKey;
-import java.util.Date;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
+import org.kostiskag.unitynetwork.common.utilities.FixedDate;
+import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+
+import org.kostiskag.unitynetwork.bluenode.Bluenode.Timings;
 import org.kostiskag.unitynetwork.bluenode.routing.QueueManager;
 import org.kostiskag.unitynetwork.bluenode.routing.Router;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.RemoteRedNodeTable;
@@ -16,9 +20,7 @@ import org.kostiskag.unitynetwork.bluenode.bluethreads.BlueReceive;
 import org.kostiskag.unitynetwork.bluenode.bluethreads.BlueNodeTimeBuilder;
 import org.kostiskag.unitynetwork.bluenode.bluethreads.BlueSend;
 import org.kostiskag.unitynetwork.bluenode.bluethreads.UploadManager;
-import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
-import org.kostiskag.unitynetwork.common.utilities.FixedDate;
-import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+
 
 /**
  *
@@ -65,7 +67,7 @@ public class BlueNode {
     	this.remoteAuthPort = 7000;
     	this.pre = "^BlueNodeInstance "+name+" ";
     	this.state = 0;                  
-        this.sendQueue = new QueueManager(20, 5); //App.bn.trackerMaxIdleTime
+        this.sendQueue = new QueueManager(20, Timings.TRACKER_MAX_IDLE_TIME.getWaitTimeInSec());
         this.uploadMan = new UploadManager();
         this.table = new RemoteRedNodeTable(this);    
         this.timestamp = FixedDate.getSmallTimestamp(new Date());
@@ -89,8 +91,8 @@ public class BlueNode {
         //setting upload manager
         this.uploadMan = new UploadManager();
         //setting queues
-        this.sendQueue = new QueueManager(20, App.bn.keepAliveSec);   
-        this.receiveQueue = new QueueManager(20, App.bn.keepAliveSec);   
+        this.sendQueue = new QueueManager(20, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
+        this.receiveQueue = new QueueManager(20, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
         this.router  = new Router(getName(), receiveQueue);
         //setting down as server
         this.receive = new BlueReceive(this);
@@ -126,15 +128,15 @@ public class BlueNode {
         //setting upload manager
         this.uploadMan = new UploadManager();
         //setting queues
-        this.sendQueue = new QueueManager(20, App.bn.keepAliveSec);   
-        this.receiveQueue = new QueueManager(20, App.bn.keepAliveSec); 
+        this.sendQueue = new QueueManager(20, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
+        this.receiveQueue = new QueueManager(20, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
         this.router  = new Router(getName(), receiveQueue);
         //setting down as client
         this.send = new BlueSend(this, upPort);
         //setting up as client
         this.receive = new BlueReceive(this, downPort);
         //clients have also a timeBuilder
-        this.timeBuilder = new BlueNodeTimeBuilder(this, App.bn.blueNodeTimeStepSec, App.bn.blueNodeMaxIdleTimeSec);
+        this.timeBuilder = new BlueNodeTimeBuilder(this, Timings.BLUENODE_STEP_TIME.getWaitTimeInSec(), Timings.BLUENODE_MAX_IDLE_TIME.getWaitTimeInSec());
         
         //starting all threads
         this.send.start();

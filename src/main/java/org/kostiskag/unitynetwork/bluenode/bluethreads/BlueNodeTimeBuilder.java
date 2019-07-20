@@ -1,8 +1,8 @@
 package org.kostiskag.unitynetwork.bluenode.bluethreads;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 
 /**
@@ -40,7 +40,7 @@ public class BlueNodeTimeBuilder extends Thread {
             if (passedTime > maxWaitTimeSec*1000) {
                 AppLogger.getInstance().consolePrint(pre+"BlueNode is not responding releasing from the local bn table");
             	try {
-					App.bn.blueNodeTable.releaseBn(bn.getName());
+					Bluenode.getInstance().blueNodeTable.releaseBn(bn.getName());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

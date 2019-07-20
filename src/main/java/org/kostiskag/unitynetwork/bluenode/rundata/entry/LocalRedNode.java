@@ -5,15 +5,18 @@ import java.io.DataOutputStream;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.App;
+import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
+import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.bluenode.Bluenode.Timings;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.routing.QueueManager;
 import org.kostiskag.unitynetwork.bluenode.routing.Router;
 import org.kostiskag.unitynetwork.bluenode.redthreads.RedReceive;
 import org.kostiskag.unitynetwork.bluenode.redthreads.RedlSend;
-import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
-import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+
 
 /** 
  * RedAuthService runs every time for a single user only It is responsible for
@@ -71,15 +74,15 @@ public class LocalRedNode {
 
     	//notify the gui variables
     	if (!didTrigger) {
-    		if (App.bn.gui) {
+    		if (Bluenode.getInstance().gui) {
     			MainWindow.getInstance().setOneUserAsConnected();
     		}
             didTrigger = true;
         }
 
         //set queues
-        sendQueue = new QueueManager(10, App.bn.keepAliveSec);
-        receiveQueue = new QueueManager(10, App.bn.keepAliveSec);
+        sendQueue = new QueueManager(10, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
+        receiveQueue = new QueueManager(10, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
         router = new Router(getHostname(), receiveQueue);
 
         //set downlink (allways by the aspect of bluenode)

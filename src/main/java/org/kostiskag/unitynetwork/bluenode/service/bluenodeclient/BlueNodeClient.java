@@ -13,8 +13,8 @@ import java.util.LinkedList;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.App;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
@@ -22,6 +22,7 @@ import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 import org.kostiskag.unitynetwork.bluenode.service.GlobalSocketFunctions;
+
 
 /**
  * 
@@ -96,13 +97,13 @@ public class BlueNodeClient {
 			System.out.println(args[0]+" "+args[1]);
 			
 			//this bn is to be authenticated by the target bn
-			args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+ App.bn.name, socketReader, socketWriter, sessionKey);
+			args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+ Bluenode.getInstance().name, socketReader, socketWriter, sessionKey);
 			
 			//decode question
 			byte[] question = CryptoUtilities.base64StringTobytes(args[0]);
 			
 			//decrypt with private
-			String answer = CryptoUtilities.decryptWithPrivate(question, App.bn.bluenodeKeys.getPrivate());
+			String answer = CryptoUtilities.decryptWithPrivate(question, Bluenode.getInstance().bluenodeKeys.getPrivate());
 			
 			//send back plain answer
 			args = SocketUtilities.sendReceiveAESEncryptedStringData(answer, socketReader, socketWriter, sessionKey);
@@ -146,11 +147,11 @@ public class BlueNodeClient {
 	public void associateClient() throws Exception {
 		if (connected) {
 			
-			if (name.equals(App.bn.name)) {
+			if (name.equals(Bluenode.getInstance().name)) {
 				closeConnection();
 				AppLogger.getInstance().consolePrint(pre + "BNs are not allowed to create a u-turn association");
 				throw new Exception(pre+"BNs are not allowed to create a u-turn association");
-			} else if (App.bn.blueNodeTable.checkBlueNode(name)) {
+			} else if (Bluenode.getInstance().blueNodeTable.checkBlueNode(name)) {
 				closeConnection();
 				AppLogger.getInstance().consolePrint(pre+"BN is already an associated memeber.");
 				throw new Exception(pre+"BN is already an associated memeber.");
@@ -184,7 +185,7 @@ public class BlueNodeClient {
 			}       
 			
 			//lease to local bn table
-			App.bn.blueNodeTable.leaseBn(node);
+			Bluenode.getInstance().blueNodeTable.leaseBn(node);
 			closeConnection();
 			AppLogger.getInstance().consolePrint(pre + "LEASED REMOTE BN "+name);
 		}

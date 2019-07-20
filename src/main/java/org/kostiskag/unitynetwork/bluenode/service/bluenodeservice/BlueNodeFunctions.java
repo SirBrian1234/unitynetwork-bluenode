@@ -10,13 +10,15 @@ import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.App;
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
+import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.GlobalSocketFunctions;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
-import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
-import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
+
 
 /**
  *
@@ -34,10 +36,10 @@ public class BlueNodeFunctions {
 	    	int authPort = 0;
 	    	String[] args;
 	        
-	        if (App.bn.name.equals(name)) {
+	        if (Bluenode.getInstance().name.equals(name)) {
 	        	SocketUtilities.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
 	        	return;
-	        } else if (App.bn.blueNodeTable.checkBlueNode(name)) {
+	        } else if (Bluenode.getInstance().blueNodeTable.checkBlueNode(name)) {
 	        	SocketUtilities.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
 	        	return;
 	        } else {
@@ -74,7 +76,7 @@ public class BlueNodeFunctions {
 			AppLogger.getInstance().consolePrint(pre + "remote auth port "+bn.getRemoteAuthPort()+" upport "+bn.getServerSendPort()+" downport "+bn.getServerReceivePort());
 	    	
 	    	try {
-				App.bn.blueNodeTable.leaseBn(bn);
+				Bluenode.getInstance().blueNodeTable.leaseBn(bn);
 				AppLogger.getInstance().consolePrint(pre + "LEASED REMOTE BN "+name);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -125,7 +127,7 @@ public class BlueNodeFunctions {
     
     static void releaseBn(String BlueNodeName) {
         try {
-			App.bn.blueNodeTable.releaseBn(BlueNodeName);
+			Bluenode.getInstance().blueNodeTable.releaseBn(BlueNodeName);
 		} catch (Exception e) {
 			
 		}        
@@ -146,8 +148,8 @@ public class BlueNodeFunctions {
     
     static void getLocalRnHostnameByVaddress(String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
         try {
-	    	if (App.bn.localRedNodesTable.checkOnlineByVaddress(vaddress)) {
-	        	SocketUtilities.sendAESEncryptedStringData(App.bn.localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getHostname(), socketWriter, sessionKey);
+	    	if (Bluenode.getInstance().localRedNodesTable.checkOnlineByVaddress(vaddress)) {
+	        	SocketUtilities.sendAESEncryptedStringData(Bluenode.getInstance().localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getHostname(), socketWriter, sessionKey);
 	        } else {
 	        	SocketUtilities.sendAESEncryptedStringData("OFFLINE", socketWriter, sessionKey);
 	        }
@@ -158,8 +160,8 @@ public class BlueNodeFunctions {
 
     static void getLocalRnVaddressByHostname(String hostname, DataOutputStream socketWriter, SecretKey sessionKey) {
     	try {
-	    	if (App.bn.localRedNodesTable.checkOnlineByHostname(hostname)) {
-	    		SocketUtilities.sendAESEncryptedStringData(App.bn.localRedNodesTable.getRedNodeInstanceByHn(hostname).getVaddress(), socketWriter, sessionKey);
+	    	if (Bluenode.getInstance().localRedNodesTable.checkOnlineByHostname(hostname)) {
+	    		SocketUtilities.sendAESEncryptedStringData(Bluenode.getInstance().localRedNodesTable.getRedNodeInstanceByHn(hostname).getVaddress(), socketWriter, sessionKey);
 	        } else {
 	        	SocketUtilities.sendAESEncryptedStringData("OFFLINE", socketWriter, sessionKey);
 	        }
@@ -170,7 +172,7 @@ public class BlueNodeFunctions {
 
     static void getFeedReturnRoute(BlueNode bn, String hostname, String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
         try {
-			App.bn.blueNodeTable.leaseRRn(bn, hostname, vaddress);
+			Bluenode.getInstance().blueNodeTable.leaseRRn(bn, hostname, vaddress);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -194,9 +196,9 @@ public class BlueNodeFunctions {
 
 	public static void check(String blueNodeName, DataOutputStream socketWriter, SecretKey sessionKey) {
 		//if associated reset idleTime and update timestamp as well
-		if (App.bn.blueNodeTable.checkBlueNode(blueNodeName)) {
+		if (Bluenode.getInstance().blueNodeTable.checkBlueNode(blueNodeName)) {
 			try {
-				BlueNode bn = App.bn.blueNodeTable.getBlueNodeInstanceByName(blueNodeName);
+				BlueNode bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(blueNodeName);
 				bn.resetIdleTime();
 				bn.updateTime();
 			} catch (Exception e) {
