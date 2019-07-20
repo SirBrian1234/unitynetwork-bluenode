@@ -9,7 +9,6 @@ import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 import org.kostiskag.unitynetwork.bluenode.routing.FlyRegister;
-import org.kostiskag.unitynetwork.bluenode.service.NextIpPoll;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
@@ -18,6 +17,7 @@ import org.kostiskag.unitynetwork.bluenode.service.bluenodeservice.BlueNodeServe
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerTimeBuilder;
 import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
+import org.kostiskag.unitynetwork.bluenode.service.NextIpPoll;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 
 
@@ -88,13 +88,10 @@ public final class Bluenode {
 	// run data
 	public boolean joined = false;
 
-	// our most important tables
+	// these references should be removed from here
 	public LocalRedNodeTable localRedNodesTable; //make singleton
 	public BlueNodeTable blueNodeTable; //make singleton
 
-	// these references should be removed from here
-	public BlueNodeServer auth; //make singleton
-	public FlyRegister flyreg; //make singleton
 
 	private Bluenode(
 		ReadBluenodePreferencesFile prefs,
@@ -138,12 +135,13 @@ public final class Bluenode {
 			MainWindow.newInstance(mainWindowPrefs);
 		}
 
+		// 2. Logger
 		AppLogger.newInstance(this.gui, this.log, this.soutTraffic);
 		
 		//rsa public key
 		AppLogger.getInstance().consolePrint("Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
 
-		//init porthandler
+		// 3. Porthandler
 		PortHandle.newInstance(startPort, endPort);
 
 		/*
@@ -159,8 +157,7 @@ public final class Bluenode {
 		 *  
 		 *  The service to receive responses from RBNs RNs Tracker
 		 */
-		auth = new BlueNodeServer(authPort);
-		auth.start();
+		BlueNodeServer.newInstance(authPort);
 		
 		/* 
 		 * 4. Initialize sonar
@@ -171,7 +168,7 @@ public final class Bluenode {
 		 */
 		if (network) {
 			try {
-				BlueNodeSonarService.newInstance(Timings.BLUENODE_CHECK_TIME.getWaitTimeInSec()).start();
+				BlueNodeSonarService.newInstance(Timings.BLUENODE_CHECK_TIME.getWaitTimeInSec());
 			} catch (IllegalAccessException e) {
 				AppLogger.getInstance().consolePrint(e.getMessage());
 			}
@@ -188,8 +185,7 @@ public final class Bluenode {
 		 *  
 		 */
 		if (network) {
-			flyreg = new FlyRegister();
-			flyreg.start();
+			FlyRegister.newInstance();
 		}
 
 		/*

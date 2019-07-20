@@ -18,6 +18,7 @@ public class TrackerTimeBuilder extends SimpleCyclicService {
     public static TrackerTimeBuilder newInstance(int timeInSec) throws IllegalAccessException {
         if (TRACKER_TIME_BUILDER == null) {
             TRACKER_TIME_BUILDER = new TrackerTimeBuilder(timeInSec);
+            TRACKER_TIME_BUILDER.start();
         }
         return TRACKER_TIME_BUILDER;
     }

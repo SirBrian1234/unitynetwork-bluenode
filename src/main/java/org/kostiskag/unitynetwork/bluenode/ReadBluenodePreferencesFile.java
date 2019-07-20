@@ -20,19 +20,19 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalAccount;
  * @author Konstantinos Kagiampakis
  */
 final class ReadBluenodePreferencesFile extends ReadPreferencesFile {
-	public boolean network;
-	public PhysicalAddress trackerAddress;
-	public int trackerPort;
-	public int trackerMaxIdleTimeMin;
-	public String name;
-	public boolean useList;
-	public int authPort;
-	public int startPort;
-	public int endPort;
-	public int maxRednodeEntries;
-	public boolean gui;
-	public boolean soutTraffic;
-	public boolean log;
+	public final boolean network;
+	public final PhysicalAddress trackerAddress;
+	public final int trackerPort;
+	public final int trackerMaxIdleTimeMin;
+	public final String name;
+	public final boolean useList;
+	public final int authPort;
+	public final int startPort;
+	public final int endPort;
+	public final int maxRednodeEntries;
+	public final boolean gui;
+	public final boolean soutTraffic;
+	public final boolean log;
 
 	public ReadBluenodePreferencesFile(File file) throws IOException {
 		super(file);

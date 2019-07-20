@@ -98,7 +98,7 @@ public class Router extends Thread {
 	                    } else {
 	                    	//lookup via tracker from a bluenode with this rrd
 							AppLogger.getInstance().trafficPrint(pre +"NOT KNOWN RRN WITH "+destvaddress+" SEEKING TARGET BN", MessageType.ROUTING, NodeType.BLUENODE);
-	                        Bluenode.getInstance().flyreg.seekDest(sourcevaddress, destvaddress);
+	                        FlyRegister.getInstance().seekDest(sourcevaddress, destvaddress);
 	                    }
 	                } else {
 						AppLogger.getInstance().trafficPrint(pre +"NOT IN THIS BN " + destvaddress, MessageType.ROUTING, NodeType.BLUENODE);

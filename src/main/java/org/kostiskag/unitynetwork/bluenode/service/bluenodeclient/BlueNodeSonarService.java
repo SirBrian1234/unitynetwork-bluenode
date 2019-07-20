@@ -22,6 +22,7 @@ public final class BlueNodeSonarService extends SimpleCyclicService {
     public static BlueNodeSonarService newInstance(int timeInSec) throws IllegalAccessException {
         if (BLUENODE_SONAR_SERVICE == null) {
             BLUENODE_SONAR_SERVICE = new BlueNodeSonarService(timeInSec);
+            BLUENODE_SONAR_SERVICE.start();
         }
         return BLUENODE_SONAR_SERVICE;
     }
