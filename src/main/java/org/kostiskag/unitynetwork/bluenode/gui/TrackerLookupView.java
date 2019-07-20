@@ -75,7 +75,7 @@ public class TrackerLookupView extends javax.swing.JFrame {
         JButton btnNewButton_1 = new JButton("GETBNPUB");
         btnNewButton_1.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent arg0) {
-        		if (Bluenode.getInstance().joined) {
+        		if (Bluenode.getInstance().isJoinedNetwork()) {
                 	String bnName = jTextField2.getText();
                 	if (!bnName.isEmpty() && bnName.length() < NumericConstraints.MAX_STR_LEN_SMALL.size()) {
                 		TrackerClient tr = new TrackerClient();
@@ -97,7 +97,7 @@ public class TrackerLookupView extends javax.swing.JFrame {
         JButton btnNewButton_2 = new JButton("GETRNPUB");
         btnNewButton_2.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		if (Bluenode.getInstance().joined) {
+        		if (Bluenode.getInstance().isJoinedNetwork()) {
                 	String hostname = jTextField2.getText();
                 	if (!hostname.isEmpty() && hostname.length() < NumericConstraints.MAX_STR_LEN_SMALL.size()) {
                 		TrackerClient tr = new TrackerClient();
@@ -175,7 +175,7 @@ public class TrackerLookupView extends javax.swing.JFrame {
     }
 
 	private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (Bluenode.getInstance().joined) {
+        if (Bluenode.getInstance().isJoinedNetwork()) {
         	String rnhostname = jTextField2.getText();
         	if (!rnhostname.isEmpty() && rnhostname.length() < NumericConstraints.MAX_STR_LEN_SMALL.size()) {
         		TrackerClient tr = new TrackerClient();

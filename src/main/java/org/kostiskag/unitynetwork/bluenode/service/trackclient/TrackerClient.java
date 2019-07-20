@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
+import java.security.KeyPair;
 import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
@@ -28,6 +29,7 @@ public class TrackerClient {
 
 	private static final String PRE = "^TrackerClient ";
 	private static String bluenodeName;
+	private static KeyPair bluenodeKeys;
 	private static PublicKey trackerPublic;
 	private static PhysicalAddress trackerAddress;
 	private static int trackerPort;
@@ -39,12 +41,13 @@ public class TrackerClient {
 	private String reason;
 	private boolean connected = false;
 
-	public static void configureTracker(String bluenodeName, PublicKey trackerPublic, PhysicalAddress trackerAddress, int trackerPort) {
-		if (bluenodeName == null || trackerPublic == null || trackerAddress == null || (trackerPort <=0 && trackerPort > NumericConstraints.MAX_ALLOWED_PORT_NUM.size())) {
-			throw new IllegalArgumentException(PRE + " invalid arguments were given!");
+	public static void configureTracker(String bluenodeName, KeyPair bluenodeKeys, PublicKey trackerPublic, PhysicalAddress trackerAddress, int trackerPort) {
+		if (bluenodeName == null || bluenodeKeys==null || trackerPublic == null || trackerAddress == null || (trackerPort <=0 && trackerPort > NumericConstraints.MAX_ALLOWED_PORT_NUM.size())) {
+			throw new IllegalArgumentException(PRE + " invalid configuration data were given!");
 		}
 
 		TrackerClient.bluenodeName = bluenodeName;
+		TrackerClient.bluenodeKeys = bluenodeKeys;
 		TrackerClient.trackerPublic = trackerPublic;
 		TrackerClient.trackerAddress = trackerAddress;
 		TrackerClient.trackerPort = trackerPort;
@@ -52,8 +55,8 @@ public class TrackerClient {
 
 	public TrackerClient() {
 		//sanitize
-		if (bluenodeName == null || trackerPublic == null || trackerAddress == null || (trackerPort <=0 && trackerPort > NumericConstraints.MAX_ALLOWED_PORT_NUM.size())) {
-			throw new IllegalArgumentException(PRE + " invalid arguments were given!");
+		if (bluenodeName == null || bluenodeKeys == null || trackerPublic == null || trackerAddress == null || (trackerPort <=0 && trackerPort > NumericConstraints.MAX_ALLOWED_PORT_NUM.size())) {
+			throw new IllegalArgumentException(PRE + " invalid configuration data were given!");
 		}
 
 		try {
@@ -91,7 +94,7 @@ public class TrackerClient {
 			byte[] question = CryptoUtilities.base64StringTobytes(args[0]);
 			
 			//decrypt with private
-			String answer = CryptoUtilities.decryptWithPrivate(question, Bluenode.getInstance().bluenodeKeys.getPrivate());
+			String answer = CryptoUtilities.decryptWithPrivate(question, TrackerClient.bluenodeKeys.getPrivate());
 			
 			//send back plain answer
 			args = SocketUtilities.sendReceiveAESEncryptedStringData(answer, reader, writer, sessionKey);
@@ -435,7 +438,7 @@ public class TrackerClient {
 				return "KEY_IS_SET";
 			}
 			
-			PublicKey pub = Bluenode.getInstance().bluenodeKeys.getPublic();
+			PublicKey pub = TrackerClient.bluenodeKeys.getPublic();
 			AppLogger.getInstance().consolePrint(pre+"OFFERPUB"+" at "+socket.getInetAddress().getHostAddress());
 	    	args = SocketUtilities.sendReceiveAESEncryptedStringData("OFFERPUB"+" "+ticket+" "+CryptoUtilities.objectToBase64StringRepresentation(pub), reader, writer, sessionKey);
 			

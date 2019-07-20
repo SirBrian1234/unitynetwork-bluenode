@@ -207,7 +207,7 @@ public final class MainWindow extends JFrame {
                 if(PromptResult==JOptionPane.YES_OPTION)
                 {
                     Bluenode.getInstance().localRedNodesTable.exitAll();
-                    if (Bluenode.getInstance().joined) {
+                    if (Bluenode.getInstance().isJoinedNetwork()) {
             			try {
             				Bluenode.getInstance().leaveNetworkAndDie();
             			} catch (Exception e) {

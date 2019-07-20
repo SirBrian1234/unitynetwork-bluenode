@@ -84,7 +84,7 @@ public class Router extends Thread {
 	                    Bluenode.getInstance().localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getSendQueue().offer(data);
 						AppLogger.getInstance().trafficPrint(pre+"LOCAL DESTINATION", MessageType.ROUTING, NodeType.REDNODE);
 	                    
-	                } else if (Bluenode.getInstance().joined) {
+	                } else if (Bluenode.getInstance().isJoinedNetwork()) {
 	                    if (Bluenode.getInstance().blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
 	                    	//load the packet to remote blue node's queue
 	                        BlueNode bn;

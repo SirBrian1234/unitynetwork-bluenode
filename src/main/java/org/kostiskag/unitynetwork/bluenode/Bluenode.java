@@ -83,17 +83,14 @@ public final class Bluenode {
 	private final boolean gui;
 	private final boolean soutTraffic;
 	private final boolean log;
+	private final KeyPair bluenodeKeys;
 	private final int trackerPort;
-	private final PublicKey trackerPublicKey;
-
-	/*
-	DANGER!!!!!
-	 */
-	public final AccountTable accounts;
-	public final KeyPair bluenodeKeys;
+	private final AccountTable accounts;
+	//NOT FINAL!!!
+	private PublicKey trackerPublicKey;
 
 	// run data
-	public boolean joined = false;
+	private boolean joined;
 
 	// these references should be removed from here
 	public LocalRedNodeTable localRedNodesTable; //make singleton
@@ -145,9 +142,8 @@ public final class Bluenode {
 		// 2. Logger
 		AppLogger.newInstance(this.gui, this.log, this.soutTraffic);
 
-		//rsa public key
+		//verbose rsa public key
 		AppLogger.getInstance().consolePrint("Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
-
 
 		// 3. Porthandler
 		PortHandle.newInstance(startPort, endPort);
@@ -204,8 +200,8 @@ public final class Bluenode {
 			try {
 				if (joinNetwork()) {
 					joined = true;
-					TrackerClient.configureTracker(this.name, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
-					BlueNodeService.configureService(Optional.of(this.trackerPublicKey));
+					TrackerClient.configureTracker(this.name, this.bluenodeKeys, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
+					BlueNodeService.configureService(this.bluenodeKeys, this.trackerPublicKey);
 					CollectTrackerKeyView.configureView(Optional.of(this.trackerPublicKey));
 					TrackerTimeBuilder.newInstance(Timings.TRACKER_CHECK_TIME.getWaitTimeInSec()).start();
 				} else {
@@ -215,9 +211,7 @@ public final class Bluenode {
 				AppLogger.getInstance().consolePrint(pre + " " + e.getMessage());
 				die();
 			}
-		} else if (useList) {
-			//uselist configure
-		} else {
+		} else if (isPlainMode()) {
 			NextIpPoll.newInstance();
 			AppLogger.getInstance().consolePrint("WARNING! BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nWHICH MEANS THAT ANYONE WHO KNOWS THE BN'S ADDRESS AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
 		}
@@ -275,10 +269,20 @@ public final class Bluenode {
 	}
 
 	public void updateTrackerPublicKey(PublicKey trackerPublic) {
-		try {
-			App.writeTrackerPublicKey(trackerPublic);
-		} catch (IOException e) {
-			e.printStackTrace();
+		//update only a null key
+		if (this.trackerPublicKey == null) {
+			//sanitize
+			if (trackerPublic == null) return;
+			//store
+			try {
+				App.writeTrackerPublicKey(trackerPublic);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			//update usages
+			this.trackerPublicKey = trackerPublic;
+			TrackerClient.configureTracker(this.name, this.bluenodeKeys, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
+			BlueNodeService.configureService(this.bluenodeKeys, this.trackerPublicKey);
 		}
 	}
 
@@ -306,4 +310,8 @@ public final class Bluenode {
 		return !this.useList && !this.network;
 	}
 
+	public AccountTable getAccounts() {
+		//get them only on uselist mode
+		return this.useList? accounts: null;
+	}
 }

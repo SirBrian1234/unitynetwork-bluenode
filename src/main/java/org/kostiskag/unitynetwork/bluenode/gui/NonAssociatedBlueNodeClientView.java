@@ -112,7 +112,7 @@ public class NonAssociatedBlueNodeClientView extends javax.swing.JFrame {
 
     
 	private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (Bluenode.getInstance().joined) {
+        if (Bluenode.getInstance().isJoinedNetwork()) {
 	    	if (!jTextField1.getText().isEmpty() && jTextField1.getText().length() <= NumericConstraints.MAX_STR_LEN_SMALL.size()) {
 	    		String bnName = jTextField1.getText();
 	    		TrackerClient tr = new TrackerClient();	
@@ -151,7 +151,7 @@ public class NonAssociatedBlueNodeClientView extends javax.swing.JFrame {
     }
 
 	protected void jButton2ActionPerformed(ActionEvent arg0) {
-		if (Bluenode.getInstance().joined) {
+		if (Bluenode.getInstance().isJoinedNetwork()) {
 	    	if (!jTextField1.getText().isEmpty() && jTextField1.getText().length() <= NumericConstraints.MAX_STR_LEN_SMALL.size()) {
 	    		TrackerClient tr = new TrackerClient();	
 	        	String[] args = tr.getPhysicalBn(jTextField1.getText());	 

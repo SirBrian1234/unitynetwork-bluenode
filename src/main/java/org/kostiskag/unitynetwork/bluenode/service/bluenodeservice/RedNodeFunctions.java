@@ -98,7 +98,7 @@ public class RedNodeFunctions {
                             
         } else if (Bluenode.getInstance().isListMode()) {
         	//collect vaddres from list
-        	Vaddress = Bluenode.getInstance().accounts.getVaddrIfExists(hostname, Username, Password).asString();
+        	Vaddress = Bluenode.getInstance().getAccounts().getVaddrIfExists(hostname, Username, Password).asString();
         	if (Vaddress == null) {
         		try {
 					SocketUtilities.sendAESEncryptedStringData("FAILED USER 0", socketWriter, sessionKey);
@@ -162,7 +162,7 @@ public class RedNodeFunctions {
 		}
 
         //release from the network
-        if (Bluenode.getInstance().isNetworkMode() && Bluenode.getInstance().joined) {
+        if (Bluenode.getInstance().isJoinedNetwork()) {
         	TrackerClient tr = new TrackerClient();
             tr.releaseRnByHostname(RNclient.getHostname());
             Bluenode.getInstance().blueNodeTable.releaseLocalRedNodeByHostnameFromAll(hostname);

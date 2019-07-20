@@ -14,9 +14,9 @@ public final class AppLogger {
         ROUTING;
     }
 
-    boolean log = false;
-    boolean gui = false;
-    boolean printTraffic = false;
+    private final boolean log;
+    private final boolean gui;
+    private final boolean printTraffic;
 
     public static AppLogger newInstance(boolean gui, boolean log, boolean printTraffic) {
         if (APP_LOGGER == null) {

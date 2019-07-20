@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Optional;
 
@@ -23,7 +24,8 @@ import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 public class BlueNodeService extends Thread {
 
     private static final String PRE = "^BlueNodeService ";
-    private static Optional<PublicKey> trackerPublicOpt;
+	private static KeyPair bluenodeKeys;
+	private static PublicKey trackerPublic;
 
     private final String prebn = "BlueNode ";
     private final String prern = "RedNode ";
@@ -33,11 +35,20 @@ public class BlueNodeService extends Thread {
     private DataOutputStream socketWriter;
     private SecretKey sessionKey;
 
-    public static void configureService(Optional<PublicKey> trackerPublicOpt) {
-    	BlueNodeService.trackerPublicOpt = trackerPublicOpt;
+    public static void configureService(KeyPair bluenodeKeyPair, PublicKey trackerPublic) {
+    	if (bluenodeKeyPair == null || trackerPublic == null) {
+    		throw new IllegalArgumentException(PRE + " invalid configuration data were given!");
+		}
+
+    	BlueNodeService.trackerPublic = trackerPublic;
+    	BlueNodeService.bluenodeKeys = bluenodeKeyPair;
 	}
 
-    BlueNodeService(Socket sessionSocket) throws IOException {
+    BlueNodeService(Socket sessionSocket) {
+		if (BlueNodeService.bluenodeKeys == null || BlueNodeService.trackerPublic == null) {
+			throw new IllegalArgumentException(PRE + " invalid configuration data were given!");
+		}
+
         this.sessionSocket = sessionSocket;
     }
     
@@ -62,10 +73,10 @@ public class BlueNodeService extends Thread {
 			
 			if (!Bluenode.getInstance().isNetworkMode() && args[0].equals("GETPUB")) {
 				// if this bluenode is standalone it is allowed to distribute its public
-				SocketUtilities.sendPlainStringData(CryptoUtilities.objectToBase64StringRepresentation(Bluenode.getInstance().bluenodeKeys.getPublic()), socketWriter);
+				SocketUtilities.sendPlainStringData(CryptoUtilities.objectToBase64StringRepresentation(BlueNodeService.bluenodeKeys.getPublic()), socketWriter);
 			} else {
 				//client uses server's public key collected from the network to send a session key
-				String decrypted = CryptoUtilities.decryptWithPrivate(received, Bluenode.getInstance().bluenodeKeys.getPrivate());
+				String decrypted = CryptoUtilities.decryptWithPrivate(received, BlueNodeService.bluenodeKeys.getPrivate());
 				sessionKey = CryptoUtilities.base64StringRepresentationToObject(decrypted);
 				args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+Bluenode.getInstance().getName(), socketReader, socketWriter, sessionKey);
 	
@@ -234,7 +245,7 @@ public class BlueNodeService extends Thread {
     }
 
     private void trackingService() {
-    	if (BlueNodeService.trackerPublicOpt.isEmpty()) {
+    	if (BlueNodeService.trackerPublic == null) {
     		return;
 		}
 
@@ -243,7 +254,7 @@ public class BlueNodeService extends Thread {
 	    	String question = CryptoUtilities.generateQuestion();
 	
 	    	// encrypt question with target's public
-	    	byte[] questionb = CryptoUtilities.encryptWithPublic(question, BlueNodeService.trackerPublicOpt.get());
+	    	byte[] questionb = CryptoUtilities.encryptWithPublic(question, BlueNodeService.trackerPublic);
 	
 	    	// encode it to base 64
 	    	String encq = CryptoUtilities.bytesToBase64String(questionb);

@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.KeyPair;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.LinkedList;
 
@@ -43,6 +45,15 @@ public class BlueNodeClient {
 	private DataInputStream socketReader;
 	private DataOutputStream socketWriter;
 	private boolean connected = false;
+	private static PrivateKey bluenodePrivate;
+
+	public static void configureBlueNodeClient(PrivateKey bluenodePrivate) {
+		if (bluenodePrivate == null) {
+			throw new IllegalArgumentException("null data were given");
+		}
+
+		BlueNodeClient.bluenodePrivate = bluenodePrivate;
+	}
 
 	public BlueNodeClient(BlueNode bn) {
 		this.bn = bn;
@@ -103,7 +114,7 @@ public class BlueNodeClient {
 			byte[] question = CryptoUtilities.base64StringTobytes(args[0]);
 			
 			//decrypt with private
-			String answer = CryptoUtilities.decryptWithPrivate(question, Bluenode.getInstance().bluenodeKeys.getPrivate());
+			String answer = CryptoUtilities.decryptWithPrivate(question, BlueNodeClient.bluenodePrivate);
 			
 			//send back plain answer
 			args = SocketUtilities.sendReceiveAESEncryptedStringData(answer, socketReader, socketWriter, sessionKey);

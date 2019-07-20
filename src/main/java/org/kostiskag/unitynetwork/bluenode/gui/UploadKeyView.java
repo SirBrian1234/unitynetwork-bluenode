@@ -28,7 +28,7 @@ public class UploadKeyView {
 	 */
 	public UploadKeyView() {
 		initialize();
-		if (Bluenode.getInstance().joined) {
+		if (Bluenode.getInstance().isJoinedNetwork()) {
 			textArea.setEditable(false);
 			btnNewButton.setEnabled(false);
 			btnNewButton_1.setEnabled(true);
