@@ -42,7 +42,7 @@ public class RedNodeFunctions {
     	
     	//get a virtual IP address
     	String Vaddress = null;
-    	if (Bluenode.getInstance().network && Bluenode.getInstance().joined) {            
+    	if (Bluenode.getInstance().isJoinedNetwork()) {
     		//collect vaddress from tracker
     		TrackerClient tr = new TrackerClient();
     		Vaddress = tr.leaseRn(hostname, Username, Password);
@@ -96,7 +96,7 @@ public class RedNodeFunctions {
     			return;
     		}
                             
-        } else if (Bluenode.getInstance().useList) {
+        } else if (Bluenode.getInstance().isListMode()) {
         	//collect vaddres from list
         	Vaddress = Bluenode.getInstance().accounts.getVaddrIfExists(hostname, Username, Password).asString();
         	if (Vaddress == null) {
@@ -107,7 +107,7 @@ public class RedNodeFunctions {
 				}
         		return;
         	}
-        } else if (!Bluenode.getInstance().useList && !Bluenode.getInstance().network) {
+        } else if (Bluenode.getInstance().isPlainMode()) {
         	//no network, no list - each red node collects a ticket
             int addr_num = NextIpPoll.getInstance().poll();
 			try {
@@ -162,7 +162,7 @@ public class RedNodeFunctions {
 		}
 
         //release from the network
-        if (Bluenode.getInstance().network && Bluenode.getInstance().joined) {
+        if (Bluenode.getInstance().isNetworkMode() && Bluenode.getInstance().joined) {
         	TrackerClient tr = new TrackerClient();
             tr.releaseRnByHostname(RNclient.getHostname());
             Bluenode.getInstance().blueNodeTable.releaseLocalRedNodeByHostnameFromAll(hostname);

@@ -130,7 +130,7 @@ public class RedReceive extends Thread {
 						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(rn.getReceiveQueue().getlen());
 						rn.getSendQueue().offer(ACKS);
                     }
-                    if (Bluenode.getInstance().gui && !didTrigger) {
+                    if (Bluenode.getInstance().isGui() && !didTrigger) {
                         MainWindow.getInstance().setReceivedLocalRnData();
                         didTrigger = true;
                     }

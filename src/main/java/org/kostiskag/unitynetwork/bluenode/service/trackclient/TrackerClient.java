@@ -69,7 +69,7 @@ public class TrackerClient {
 			}
 			
 			String keyStr = CryptoUtilities.objectToBase64StringRepresentation(sessionKey);
-			SocketUtilities.sendRSAEncryptedStringData(keyStr, writer, Bluenode.getInstance().trackerPublicKey);
+			SocketUtilities.sendRSAEncryptedStringData(keyStr, writer, TrackerClient.trackerPublic);
 			
 			String[] args = SocketUtilities.receiveAESEncryptedStringData(reader, sessionKey);
 			System.out.println(args[0]);
@@ -358,7 +358,7 @@ public class TrackerClient {
      * to use.
      */
 	public static void getPubKey() {
-		int port = Bluenode.getInstance().trackerPort;
+		int port = TrackerClient.trackerPort;
 		InetAddress addr = TrackerClient.trackerAddress.asInet();
 
 		Socket socket = null;
@@ -394,15 +394,15 @@ public class TrackerClient {
 	 */
 	public static String offerPubKey(String ticket) {
 		String pre = "^offerPubKey ";
-		String name = Bluenode.getInstance().name;
-		PublicKey trackerPublic = Bluenode.getInstance().trackerPublicKey;
+		String name = Bluenode.getInstance().getName();
+		PublicKey trackerPublic = TrackerClient.trackerPublic;
 		
 		if (trackerPublic == null) {
 			System.err.println(pre+"no tracker public key was set.");
 			return null;
 		}
 		
-		int port = Bluenode.getInstance().trackerPort;
+		int port = TrackerClient.trackerPort;
 		InetAddress addr = TrackerClient.trackerAddress.asInet();
 
 		Socket socket = null;
@@ -418,7 +418,7 @@ public class TrackerClient {
 			}
 			
 			String keyStr = CryptoUtilities.objectToBase64StringRepresentation(sessionKey);
-			SocketUtilities.sendRSAEncryptedStringData(keyStr, writer, Bluenode.getInstance().trackerPublicKey);
+			SocketUtilities.sendRSAEncryptedStringData(keyStr, writer, TrackerClient.trackerPublic);
 			
 			String[] args = SocketUtilities.receiveAESEncryptedStringData(reader, sessionKey);
 			System.out.println(args[0]);

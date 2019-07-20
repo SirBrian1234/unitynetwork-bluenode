@@ -97,7 +97,7 @@ public class BlueNodeClient {
 			System.out.println(args[0]+" "+args[1]);
 			
 			//this bn is to be authenticated by the target bn
-			args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+ Bluenode.getInstance().name, socketReader, socketWriter, sessionKey);
+			args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+ Bluenode.getInstance().getName(), socketReader, socketWriter, sessionKey);
 			
 			//decode question
 			byte[] question = CryptoUtilities.base64StringTobytes(args[0]);
@@ -147,7 +147,7 @@ public class BlueNodeClient {
 	public void associateClient() throws Exception {
 		if (connected) {
 			
-			if (name.equals(Bluenode.getInstance().name)) {
+			if (name.equals(Bluenode.getInstance().getName())) {
 				closeConnection();
 				AppLogger.getInstance().consolePrint(pre + "BNs are not allowed to create a u-turn association");
 				throw new Exception(pre+"BNs are not allowed to create a u-turn association");

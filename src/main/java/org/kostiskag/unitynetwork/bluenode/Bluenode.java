@@ -3,7 +3,9 @@ package org.kostiskag.unitynetwork.bluenode;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.Optional;
 
+import org.kostiskag.unitynetwork.bluenode.gui.CollectTrackerKeyView;
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
@@ -12,6 +14,7 @@ import org.kostiskag.unitynetwork.bluenode.routing.FlyRegister;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
+import org.kostiskag.unitynetwork.bluenode.service.bluenodeservice.BlueNodeService;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeSonarService;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeservice.BlueNodeServer;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
@@ -33,7 +36,7 @@ public final class Bluenode {
 	public enum Timings {
 		KEEP_ALIVE_TIME(10),
 		TRACKER_CHECK_TIME(20),
-		TRACKER_MAX_IDLE_TIME(5),
+		TRACKER_MAX_IDLE_TIME(5 * 60),
 		BLUENODE_STEP_TIME(20),
 		BLUENODE_CHECK_TIME(120),
 		BLUENODE_MAX_IDLE_TIME(2 * BLUENODE_CHECK_TIME.getWaitTimeInSec());
@@ -68,22 +71,26 @@ public final class Bluenode {
 	}
 
 	// initial configuration settings
-	public final boolean network;
-	public final PhysicalAddress trackerAddress;
-	public final int trackerPort;
-	public final int trackerMaxIdleTimeMin;
-	public final String name;
-	public final boolean useList;
-	public final int authPort;
-	public final int startPort;
-	public final int endPort;
-	public final int maxRednodeEntries;
-	public final boolean gui;
-	public final boolean soutTraffic;
-	public final boolean log;
+	private final boolean network;
+	private final PhysicalAddress trackerAddress;
+	private final int trackerMaxIdleTimeMin;
+	private final String name;
+	private final boolean useList;
+	private final int authPort;
+	private final int startPort;
+	private final int endPort;
+	private final int maxRednodeEntries;
+	private final boolean gui;
+	private final boolean soutTraffic;
+	private final boolean log;
+	private final int trackerPort;
+	private final PublicKey trackerPublicKey;
+
+	/*
+	DANGER!!!!!
+	 */
 	public final AccountTable accounts;
 	public final KeyPair bluenodeKeys;
-	public final PublicKey trackerPublicKey;
 
 	// run data
 	public boolean joined = false;
@@ -117,7 +124,7 @@ public final class Bluenode {
 		this.trackerPublicKey = trackerPublicKey;
 
 		System.out.println(pre + "started BlueNode at thread " + Thread.currentThread().getName());
-		
+
 		/*
 		 *  1. gui goes first to verbose the following on console
 		 */
@@ -137,9 +144,10 @@ public final class Bluenode {
 
 		// 2. Logger
 		AppLogger.newInstance(this.gui, this.log, this.soutTraffic);
-		
+
 		//rsa public key
 		AppLogger.getInstance().consolePrint("Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
+
 
 		// 3. Porthandler
 		PortHandle.newInstance(startPort, endPort);
@@ -153,18 +161,18 @@ public final class Bluenode {
 		}
 
 		/*
-		 *  3. Initialize auth server 
-		 *  
+		 *  3. Initialize auth server
+		 *
 		 *  The service to receive responses from RBNs RNs Tracker
 		 */
 		BlueNodeServer.newInstance(authPort);
-		
-		/* 
+
+		/*
 		 * 4. Initialize sonar
-		 * 
+		 *
 		 * sonarService periodically checks the remote BNs associated as clients
 		 * whereas the timeBuilder keeps track of the remote BNs associated as servers
-		 * 
+		 *
 		 */
 		if (network) {
 			try {
@@ -174,15 +182,15 @@ public final class Bluenode {
 			}
 		}
 
-		/* 
+		/*
 		 * 5. Initialize Register On The Fly
-		 * 
+		 *
 		 *  when a packet heading to an unknown destination is received
-		 *  the FlyReg may do all the tasks in order to dynamically build 
+		 *  the FlyReg may do all the tasks in order to dynamically build
 		 *  the path from this BN to a remote BN where the target RN exists,
 		 *  unknown router the one that manages new hosts new
 		 *  FlyReg is meaningful to work only in a network.
-		 *  
+		 *
 		 */
 		if (network) {
 			FlyRegister.newInstance();
@@ -197,6 +205,8 @@ public final class Bluenode {
 				if (joinNetwork()) {
 					joined = true;
 					TrackerClient.configureTracker(this.name, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
+					BlueNodeService.configureService(Optional.of(this.trackerPublicKey));
+					CollectTrackerKeyView.configureView(Optional.of(this.trackerPublicKey));
 					TrackerTimeBuilder.newInstance(Timings.TRACKER_CHECK_TIME.getWaitTimeInSec()).start();
 				} else {
 					AppLogger.getInstance().consolePrint("This bluenode is not connected in the network.");
@@ -205,7 +215,9 @@ public final class Bluenode {
 				AppLogger.getInstance().consolePrint(pre + " " + e.getMessage());
 				die();
 			}
-		} else if (!useList) {
+		} else if (useList) {
+			//uselist configure
+		} else {
 			NextIpPoll.newInstance();
 			AppLogger.getInstance().consolePrint("WARNING! BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nWHICH MEANS THAT ANYONE WHO KNOWS THE BN'S ADDRESS AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
 		}
@@ -269,4 +281,29 @@ public final class Bluenode {
 			e.printStackTrace();
 		}
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public boolean isGui() {
+		return gui;
+	}
+
+	public boolean isNetworkMode() {
+		return this.network;
+	}
+
+	public boolean isJoinedNetwork() {
+		return this.network && this.joined;
+	}
+
+	public boolean isListMode() {
+		return this.useList;
+	}
+
+	public boolean isPlainMode() {
+		return !this.useList && !this.network;
+	}
+
 }

@@ -56,7 +56,7 @@ public final class BlueNodeServer extends SimpleUnstoppedCyclicService {
     @Override
     protected void preActions() {
         AppLogger.getInstance().consolePrint(PRE +"started at thread "+Thread.currentThread().getName()+" on port "+authPort);
-        if (!didTrigger && Bluenode.getInstance().gui) {
+        if (!didTrigger && Bluenode.getInstance().isGui()) {
             MainWindow.getInstance().setAuthServiceAsEnabled();
             didTrigger = true;
         }

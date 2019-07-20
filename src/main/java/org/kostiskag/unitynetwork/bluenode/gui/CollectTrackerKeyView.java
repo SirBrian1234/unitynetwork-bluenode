@@ -3,6 +3,8 @@ package org.kostiskag.unitynetwork.bluenode.gui;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.security.PublicKey;
+import java.util.Optional;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -22,15 +24,20 @@ public class CollectTrackerKeyView {
 	private JTextField txtNotSet;
 	private JTextArea txtpnWii;
 	private JButton btnCollectTrackersPublic;
+	private static Optional<PublicKey> trackerPublicKey;
+
+	public static void configureView(Optional<PublicKey> trackerPublicKeyOpt) {
+		CollectTrackerKeyView.trackerPublicKey = trackerPublicKeyOpt;
+	}
 	
 	/**
 	 * Create the application.
 	 */
 	public CollectTrackerKeyView() {
 		initialize();
-		if (Bluenode.getInstance().network && Bluenode.getInstance().trackerPublicKey != null) {
+		if (Bluenode.getInstance().isNetworkMode() && CollectTrackerKeyView.trackerPublicKey.isPresent()) {
 			txtNotSet.setText("Key is set");
-			txtpnWii.setText(CryptoUtilities.bytesToBase64String(Bluenode.getInstance().trackerPublicKey.getEncoded()));
+			txtpnWii.setText(CryptoUtilities.bytesToBase64String(CollectTrackerKeyView.trackerPublicKey.get().getEncoded()));
 			btnCollectTrackersPublic.setEnabled(false);
 		} 
 	}
@@ -82,8 +89,8 @@ public class CollectTrackerKeyView {
 
 	protected void collect() {
 		TrackerClient.getPubKey();
-		if (Bluenode.getInstance().trackerPublicKey != null) {
-			txtpnWii.setText(CryptoUtilities.bytesToBase64String(Bluenode.getInstance().trackerPublicKey.getEncoded()));
+		if (CollectTrackerKeyView.trackerPublicKey.isPresent()) {
+			txtpnWii.setText(CryptoUtilities.bytesToBase64String(CollectTrackerKeyView.trackerPublicKey.get().getEncoded()));
 			txtNotSet.setText("Key is set");
 			btnCollectTrackersPublic.setEnabled(false);
 			MainWindow.getInstance().enableUploadKey();

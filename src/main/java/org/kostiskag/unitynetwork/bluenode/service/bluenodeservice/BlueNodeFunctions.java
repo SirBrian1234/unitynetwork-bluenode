@@ -36,7 +36,7 @@ public class BlueNodeFunctions {
 	    	int authPort = 0;
 	    	String[] args;
 	        
-	        if (Bluenode.getInstance().name.equals(name)) {
+	        if (Bluenode.getInstance().getName().equals(name)) {
 	        	SocketUtilities.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
 	        	return;
 	        } else if (Bluenode.getInstance().blueNodeTable.checkBlueNode(name)) {

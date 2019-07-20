@@ -149,7 +149,7 @@ public class BlueSend extends Thread {
 				}
                 
                 if (!didTrigger) {
-                	if (Bluenode.getInstance().gui) {
+                	if (Bluenode.getInstance().isGui()) {
                 		MainWindow.getInstance().setSentDataToRn();
                 	}
                 	didTrigger = true;

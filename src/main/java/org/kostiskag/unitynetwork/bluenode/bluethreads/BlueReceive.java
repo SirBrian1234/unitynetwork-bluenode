@@ -145,7 +145,7 @@ public class BlueReceive extends Thread {
                     }
                     
                     if (!didTrigger) {
-                    	if (Bluenode.getInstance().gui) {
+                    	if (Bluenode.getInstance().isGui()) {
                     		MainWindow.getInstance().setReceivedBnData();
                         }
                     	didTrigger = true;

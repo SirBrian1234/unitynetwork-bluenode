@@ -9,6 +9,8 @@ public class NextIpPoll {
 
     private static NextIpPoll IP_POLL;
 
+    private int count;
+
     public static NextIpPoll newInstance()  {
         if (IP_POLL == null) {
             IP_POLL = new NextIpPoll();
@@ -20,8 +22,6 @@ public class NextIpPoll {
         return IP_POLL;
     }
 
-    private int count;
-    
     private NextIpPoll() {
         count = 0;
     }

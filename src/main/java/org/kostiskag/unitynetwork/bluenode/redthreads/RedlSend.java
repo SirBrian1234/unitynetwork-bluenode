@@ -168,7 +168,7 @@ public class RedlSend extends Thread {
 					serverSocket.send(sendUDPPacket);
                     AppLogger.getInstance().trafficPrint(pre + "IPV4 SENT", MessageType.ROUTING, NodeType.REDNODE);
 				}
-                if (Bluenode.getInstance().gui && !trigger) {
+                if (Bluenode.getInstance().isGui() && !trigger) {
                     MainWindow.getInstance().setSentDataToRn();
                     trigger = true;
                 }
