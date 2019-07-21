@@ -15,7 +15,6 @@ import javax.swing.JTextField;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
-import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 
 
 public class CollectTrackerKeyView {
@@ -88,12 +87,12 @@ public class CollectTrackerKeyView {
 	}
 
 	protected void collect() {
-		TrackerClient.getPubKey();
+		Bluenode.getInstance().updateTrackerPublicKey();
 		if (CollectTrackerKeyView.trackerPublicKey.isPresent()) {
 			txtpnWii.setText(CryptoUtilities.bytesToBase64String(CollectTrackerKeyView.trackerPublicKey.get().getEncoded()));
 			txtNotSet.setText("Key is set");
 			btnCollectTrackersPublic.setEnabled(false);
-			MainWindow.getInstance().enableUploadKey();
+			MainWindow.getInstance().enableUploadPublicKey();
 		}
 	}
 

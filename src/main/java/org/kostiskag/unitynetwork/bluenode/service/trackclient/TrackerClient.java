@@ -13,6 +13,7 @@ import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
+import org.kostiskag.unitynetwork.common.state.PublicKeyState;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
@@ -25,7 +26,7 @@ import org.kostiskag.unitynetwork.bluenode.Bluenode;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class TrackerClient {
+public final class TrackerClient {
 
 	private static final String PRE = "^TrackerClient ";
 	private static String bluenodeName;
@@ -356,36 +357,27 @@ public class TrackerClient {
     
     /**
      * Collect's a tracker's public key needs a plain connection
-     * It's a bit hardwired as after collection
-     * it writes a file and updates bn's tracker public key
+     * it is used from Bluenode in order to store the public key
      * to use.
      */
-	public static void getPubKey() {
-		int port = TrackerClient.trackerPort;
-		InetAddress addr = TrackerClient.trackerAddress.asInet();
+	public static PublicKey getTrackersPublicKey(InetAddress trackerAddress, int trackerPort) {
+		//sanitize
+		if (trackerAddress == null || trackerPort <= 0 || trackerPort > NumericConstraints.MAX_ALLOWED_PORT_NUM.size() ) {
+			throw  new IllegalArgumentException("malformed input data were given");
+		}
 
-		Socket socket = null;
-		try {
-			socket = SocketUtilities.absoluteConnect(addr, port);
-			
-			DataInputStream reader = SocketUtilities.makeDataReader(socket);
-			DataOutputStream writer = SocketUtilities.makeDataWriter(socket);
+		try (Socket socket = SocketUtilities.absoluteConnect(trackerAddress, trackerPort);
+			 DataInputStream reader = SocketUtilities.makeDataReader(socket);
+			 DataOutputStream writer = SocketUtilities.makeDataWriter(socket)) {
 
 			AppLogger.getInstance().consolePrint("Tracker "+"GETPUB"+" at "+socket.getInetAddress().getHostAddress());
 			String[] args = SocketUtilities.sendReceivePlainStringData("GETPUB", reader, writer);
 			     
-			PublicKey trackerPublic = CryptoUtilities.base64StringRepresentationToObject(args[0]);
-			Bluenode.getInstance().updateTrackerPublicKey(trackerPublic);
-	        
+			return CryptoUtilities.base64StringRepresentationToObject(args[0]);
 		} catch (IOException | GeneralSecurityException e) {
-			e.printStackTrace();
+			AppLogger.getInstance().consolePrint(PRE + "failed to connect to tracker to fetch public ket\n"+e.getLocalizedMessage());
 		}
-		
-		try {
-			socket.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		return null;
 	}
 	
 	/**
@@ -395,64 +387,48 @@ public class TrackerClient {
 	 * @param ticket
 	 * @return
 	 */
-	public static String offerPubKey(String ticket) {
-		String pre = "^offerPubKey ";
-		String name = Bluenode.getInstance().getName();
-		PublicKey trackerPublic = TrackerClient.trackerPublic;
-		
-		if (trackerPublic == null) {
-			System.err.println(pre+"no tracker public key was set.");
-			return null;
+	public static PublicKeyState offerPubKey(String bluenodeName, String ticket, PublicKey trackerPublic, InetAddress trackerAddress, int trackerPort) {
+		//sanitize
+		if (bluenodeName == null || bluenodeName.isEmpty() || ticket == null || ticket.isEmpty() || trackerPublic == null || trackerAddress == null || trackerPort <= 0 || trackerPort > NumericConstraints.MAX_ALLOWED_PORT_NUM.size()) {
+			throw  new IllegalArgumentException("malformed input data were given");
 		}
-		
-		int port = TrackerClient.trackerPort;
-		InetAddress addr = TrackerClient.trackerAddress.asInet();
 
-		Socket socket = null;
-		try {
-			socket = SocketUtilities.absoluteConnect(addr, port);
-			
+		String pre = "^offerPubKey ";
+		try(Socket socket = SocketUtilities.absoluteConnect(trackerAddress, trackerPort);
 			DataInputStream reader = SocketUtilities.makeDataReader(socket);
-			DataOutputStream writer = SocketUtilities.makeDataWriter(socket);
-			
+			DataOutputStream writer = SocketUtilities.makeDataWriter(socket)) {
+
 			SecretKey sessionKey = CryptoUtilities.generateAESSessionkey();
 			if (sessionKey == null) {
-				throw new Exception();
+				throw new GeneralSecurityException();
 			}
 			
 			String keyStr = CryptoUtilities.objectToBase64StringRepresentation(sessionKey);
-			SocketUtilities.sendRSAEncryptedStringData(keyStr, writer, TrackerClient.trackerPublic);
+			SocketUtilities.sendRSAEncryptedStringData(keyStr, writer, trackerPublic);
 			
 			String[] args = SocketUtilities.receiveAESEncryptedStringData(reader, sessionKey);
 			System.out.println(args[0]);
 			
 			if(!args[0].equals("UnityTracker")) {
-				throw new Exception();
+				throw new IOException("Wrong header greeting.");
 			}
 			
-			args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE"+" "+name, reader, writer, sessionKey);
+			args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE"+" "+bluenodeName, reader, writer, sessionKey);
 		
 			if (!args[0].equals("PUBLIC_NOT_SET")) {
 				SocketUtilities.sendAESEncryptedStringData("EXIT", writer, sessionKey);
-				socket.close();
-				return "KEY_IS_SET";
+				return PublicKeyState.KEY_IS_SET;
 			}
 			
 			PublicKey pub = TrackerClient.bluenodeKeys.getPublic();
 			AppLogger.getInstance().consolePrint(pre+"OFFERPUB"+" at "+socket.getInetAddress().getHostAddress());
 	    	args = SocketUtilities.sendReceiveAESEncryptedStringData("OFFERPUB"+" "+ticket+" "+CryptoUtilities.objectToBase64StringRepresentation(pub), reader, writer, sessionKey);
-			
-	    	socket.close();
-	    	return args[0];
+
+	    	return PublicKeyState.valueOf(args[0]);
 	    	
-			} catch (Exception e) {
-				e.printStackTrace();
-				try {
-					socket.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}   
-			}        
-	        return "NOT_CONNECTED";
+		} catch (GeneralSecurityException | IOException e) {
+			AppLogger.getInstance().consolePrint(pre+"OFFERPUB"+" failed with system error " + e.getLocalizedMessage());
+			return PublicKeyState.SYSTEM_ERROR;
+		}
 	}
 }

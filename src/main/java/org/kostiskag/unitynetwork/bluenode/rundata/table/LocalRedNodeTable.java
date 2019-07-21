@@ -16,20 +16,33 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
  *
  * @author Konstantinos Kagiampakis
  */
-public class LocalRedNodeTable {
+public final class LocalRedNodeTable {
 
-    private final String pre = "^LOCAL RN TABLE ";
+    private static final String PRE = "^LOCAL RN TABLE ";
+    private static LocalRedNodeTable LOCAL_REDNODE_TABLE;
+
     private final LinkedList<LocalRedNode> list;
     private final int maxRednodeEntries;
     private final boolean verbose;
     private final boolean notifyGui;
+
+    public static LocalRedNodeTable newInstance(int maxEntries) {
+        if (LOCAL_REDNODE_TABLE == null) {
+            LOCAL_REDNODE_TABLE = new LocalRedNodeTable(maxEntries);
+        }
+        return LOCAL_REDNODE_TABLE;
+    }
+
+    public static LocalRedNodeTable getInstance() {
+        return LOCAL_REDNODE_TABLE;
+    }
 
     public LocalRedNodeTable(int maxRednodeEntries) {
         list = new LinkedList<LocalRedNode>();
         this.maxRednodeEntries = maxRednodeEntries;
         this.verbose = true;
         this.notifyGui = true;
-        AppLogger.getInstance().consolePrint(pre +"INIT LOCAL RED NODE TABLE");
+        AppLogger.getInstance().consolePrint(PRE +"INIT LOCAL RED NODE TABLE");
     }
     
     public LocalRedNodeTable(int maxRednodeEntries, boolean verbose, boolean notifyGui) {
@@ -38,7 +51,7 @@ public class LocalRedNodeTable {
         this.verbose = verbose;
         this.notifyGui = notifyGui;
         if (verbose) {
-            AppLogger.getInstance().consolePrint(pre +"INIT LOCAL RED NODE TABLE");
+            AppLogger.getInstance().consolePrint(PRE +"INIT LOCAL RED NODE TABLE");
         }
     }
     
@@ -72,14 +85,14 @@ public class LocalRedNodeTable {
         if (list.size() < maxRednodeEntries) {
             list.add(redNode);
             if (verbose) {
-                AppLogger.getInstance().consolePrint(pre + " LEASED " + redNode.getVaddress() + " ~ " + redNode.getPhAddress());
+                AppLogger.getInstance().consolePrint(PRE + " LEASED " + redNode.getVaddress() + " ~ " + redNode.getPhAddress());
             }
             notifyGUI();
         } else {
             if (verbose) {
-                AppLogger.getInstance().consolePrint(pre + "MAXIMUM REDNODE CAPACITY REACHED.");
+                AppLogger.getInstance().consolePrint(PRE + "MAXIMUM REDNODE CAPACITY REACHED.");
             }
-            throw new Exception(pre + "MAXIMUM REDNODE CAPACITY REACHED.");
+            throw new Exception(PRE + "MAXIMUM REDNODE CAPACITY REACHED.");
         }
     }   
     
@@ -90,13 +103,13 @@ public class LocalRedNodeTable {
         	if (rn.getHostname().equals(hostname)) {
         		it.remove();
         		if (verbose) {
-                    AppLogger.getInstance().consolePrint(pre + "RELEASED LOCAL RED NODE "+hostname+" ENTRY FROM TABLE");
+                    AppLogger.getInstance().consolePrint(PRE + "RELEASED LOCAL RED NODE "+hostname+" ENTRY FROM TABLE");
         		}
         		notifyGUI();
         		return;
         	}
         }
-        throw new Exception(pre + "NO ENTRY FOR " + hostname + " IN TABLE");
+        throw new Exception(PRE + "NO ENTRY FOR " + hostname + " IN TABLE");
     }
     
     /**

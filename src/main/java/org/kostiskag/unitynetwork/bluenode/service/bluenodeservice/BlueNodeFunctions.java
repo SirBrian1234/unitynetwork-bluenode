@@ -10,6 +10,7 @@ import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
@@ -148,8 +149,8 @@ public class BlueNodeFunctions {
     
     static void getLocalRnHostnameByVaddress(String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
         try {
-	    	if (Bluenode.getInstance().localRedNodesTable.checkOnlineByVaddress(vaddress)) {
-	        	SocketUtilities.sendAESEncryptedStringData(Bluenode.getInstance().localRedNodesTable.getRedNodeInstanceByAddr(vaddress).getHostname(), socketWriter, sessionKey);
+	    	if (LocalRedNodeTable.getInstance().checkOnlineByVaddress(vaddress)) {
+	        	SocketUtilities.sendAESEncryptedStringData(LocalRedNodeTable.getInstance().getRedNodeInstanceByAddr(vaddress).getHostname(), socketWriter, sessionKey);
 	        } else {
 	        	SocketUtilities.sendAESEncryptedStringData("OFFLINE", socketWriter, sessionKey);
 	        }
@@ -160,8 +161,8 @@ public class BlueNodeFunctions {
 
     static void getLocalRnVaddressByHostname(String hostname, DataOutputStream socketWriter, SecretKey sessionKey) {
     	try {
-	    	if (Bluenode.getInstance().localRedNodesTable.checkOnlineByHostname(hostname)) {
-	    		SocketUtilities.sendAESEncryptedStringData(Bluenode.getInstance().localRedNodesTable.getRedNodeInstanceByHn(hostname).getVaddress(), socketWriter, sessionKey);
+	    	if (LocalRedNodeTable.getInstance().checkOnlineByHostname(hostname)) {
+	    		SocketUtilities.sendAESEncryptedStringData(LocalRedNodeTable.getInstance().getRedNodeInstanceByHn(hostname).getVaddress(), socketWriter, sessionKey);
 	        } else {
 	        	SocketUtilities.sendAESEncryptedStringData("OFFLINE", socketWriter, sessionKey);
 	        }

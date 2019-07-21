@@ -4,6 +4,7 @@ import java.security.PublicKey;
 
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
@@ -123,7 +124,7 @@ public final class FlyRegister extends SimpleUnstoppedCyclicService {
                     try {
                         bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(BNHostname);
                         cl = new BlueNodeClient(bn);
-                        cl.feedReturnRoute(Bluenode.getInstance().localRedNodesTable.getRedNodeInstanceByAddr(sourcevaddress).getHostname(), sourcevaddress);
+                        cl.feedReturnRoute(LocalRedNodeTable.getInstance().getRedNodeInstanceByAddr(sourcevaddress).getHostname(), sourcevaddress);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

@@ -56,8 +56,7 @@ public class TrackerTimeBuilder extends SimpleCyclicService {
 
         if (passedTime > getTime() * 60) {
             AppLogger.getInstance().consolePrint(PRE + "GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL");
-            Bluenode.getInstance().localRedNodesTable.exitAll();
-            Bluenode.getInstance().die();
+            Bluenode.getInstance().terminate();
         }
     }
 

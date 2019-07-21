@@ -19,6 +19,7 @@ import javax.swing.*;
 
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
@@ -202,28 +203,16 @@ public final class MainWindow extends JFrame {
             @Override
             public void windowClosing(WindowEvent we)
             { 
-                String ObjButtons[] = {"Yes","No"};
-                int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you wish to terminate this Blue Node?\nThis may result in a partial network termination.\nIf you decide to close the BLue Node, it will send the appropriate kill signals to the connected Red Nodes.","",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
-                if(PromptResult==JOptionPane.YES_OPTION)
-                {
-                    Bluenode.getInstance().localRedNodesTable.exitAll();
-                    if (Bluenode.getInstance().isJoinedNetwork()) {
-            			try {
-            				Bluenode.getInstance().leaveNetworkAndDie();
-            			} catch (Exception e) {
-            				e.printStackTrace();
-            				Bluenode.getInstance().die();
-            			}
-                    }
-                	Bluenode.getInstance().die();
-                }
+            String ObjButtons[] = {"Yes","No"};
+            int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you wish to terminate this Blue Node?\nThis may result in a partial network termination.\nIf you decide to close the BLue Node, it will send the appropriate kill signals to the connected Red Nodes.","",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
+            if(PromptResult==JOptionPane.YES_OPTION) {
+                Bluenode.getInstance().terminate();
+            }
             }
         });
         
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-
         jPanel1.setPreferredSize(new java.awt.Dimension(800, 600));
-
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Terminal"));
 
         jButton2.setText("Clear Terminal");
@@ -909,37 +898,36 @@ public final class MainWindow extends JFrame {
         }
     }
 
-    public void enableUploadKey () {
+    public void enableUploadPublicKey() {
     	uploadPublicKeyButton.setEnabled(true);
     }
 
-    //destroys Encapsulation!!!
     public void setEchoIpAddress(String addr) {
     	textField.setText(addr);
     }
 
     public void setAuthServiceAsEnabled() {
-        authServiceCheckBox.setEnabled(true);
+        authServiceCheckBox.setSelected(true);
     }
 
     public void setOneUserAsConnected() {
-        oneUserConnectedCheckBox.setEnabled(true);
+        oneUserConnectedCheckBox.setSelected(true);
     }
 
     public void setReceivedLocalRnData() {
-        receivedFromLocalRnCheckBox.setEnabled(true);
+        receivedFromLocalRnCheckBox.setSelected(true);
     }
 
     public void setReceivedBnData() {
-        receivedBnDataCheckBox.setEnabled(true);
+        receivedBnDataCheckBox.setSelected(true);
     }
 
     public void setSentDataToRn() {
-        sentDataToRnCheckBox.setEnabled(true);
+        sentDataToRnCheckBox.setSelected(true);
     }
 
     public void setSentDataToBn() {
-        sentDataToBnCheckBox.setEnabled(true);
+        sentDataToBnCheckBox.setSelected(true);
     }
 
     public void consolePrint(String message) {
@@ -974,7 +962,7 @@ public final class MainWindow extends JFrame {
     }
 
     public void updateLocalRns() {
-        String[][] guiObj = Bluenode.getInstance().localRedNodesTable.buildGUIObj();
+        String[][] guiObj = LocalRedNodeTable.getInstance().buildGUIObj();
         updateLocalRns(guiObj);
     }
 

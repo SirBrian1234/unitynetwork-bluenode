@@ -7,6 +7,7 @@ import java.util.LinkedList;
 
 import javax.crypto.SecretKey;
 
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
@@ -21,7 +22,7 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
 public class GlobalSocketFunctions {
 
 	public static void sendLocalRedNodes(DataOutputStream socketWriter, SecretKey sessionKey) {
-		LinkedList<String> fetched = Bluenode.getInstance().localRedNodesTable.buildAddrHostStringList();
+		LinkedList<String> fetched = LocalRedNodeTable.getInstance().buildAddrHostStringList();
         int size = fetched.size();
         try {
         	StringBuilder str = new StringBuilder();

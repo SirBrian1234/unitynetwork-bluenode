@@ -45,11 +45,11 @@ public final class BlueNodeServer extends SimpleUnstoppedCyclicService {
         } catch (BindException e){
             AppLogger.getInstance().consolePrint(PRE +"PORT ALREADY IN USE " + e.getLocalizedMessage());
             kill();
-            Bluenode.getInstance().die();
+            Bluenode.getInstance().terminate();
         } catch (IOException e) {
             AppLogger.getInstance().consolePrint(PRE +"SERVER CONNECTION ERROR " + e.getLocalizedMessage());
             kill();
-            Bluenode.getInstance().die();
+            Bluenode.getInstance().terminate();
         }
     }
 
@@ -71,7 +71,7 @@ public final class BlueNodeServer extends SimpleUnstoppedCyclicService {
         } catch (IOException e) {
             AppLogger.getInstance().consolePrint(PRE +"SERVER CONNECTION ERROR");
             kill();
-            Bluenode.getInstance().die();
+            Bluenode.getInstance().terminate();
         }
     }
 

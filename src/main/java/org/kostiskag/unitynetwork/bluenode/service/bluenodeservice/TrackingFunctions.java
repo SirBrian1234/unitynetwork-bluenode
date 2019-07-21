@@ -31,7 +31,6 @@ class TrackingFunctions {
     }
     
     public static void killsig(DataOutputStream outputWriter, SecretKey sessionKey) {
-    	Bluenode.getInstance().localRedNodesTable.exitAll();
-        Bluenode.getInstance().die();
+        Bluenode.getInstance().terminate();
     }
 }

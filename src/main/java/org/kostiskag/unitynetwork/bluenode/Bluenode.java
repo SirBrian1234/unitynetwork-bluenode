@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.kostiskag.unitynetwork.bluenode.gui.CollectTrackerKeyView;
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
+import org.kostiskag.unitynetwork.common.state.PublicKeyState;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
 import org.kostiskag.unitynetwork.bluenode.routing.FlyRegister;
@@ -71,11 +72,11 @@ public final class Bluenode {
 	}
 
 	// initial configuration settings
-	private final boolean network;
+	private final boolean networkMode;
 	private final PhysicalAddress trackerAddress;
 	private final int trackerMaxIdleTimeMin;
 	private final String name;
-	private final boolean useList;
+	private final boolean listMode;
 	private final int authPort;
 	private final int startPort;
 	private final int endPort;
@@ -93,7 +94,7 @@ public final class Bluenode {
 	private boolean joined;
 
 	// these references should be removed from here
-	public LocalRedNodeTable localRedNodesTable; //make singleton
+	//public LocalRedNodeTable localRedNodesTable; //make singleton
 	public BlueNodeTable blueNodeTable; //make singleton
 
 
@@ -103,12 +104,12 @@ public final class Bluenode {
 		KeyPair bluenodeKeys,
 		PublicKey trackerPublicKey
 	) {
-		this.network = prefs.network;
+		this.networkMode = prefs.network;
 		this.trackerAddress = prefs.trackerAddress;
 		this.trackerPort = prefs.trackerPort;
 		this.trackerMaxIdleTimeMin = prefs.trackerMaxIdleTimeMin;
 		this.name = prefs.name;
-		this.useList = prefs.useList;
+		this.listMode = prefs.useList;
 		this.authPort = prefs.authPort;
 		this.startPort = prefs.startPort;
 		this.endPort = prefs.endPort;
@@ -118,101 +119,118 @@ public final class Bluenode {
 		this.log = prefs.log;
 		this.accounts = accounts;
 		this.bluenodeKeys = bluenodeKeys;
+		//from all of these data only tracker public key may be null!
 		this.trackerPublicKey = trackerPublicKey;
 
 		System.out.println(pre + "started BlueNode at thread " + Thread.currentThread().getName());
 
+		// 1. initial data distribution
+		if (networkMode) {
+			if (this.trackerPublicKey != null) {
+				//The bn has never requested tracker's public!
+				TrackerClient.configureTracker(this.name, this.bluenodeKeys, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
+				BlueNodeService.configureService(this.bluenodeKeys, this.trackerPublicKey);
+			}
+			CollectTrackerKeyView.configureView(Optional.ofNullable(this.trackerPublicKey));
+		}
+
 		/*
-		 *  1. gui goes first to verbose the following on console
+		 *  2. gui goes first to verbose the following on console
 		 */
 		if (gui) {
-			boolean trackerKeySet = trackerPublicKey != null;
+			boolean trackerKeySet = trackerPublicKey == null;
 			MainWindow.MainWindowPrefs mainWindowPrefs = new MainWindow.MainWindowPrefs(
 					this.name,
 					this.authPort,
 					this.maxRednodeEntries,
 					this.startPort,
 					this.endPort,
-					this.network,
+					this.networkMode,
 					trackerKeySet,
-					this.useList);
+					this.listMode);
 			MainWindow.newInstance(mainWindowPrefs);
 		}
 
-		// 2. Logger
+		// 3. Logger (logger needs gui to be set in the case it is enabled)
 		AppLogger.newInstance(this.gui, this.log, this.soutTraffic);
 
 		//verbose rsa public key
 		AppLogger.getInstance().consolePrint("Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
 
-		// 3. Porthandler
+		// 4. Porthandler
 		PortHandle.newInstance(startPort, endPort);
 
 		/*
-		 *  2. Initialize table
+		 *  5. Initialize tables
 		 */
-		localRedNodesTable = new LocalRedNodeTable(maxRednodeEntries);
-		if (network) {
+		LocalRedNodeTable.newInstance(maxRednodeEntries);
+		//localRedNodesTable = new LocalRedNodeTable(maxRednodeEntries);
+		if (networkMode) {
 			blueNodeTable = new BlueNodeTable();
-		}
-
-		/*
-		 *  3. Initialize auth server
-		 *
-		 *  The service to receive responses from RBNs RNs Tracker
-		 */
-		BlueNodeServer.newInstance(authPort);
-
-		/*
-		 * 4. Initialize sonar
-		 *
-		 * sonarService periodically checks the remote BNs associated as clients
-		 * whereas the timeBuilder keeps track of the remote BNs associated as servers
-		 *
-		 */
-		if (network) {
-			try {
-				BlueNodeSonarService.newInstance(Timings.BLUENODE_CHECK_TIME.getWaitTimeInSec());
-			} catch (IllegalAccessException e) {
-				AppLogger.getInstance().consolePrint(e.getMessage());
-			}
-		}
-
-		/*
-		 * 5. Initialize Register On The Fly
-		 *
-		 *  when a packet heading to an unknown destination is received
-		 *  the FlyReg may do all the tasks in order to dynamically build
-		 *  the path from this BN to a remote BN where the target RN exists,
-		 *  unknown router the one that manages new hosts new
-		 *  FlyReg is meaningful to work only in a network.
-		 *
-		 */
-		if (network) {
-			FlyRegister.newInstance();
 		}
 
 		/*
 		 *  6. lease with the network, use a predefined user's list or dynamically allocate
 		 *  virtual addresses to connected RNs
 		 */
-		if (network) {
+		if (networkMode) {
 			try {
 				if (joinNetwork()) {
-					joined = true;
-					TrackerClient.configureTracker(this.name, this.bluenodeKeys, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
-					BlueNodeService.configureService(this.bluenodeKeys, this.trackerPublicKey);
-					CollectTrackerKeyView.configureView(Optional.of(this.trackerPublicKey));
+					/*
+					 * 5. Initialize Register On The Fly
+					 *
+					 *  when a packet heading to an unknown destination is received
+					 *  the FlyReg may do all the tasks in order to dynamically build
+					 *  the path from this BN to a remote BN where the target RN exists,
+					 *  unknown router the one that manages new hosts new
+					 *  FlyReg is meaningful to work only in a network.
+					 *
+					 */
+					FlyRegister.newInstance();
+
+					/*
+					 * 4. Initialize sonar
+					 *
+					 * sonarService periodically checks the remote BNs associated as clients
+					 * whereas the timeBuilder keeps track of the remote BNs associated as servers
+					 *
+					 */
+					BlueNodeSonarService.newInstance(Timings.BLUENODE_CHECK_TIME.getWaitTimeInSec());
+
+					/*
+					 * Time builder periodically checks the tracker to determine if it's alive!
+					 *
+					 */
 					TrackerTimeBuilder.newInstance(Timings.TRACKER_CHECK_TIME.getWaitTimeInSec()).start();
+
+					/*
+					 *  7. Finally. Initialize auth server so that the BN may accept clients
+					 *
+					 */
+					BlueNodeServer.newInstance(authPort);
 				} else {
 					AppLogger.getInstance().consolePrint("This bluenode is not connected in the network.");
 				}
 			} catch (IllegalAccessException e) {
 				AppLogger.getInstance().consolePrint(pre + " " + e.getMessage());
-				die();
+				terminate();
 			}
+
+		} else if (isListMode()) {
+			/*
+			 *  Finally. Initialize auth server so that the BN may accept clients
+			 *
+			 */
+			BlueNodeServer.newInstance(authPort);
+			AppLogger.getInstance().consolePrint(pre + "USES A LIST MODE!");
+
 		} else if (isPlainMode()) {
 			NextIpPoll.newInstance();
+			/*
+			 *  Finally. Initialize auth server so that the BN may accept clients
+			 *
+			 */
+			BlueNodeServer.newInstance(authPort);
 			AppLogger.getInstance().consolePrint("WARNING! BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nWHICH MEANS THAT ANYONE WHO KNOWS THE BN'S ADDRESS AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
 		}
 	}
@@ -223,10 +241,11 @@ public final class Bluenode {
 					"In order to download the key press the Collect Tracker Key button and follow the guide.\n" +
 					"After you have a Public Key for the provided tracker you may restart the bluenode.");
 			return false;
-		} else if (network && !name.isEmpty() && authPort > 0 && authPort <= NumericConstraints.MAX_ALLOWED_PORT_NUM.size()) {
+		} else if (networkMode && !name.isEmpty() && authPort > 0 && authPort <= NumericConstraints.MAX_ALLOWED_PORT_NUM.size()) {
 			TrackerClient tr = new TrackerClient();
 			boolean leased = tr.leaseBn(authPort);
 			if (tr.isConnected() && leased) {
+				this.joined = true;
 				AppLogger.getInstance().consolePrint("^SUCCESSFULLY REGISTERED WITH THE NETWORK");
 				return true;
 			} else {
@@ -238,52 +257,59 @@ public final class Bluenode {
 		}
 	}
 
-	public void leaveNetworkAndDie() throws IllegalAccessException {
-		if (joined) {
-			//release from tracker
-			TrackerClient tr = new TrackerClient();
-			tr.releaseBn();
-		}
-		leave();
-	}
-	
-	public void leaveNetworkAfterRevoke() throws IllegalAccessException {
-		leave();
-	}
-
-	private void leave() throws IllegalAccessException {
-		if (joined) {
-			//release from bns
-			blueNodeTable.sendKillSigsAndReleaseForAll();
-			joined = false;
-			TrackerTimeBuilder.getInstance().kill();
-			die();
-		} else {
-			throw new IllegalAccessException("called leaveNetwork whithout join first.");
-		}
-	}
-
-	public void die() {
-		AppLogger.getInstance().consolePrint("Blue Node "+name+" is going to die.");
-		System.exit(1);
-	}
-
-	public void updateTrackerPublicKey(PublicKey trackerPublic) {
+	public void updateTrackerPublicKey() {
 		//update only a null key
 		if (this.trackerPublicKey == null) {
+			PublicKey pub = TrackerClient.getTrackersPublicKey(trackerAddress.asInet(), trackerPort);
 			//sanitize
-			if (trackerPublic == null) return;
+			if (pub == null) return;
 			//store
 			try {
-				App.writeTrackerPublicKey(trackerPublic);
+				App.writeTrackerPublicKey(pub);
+				//In this mode, you are only allowed to upload your pub key
+				this.trackerPublicKey = pub;
+				TrackerClient.configureTracker(this.name, this.bluenodeKeys, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
+				MainWindow.getInstance().enableUploadPublicKey();
+				AppLogger.getInstance().consolePrint("Tracker key was collected! Please upload the bluenode's public key next.");
 			} catch (IOException e) {
-				e.printStackTrace();
+				AppLogger.getInstance().consolePrint("Could not store tracker's public key into a file after successful fetch! !" +e.getLocalizedMessage());
 			}
-			//update usages
-			this.trackerPublicKey = trackerPublic;
-			TrackerClient.configureTracker(this.name, this.bluenodeKeys, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
-			BlueNodeService.configureService(this.bluenodeKeys, this.trackerPublicKey);
 		}
+	}
+
+	public PublicKeyState offerPubKey(String ticket) {
+		PublicKeyState response = TrackerClient.offerPubKey(this.name, ticket, this.trackerPublicKey, this.trackerAddress.asInet(), this.trackerPort);
+		if (response.equals(PublicKeyState.KEY_SET) || response.equals(PublicKeyState.KEY_IS_SET)) {
+			AppLogger.getInstance().consolePrint("Your public key has been uploaded to the tracker.\nPlease restart this BlueNode in order to connect.");
+		}
+		return response;
+	}
+
+	public void terminate() {
+		silentTerminate();
+		exit();
+	}
+
+	public void silentTerminate() {
+		if (isListMode() || isPlainMode() || isJoinedNetwork()) {
+			BlueNodeServer.getInstance().kill();
+		}
+		LocalRedNodeTable.getInstance().exitAll();
+
+		if (isJoinedNetwork()) {
+			FlyRegister.getInstance().kill();
+			BlueNodeSonarService.getInstance().kill();
+			TrackerTimeBuilder.getInstance().kill();
+
+			blueNodeTable.sendKillSigsAndReleaseForAll();
+			new TrackerClient().releaseBn();
+			joined = false;
+		}
+	}
+
+	private void exit() {
+		AppLogger.getInstance().consolePrint("Blue Node "+name+" is going to exit.");
+		System.exit(1);
 	}
 
 	public String getName() {
@@ -295,23 +321,23 @@ public final class Bluenode {
 	}
 
 	public boolean isNetworkMode() {
-		return this.network;
+		return this.networkMode;
 	}
 
 	public boolean isJoinedNetwork() {
-		return this.network && this.joined;
+		return this.networkMode && this.joined;
 	}
 
 	public boolean isListMode() {
-		return this.useList;
+		return this.listMode;
 	}
 
 	public boolean isPlainMode() {
-		return !this.useList && !this.network;
+		return !this.listMode && !this.networkMode;
 	}
 
 	public AccountTable getAccounts() {
 		//get them only on uselist mode
-		return this.useList? accounts: null;
+		return this.listMode ? accounts: null;
 	}
 }

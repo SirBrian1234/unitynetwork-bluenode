@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 
 import javax.crypto.SecretKey;
 
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
@@ -31,7 +32,7 @@ public class RedNodeFunctions {
 		AppLogger.getInstance().consolePrint(pre + "LEASING "+hostname);
     	
     	//first check if already exists
-    	if (Bluenode.getInstance().localRedNodesTable.checkOnlineByHostname(hostname)){
+    	if (LocalRedNodeTable.getInstance().checkOnlineByHostname(hostname)){
     		try {
 				SocketUtilities.sendAESEncryptedStringData("FAILED", socketWriter, sessionKey);
 			} catch (Exception e) {
@@ -136,7 +137,7 @@ public class RedNodeFunctions {
         
     	//leasing it to the local red node table
 		try {
-			Bluenode.getInstance().localRedNodesTable.lease(RNclient);
+			LocalRedNodeTable.getInstance().lease(RNclient);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
@@ -170,7 +171,7 @@ public class RedNodeFunctions {
         
         //release from local red node table
         try {
-			Bluenode.getInstance().localRedNodesTable.releaseByHostname(hostname);
+			LocalRedNodeTable.getInstance().releaseByHostname(hostname);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
