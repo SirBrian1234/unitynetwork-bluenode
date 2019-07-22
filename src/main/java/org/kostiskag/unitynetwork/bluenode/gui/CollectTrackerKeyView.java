@@ -17,26 +17,25 @@ import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
 
-public class CollectTrackerKeyView {
+final class CollectTrackerKeyView {
 
 	private JFrame frame;
 	private JTextField txtNotSet;
 	private JTextArea txtpnWii;
 	private JButton btnCollectTrackersPublic;
-	private static Optional<PublicKey> trackerPublicKey;
+	private final Optional<PublicKey> trackerPublicKey;
+	private final Runnable collectTrackerPublicKey;
 
-	public static void configureView(Optional<PublicKey> trackerPublicKeyOpt) {
-		CollectTrackerKeyView.trackerPublicKey = trackerPublicKeyOpt;
-	}
-	
 	/**
 	 * Create the application.
 	 */
-	public CollectTrackerKeyView() {
+	public CollectTrackerKeyView(Optional<PublicKey> trackerPublicKey, Runnable collectTrackerPublicKey) {
+		this.trackerPublicKey = trackerPublicKey;
+		this.collectTrackerPublicKey = collectTrackerPublicKey;
 		initialize();
-		if (Bluenode.getInstance().isNetworkMode() && CollectTrackerKeyView.trackerPublicKey.isPresent()) {
+		if (Bluenode.getInstance().isNetworkMode() && this.trackerPublicKey.isPresent()) {
 			txtNotSet.setText("Key is set");
-			txtpnWii.setText(CryptoUtilities.bytesToBase64String(CollectTrackerKeyView.trackerPublicKey.get().getEncoded()));
+			txtpnWii.setText(CryptoUtilities.bytesToBase64String(this.trackerPublicKey.get().getEncoded()));
 			btnCollectTrackersPublic.setEnabled(false);
 		} 
 	}
@@ -87,12 +86,14 @@ public class CollectTrackerKeyView {
 	}
 
 	protected void collect() {
-		Bluenode.getInstance().updateTrackerPublicKey();
-		if (CollectTrackerKeyView.trackerPublicKey.isPresent()) {
-			txtpnWii.setText(CryptoUtilities.bytesToBase64String(CollectTrackerKeyView.trackerPublicKey.get().getEncoded()));
+		this.collectTrackerPublicKey.run();
+		if (this.trackerPublicKey.isPresent()) {
+			txtpnWii.setText(CryptoUtilities.bytesToBase64String(this.trackerPublicKey.get().getEncoded()));
 			txtNotSet.setText("Key is set");
 			btnCollectTrackersPublic.setEnabled(false);
 			MainWindow.getInstance().enableUploadPublicKey();
+		} else {
+			txtNotSet.setText("Key not set");
 		}
 	}
 

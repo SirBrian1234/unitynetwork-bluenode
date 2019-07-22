@@ -10,7 +10,7 @@ import java.awt.Font;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class About {
+final class About {
 
 	private JFrame frmAbout;
 

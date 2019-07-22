@@ -14,13 +14,14 @@ public final class AppLogger {
         ROUTING;
     }
 
-    private final boolean log;
     private final boolean gui;
+    private final MainWindow mainWindow;
+    private final boolean log;
     private final boolean printTraffic;
 
-    public static AppLogger newInstance(boolean gui, boolean log, boolean printTraffic) {
+    public static AppLogger newInstance(boolean gui, MainWindow mainWindow, boolean log, boolean printTraffic) {
         if (APP_LOGGER == null) {
-            APP_LOGGER = new AppLogger(gui, log, printTraffic);
+            APP_LOGGER = new AppLogger(gui, mainWindow, log, printTraffic);
         }
         return APP_LOGGER;
     }
@@ -29,8 +30,9 @@ public final class AppLogger {
         return APP_LOGGER;
     }
 
-    public AppLogger(boolean gui, boolean log, boolean printTraffic) {
+    public AppLogger(boolean gui, MainWindow mainWindow, boolean log, boolean printTraffic) {
         this.gui = gui;
+        this.mainWindow = mainWindow;
         this.log = log;
         this.printTraffic = printTraffic;
     }
@@ -38,7 +40,7 @@ public final class AppLogger {
     public synchronized void consolePrint(String message) {
         System.out.println(message);
         if (gui) {
-            MainWindow.getInstance().consolePrint(message);
+            mainWindow.consolePrint(message);
         }
         if (log) {
             App.writeToLogFile(message);

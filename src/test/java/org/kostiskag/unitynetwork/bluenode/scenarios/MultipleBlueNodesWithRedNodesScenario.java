@@ -12,7 +12,7 @@ public class MultipleBlueNodesWithRedNodesScenario {
 
 	@BeforeClass
 	public static void before() {
-		AppLogger.newInstance(false,false,false);
+		AppLogger.newInstance(false, null,false,false);
 	}
 	
 	public static void main(String[] args) throws GeneralSecurityException {

@@ -16,7 +16,7 @@ public class BluenodeTest {
 
 	@BeforeClass
 	public static void before() {
-		AppLogger.newInstance(false,false,false);
+		AppLogger.newInstance(false, null,false,false);
 	}
 	
 	@Test

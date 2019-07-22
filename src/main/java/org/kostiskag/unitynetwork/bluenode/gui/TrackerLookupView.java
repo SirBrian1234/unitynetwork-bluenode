@@ -5,12 +5,8 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.security.PublicKey;
 
-import javax.swing.ButtonGroup;
-import javax.swing.GroupLayout;
+import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JTextArea;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
@@ -25,7 +21,7 @@ import java.awt.Font;
  *
  * @author Konstantinos Kagiampakis
  */
-public class TrackerLookupView extends javax.swing.JFrame {
+final class TrackerLookupView extends JFrame {
 
     /**
 	 * 

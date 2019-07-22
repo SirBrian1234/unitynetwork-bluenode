@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
@@ -20,7 +22,6 @@ import org.kostiskag.unitynetwork.bluenode.service.bluenodeservice.BlueNodeServe
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
 import org.kostiskag.unitynetwork.bluenode.service.NextIpPoll;
-import org.kostiskag.unitynetwork.bluenode.gui.CollectTrackerKeyView;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 
 
@@ -96,17 +97,21 @@ public final class Bluenode {
 	//TODO security breach public modifiers, to make those injected objs
 	public LocalRedNodeTable localRedNodesTable;
 	public BlueNodeTable blueNodeTable;
+
 	private BlueNodeSonarService blueNodeSonarService;
 	private BlueNodeServer blueNodeServer;
+	private MainWindow mainWindow;
 
 	//our method "tickets"
 	//what is extremely useful about them is that we can distribute them
 	//as dependency injections and therefore to not have to sent the whole bn object
 	//which results in a more secure environment
-	private final Runnable bluenodeTerminate = () -> this.terminate();
 	private final boolean isNetworkMode = this.isNetworkMode();
 	private final BooleanSupplier isJoinedNetwork = () -> this.isJoinedNetwork();
-
+	private final Function<String, PublicKeyState> offerPubKey = a -> this.offerPubKey(a);
+	private final Supplier<PublicKeyState> revokePubKey = () -> this.revokePubKey();
+	private final Runnable collectTrackerPublicKey = () -> this.collectTrackerPublicKey();
+	private final Runnable bluenodeTerminate = () -> this.terminate();
 
 	private Bluenode(
 		ReadBluenodePreferencesFile prefs,
@@ -140,7 +145,6 @@ public final class Bluenode {
 				//The bn has never requested tracker's public!
 				TrackerClient.configureTracker(this.name, this.bluenodeKeys, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
 			}
-			CollectTrackerKeyView.configureView(Optional.ofNullable(this.trackerPublicKey));
 		}
 
 		/*
@@ -149,7 +153,6 @@ public final class Bluenode {
 		if (gui) {
 			boolean trackerKeySet = trackerPublicKey == null;
 			MainWindow.MainWindowPrefs mainWindowPrefs = new MainWindow.MainWindowPrefs(
-
 					//this this
 					this.name,
 					this.authPort,
@@ -159,11 +162,18 @@ public final class Bluenode {
 					this.networkMode,
 					trackerKeySet,
 					this.listMode);
-			MainWindow.newInstance(mainWindowPrefs, bluenodeTerminate);
+
+			this.mainWindow = MainWindow.newInstance(
+					mainWindowPrefs,
+					bluenodeTerminate,
+					offerPubKey,
+					revokePubKey,
+					Optional.ofNullable(this.trackerPublicKey),
+					collectTrackerPublicKey);
 		}
 
 		// 3. Logger (logger needs gui to be set in the case it is enabled)
-		AppLogger.newInstance(this.gui, this.log, this.soutTraffic);
+		AppLogger.newInstance(this.gui, this.mainWindow, this.log, this.soutTraffic);
 
 		//verbose rsa public key
 		AppLogger.getInstance().consolePrint("Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
@@ -186,6 +196,7 @@ public final class Bluenode {
 		try {
 			if (networkMode) {
 				if (joinNetwork()) {
+
 					/*
 					 * 5. Initialize Register On The Fly
 					 *
@@ -260,7 +271,7 @@ public final class Bluenode {
 		}
 	}
 
-	public void updateTrackerPublicKey() {
+	private void collectTrackerPublicKey() {
 		//update only a null key
 		if (this.trackerPublicKey == null) {
 			PublicKey pub = TrackerClient.getTrackersPublicKey(trackerAddress.asInet(), trackerPort);
@@ -272,7 +283,7 @@ public final class Bluenode {
 				//In this mode, you are only allowed to upload your pub key
 				this.trackerPublicKey = pub;
 				TrackerClient.configureTracker(this.name, this.bluenodeKeys, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
-				MainWindow.getInstance().enableUploadPublicKey();
+				mainWindow.enableUploadPublicKey();
 				AppLogger.getInstance().consolePrint("Tracker key was collected! Please upload the bluenode's public key next.");
 			} catch (IOException e) {
 				AppLogger.getInstance().consolePrint("Could not store tracker's public key into a file after successful fetch! !" +e.getLocalizedMessage());
@@ -280,7 +291,7 @@ public final class Bluenode {
 		}
 	}
 
-	public PublicKeyState offerPubKey(String ticket) {
+	private PublicKeyState offerPubKey(String ticket) {
 		PublicKeyState response = TrackerClient.offerPubKey(this.name, ticket, this.trackerPublicKey, this.trackerAddress.asInet(), this.trackerPort);
 		if (response.equals(PublicKeyState.KEY_SET) || response.equals(PublicKeyState.KEY_IS_SET)) {
 			AppLogger.getInstance().consolePrint("Your public key has been uploaded to the tracker.\nPlease restart this BlueNode in order to connect.");
@@ -288,17 +299,21 @@ public final class Bluenode {
 		return response;
 	}
 
-	//TODO
-	public void revokePubKey(String ticket) {
-
+	private PublicKeyState revokePubKey() {
+		PublicKeyState responce = PublicKeyState.valueOf(new TrackerClient().revokePubKey());
+		if (responce.equals(PublicKeyState.KEY_REVOKED)) {
+			AppLogger.getInstance().consolePrint("Your public key has been revoked from tracker. This bluenode will terminate");
+			Bluenode.getInstance().terminate();
+		}
+		return responce;
 	}
 
-	public void terminate() {
+	private void terminate() {
 		silentTerminate();
 		exit();
 	}
 
-	public void silentTerminate() {
+	private void silentTerminate() {
 		if (isListMode() || isPlainMode() || isJoinedNetwork()) {
 			this.blueNodeServer.kill();
 		}
@@ -317,14 +332,6 @@ public final class Bluenode {
 	private void exit() {
 		AppLogger.getInstance().consolePrint("Blue Node "+name+" is going to exit.");
 		System.exit(1);
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public boolean isGui() {
-		return gui;
 	}
 
 	public boolean isNetworkMode() {

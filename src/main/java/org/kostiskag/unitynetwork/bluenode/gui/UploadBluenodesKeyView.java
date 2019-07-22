@@ -1,5 +1,7 @@
 package org.kostiskag.unitynetwork.bluenode.gui;
 
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -11,11 +13,13 @@ import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.common.state.PublicKeyState;
+
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
-public class UploadKeyView {
+final class UploadBluenodesKeyView {
+	private final Function<String, PublicKeyState> offerPublicKey;
+	private final Supplier<PublicKeyState> revokePublicKey;
 
 	private JFrame uploadPublicKeyFrm;
 	private JTextArea ticketTextArea;
@@ -26,12 +30,16 @@ public class UploadKeyView {
 	/**
 	 * Create the application.
 	 */
-	public UploadKeyView() {
+	public UploadBluenodesKeyView(Function<String, PublicKeyState> offerPublicKey, Supplier<PublicKeyState> revokePublicKey) {
+		this.offerPublicKey = offerPublicKey;
+		this.revokePublicKey = revokePublicKey;
+
 		initialize();
 		if (Bluenode.getInstance().isJoinedNetwork()) {
 			ticketTextArea.setEditable(false);
 			uploadPubKeyButton.setEnabled(false);
 			revokePubKeyButton.setEnabled(true);
+
 		} else {
 			ticketTextArea.setEditable(true);
 			uploadPubKeyButton.setEnabled(true);
@@ -112,16 +120,11 @@ public class UploadKeyView {
 
 	private void upload() {
 		if (!ticketTextArea.getText().isEmpty()) {
-			statusTextField.setText(Bluenode.getInstance().offerPubKey(ticketTextArea.getText()).toString());
+			statusTextField.setText(offerPublicKey.apply(ticketTextArea.getText()).toString());
 		}
 	}
 	
 	private void revoke() {
-		String responce = new TrackerClient().revokePubKey();
-		statusTextField.setText(responce);
-		if (responce.equals("KEY_REVOKED")){
-			AppLogger.getInstance().consolePrint("Your public key has been revoked from tracker. This bluenode will terminate");
-			Bluenode.getInstance().terminate();
-		}
+		statusTextField.setText(revokePublicKey.get().toString());
 	}
 }

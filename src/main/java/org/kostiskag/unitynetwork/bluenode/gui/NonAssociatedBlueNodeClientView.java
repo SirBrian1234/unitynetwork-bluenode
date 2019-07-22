@@ -5,12 +5,9 @@ import java.security.PublicKey;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-import javax.swing.GroupLayout;
+import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.JLabel;
-import javax.swing.JButton;
-import javax.swing.JTextField;
 
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
@@ -25,7 +22,7 @@ import org.kostiskag.unitynetwork.bluenode.Bluenode;
  *
  * @author Konstantinos Kagiampakis
  */
-public class NonAssociatedBlueNodeClientView extends javax.swing.JFrame {
+final class NonAssociatedBlueNodeClientView extends JFrame {
 
 	BlueNode bn;
 	

@@ -19,7 +19,7 @@ import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient
  * 
  * @author Konstantinos Kagiampakis
  */
-public class AssociatedBlueNodeClientView {
+final class AssociatedBlueNodeClientView {
 
 	private JFrame frmAssociatedBlueNode;
 	private JTextField textField;
