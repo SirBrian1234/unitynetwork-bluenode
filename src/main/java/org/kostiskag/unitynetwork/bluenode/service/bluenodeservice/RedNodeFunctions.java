@@ -9,13 +9,16 @@ import java.net.UnknownHostException;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.bluenode.service.NextIpPoll;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
+import org.kostiskag.unitynetwork.bluenode.service.bluenodeservice.BlueNodeServer.ModeOfOperation;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
@@ -24,15 +27,26 @@ import org.kostiskag.unitynetwork.bluenode.Bluenode;
  *
  * @author Konstantinos Kagiampakis
  */
-public class RedNodeFunctions {
+final class RedNodeFunctions {
 	
 	private static String pre = "^RedNodeFunctions ";
 
-    static void lease(String hostname, String Username, String Password, Socket connectionSocket, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {
+    static void lease(ModeOfOperation mode,
+					  AccountTable accounts,
+					  LocalRedNodeTable redonodeTable,
+					  BlueNodeTable bluenodeTable,
+					  String hostname,
+					  String Username,
+					  String Password,
+					  Socket connectionSocket,
+					  DataInputStream socketReader,
+					  DataOutputStream socketWriter,
+					  SecretKey sessionKey) {
+
 		AppLogger.getInstance().consolePrint(pre + "LEASING "+hostname);
     	
     	//first check if already exists
-    	if (LocalRedNodeTable.getInstance().checkOnlineByHostname(hostname)){
+    	if (redonodeTable.checkOnlineByHostname(hostname)) {
     		try {
 				SocketUtilities.sendAESEncryptedStringData("FAILED", socketWriter, sessionKey);
 			} catch (Exception e) {
@@ -43,7 +57,7 @@ public class RedNodeFunctions {
     	
     	//get a virtual IP address
     	String Vaddress = null;
-    	if (Bluenode.getInstance().isJoinedNetwork()) {
+    	if (mode.equals(ModeOfOperation.NETWORK)) {
     		//collect vaddress from tracker
     		TrackerClient tr = new TrackerClient();
     		Vaddress = tr.leaseRn(hostname, Username, Password);
@@ -97,9 +111,9 @@ public class RedNodeFunctions {
     			return;
     		}
                             
-        } else if (Bluenode.getInstance().isListMode()) {
+        } else if (mode.equals(ModeOfOperation.LIST)) {
         	//collect vaddres from list
-        	Vaddress = Bluenode.getInstance().getAccounts().getVaddrIfExists(hostname, Username, Password).asString();
+        	Vaddress = accounts.getVaddrIfExists(hostname, Username, Password).asString();
         	if (Vaddress == null) {
         		try {
 					SocketUtilities.sendAESEncryptedStringData("FAILED USER 0", socketWriter, sessionKey);
@@ -108,7 +122,7 @@ public class RedNodeFunctions {
 				}
         		return;
         	}
-        } else if (Bluenode.getInstance().isPlainMode()) {
+        } else if (mode.equals(ModeOfOperation.PLAIN)) {
         	//no network, no list - each red node collects a ticket
             int addr_num = NextIpPoll.getInstance().poll();
 			try {
@@ -137,7 +151,7 @@ public class RedNodeFunctions {
         
     	//leasing it to the local red node table
 		try {
-			LocalRedNodeTable.getInstance().lease(RNclient);
+			redonodeTable.lease(RNclient);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
@@ -163,15 +177,15 @@ public class RedNodeFunctions {
 		}
 
         //release from the network
-        if (Bluenode.getInstance().isJoinedNetwork()) {
+        if (mode == ModeOfOperation.NETWORK) {
         	TrackerClient tr = new TrackerClient();
             tr.releaseRnByHostname(RNclient.getHostname());
-            Bluenode.getInstance().blueNodeTable.releaseLocalRedNodeByHostnameFromAll(hostname);
+            bluenodeTable.releaseLocalRedNodeByHostnameFromAll(hostname);
         }
         
         //release from local red node table
         try {
-			LocalRedNodeTable.getInstance().releaseByHostname(hostname);
+			redonodeTable.releaseByHostname(hostname);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -59,4 +59,11 @@ public final class AppLogger {
         }
     }
 
+    public boolean isLog() {
+        return log;
+    }
+
+    public boolean isGui() {
+        return gui;
+    }
 }

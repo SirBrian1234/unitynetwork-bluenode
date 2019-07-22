@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
 import org.kostiskag.unitynetwork.common.service.SimpleCyclicService;
 
 /**
@@ -17,23 +18,22 @@ import org.kostiskag.unitynetwork.common.service.SimpleCyclicService;
 public final class BlueNodeSonarService extends SimpleCyclicService {
 
     private final String pre = "^BlueNodeSonarService ";
-    private static BlueNodeSonarService BLUENODE_SONAR_SERVICE;
+    private static boolean INSTANTIATED;
+    private final BlueNodeTable table;
 
-    public static BlueNodeSonarService newInstance(int timeInSec) throws IllegalAccessException {
-        if (BLUENODE_SONAR_SERVICE == null) {
-            BLUENODE_SONAR_SERVICE = new BlueNodeSonarService(timeInSec);
-            BLUENODE_SONAR_SERVICE.start();
+    public static BlueNodeSonarService newInstance(BlueNodeTable table, int timeInSec) throws IllegalAccessException {
+        if (!INSTANTIATED) {
+            INSTANTIATED = true;
+            var s = new BlueNodeSonarService(table, timeInSec);
+            s.start();
+            return s;
         }
-        return BLUENODE_SONAR_SERVICE;
+        return null;
     }
 
-    public static BlueNodeSonarService getInstance() {
-        return BLUENODE_SONAR_SERVICE;
-    }
-
-
-    private BlueNodeSonarService(int timeInSec) throws IllegalAccessException {
+    private BlueNodeSonarService(BlueNodeTable table, int timeInSec) throws IllegalAccessException {
         super(timeInSec);
+        this.table = table;
     }
 
     @Override
@@ -54,6 +54,6 @@ public final class BlueNodeSonarService extends SimpleCyclicService {
     @Override
     protected void cyclicPayload() {
         AppLogger.getInstance().consolePrint(pre+"Updating BN Tables via ping");
-        Bluenode.getInstance().blueNodeTable.rebuildTableViaAuthClient();
+        this.table.rebuildTableViaAuthClient();
     }
 }

@@ -1,16 +1,16 @@
 package org.kostiskag.unitynetwork.bluenode.service;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
 
@@ -19,10 +19,10 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class GlobalSocketFunctions {
+public final class GlobalSocketFunctions {
 
-	public static void sendLocalRedNodes(DataOutputStream socketWriter, SecretKey sessionKey) {
-		LinkedList<String> fetched = LocalRedNodeTable.getInstance().buildAddrHostStringList();
+	public static void sendLocalRedNodes(LocalRedNodeTable redNodeTable, DataOutputStream socketWriter, SecretKey sessionKey) {
+		LinkedList<String> fetched = redNodeTable.buildAddrHostStringList();
         int size = fetched.size();
         try {
         	StringBuilder str = new StringBuilder();
@@ -37,7 +37,7 @@ public class GlobalSocketFunctions {
 		}            
     }
 	
-	public static void getRemoteRedNodes(BlueNode bn, DataInputStream socketReader, SecretKey sessionKey) {
+	public static void getRemoteRedNodes(BlueNodeTable blueNodeTable, BlueNode bn, DataInputStream socketReader, SecretKey sessionKey) {
 		try {
 			String received = SocketUtilities.receiveAESEncryptedString(socketReader, sessionKey);
 			String[] lines = received.split("\n+"); //split into sentences
@@ -46,7 +46,7 @@ public class GlobalSocketFunctions {
 	        for (int i = 1; i < count+1; i++) {        	
 				args = lines[i].split("\\s+");
 	            try {
-	            	Bluenode.getInstance().blueNodeTable.leaseRRn(bn, args[0], args[1]);
+	            	blueNodeTable.leaseRRn(bn, args[0], args[1]);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}				
@@ -73,7 +73,7 @@ public class GlobalSocketFunctions {
 	        for (int i = 1; i < count+1; i++) {        	
 				args = lines[i].split("\\s+");
 	            try {
-	            	RemoteRedNode r =   RemoteRedNode.newInstance(args[0], args[1], bn);
+	            	RemoteRedNode r =  RemoteRedNode.newInstance(args[0], args[1], bn);
 		            fetched.add(r); 
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -13,21 +13,29 @@ import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient
  *
  * @author Konstantinos Kagiampakis
  */
-public class BlueNodeTable {
+public final class BlueNodeTable {
 
     private final String pre = "^REMOTE BLUENODE TABLE ";
+    private static boolean INSTANTIATED;
+
     private final LinkedList<BlueNode> list;
     private final boolean verbose;
     private final boolean notifyGui;
 
-    public BlueNodeTable() {
-        list = new LinkedList<BlueNode>();
-        verbose = true;
-        notifyGui = true;
-		AppLogger.getInstance().consolePrint(pre + "INITIALIZED");
+	public static BlueNodeTable newInstance() {
+		//the only one who can get the only one reference is the first caller
+		if (!INSTANTIATED) {
+			INSTANTIATED = true;
+			return new BlueNodeTable();
+		}
+		return null;
+	}
+
+    private BlueNodeTable() {
+        this(true, true);
     }
     
-    public BlueNodeTable(boolean verbose, boolean notifyGui) {
+    private BlueNodeTable(boolean verbose, boolean notifyGui) {
         list = new LinkedList<BlueNode>();
         this.verbose = verbose;
         this.notifyGui = notifyGui;

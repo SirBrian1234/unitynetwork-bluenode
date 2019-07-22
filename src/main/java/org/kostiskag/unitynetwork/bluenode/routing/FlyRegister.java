@@ -2,45 +2,51 @@ package org.kostiskag.unitynetwork.bluenode.routing;
 
 import java.security.PublicKey;
 
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
-import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
+import org.kostiskag.unitynetwork.common.service.SimpleUnstoppedCyclicService;
 
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
-import org.kostiskag.unitynetwork.common.service.SimpleUnstoppedCyclicService;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 
 
 /**
  *
  * @author Konstantinos Kagiampakis
  */
-
-
 public final class FlyRegister extends SimpleUnstoppedCyclicService {
 
     private static final String PRE = "^FlyRegister ";
     private static final int maxQueueCapacity = 100;
     private static FlyRegister FLY_REGISTER;
 
-    public static FlyRegister newInstance() {
+    private final LocalRedNodeTable localRedNodeTable;
+    private final BlueNodeTable blueNodeTable;
+
+    public static FlyRegister newInstance(LocalRedNodeTable localRedNodeTable, BlueNodeTable blueNodeTable) {
         if (FLY_REGISTER == null) {
-            FLY_REGISTER = new FlyRegister();
+            FLY_REGISTER = new FlyRegister(localRedNodeTable, blueNodeTable);
             FLY_REGISTER.start();
         }
         return FLY_REGISTER;
     }
 
+    // i don't know if we can omit this as to move FlyReg with dependency injection to the
+    // multiple constructors of the object which are using it would be very troublesome
     public static FlyRegister getInstance() {
         return FLY_REGISTER;
     }
 
     private final QueuePair queue = new QueuePair(maxQueueCapacity);
 
-    private FlyRegister() { }
+    private FlyRegister(LocalRedNodeTable localRedNodeTable, BlueNodeTable blueNodeTable) {
+        this.localRedNodeTable = localRedNodeTable;
+        this.blueNodeTable = blueNodeTable;
+    }
 
     @Override
     protected void preActions() {
@@ -67,7 +73,7 @@ public final class FlyRegister extends SimpleUnstoppedCyclicService {
 
         AppLogger.getInstance().consolePrint(PRE + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
 
-        if (Bluenode.getInstance().blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
+        if (this.blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
             //check if it was associated one loop back
             AppLogger.getInstance().consolePrint(PRE + "Allready associated entry");
             return;
@@ -76,15 +82,15 @@ public final class FlyRegister extends SimpleUnstoppedCyclicService {
             TrackerClient tr = new TrackerClient();
             String BNHostname = tr.checkRnOnlineByVaddr(destvaddress);
             if (BNHostname != null) {
-                if (Bluenode.getInstance().blueNodeTable.checkBlueNode(BNHostname)) {
+                if (this.blueNodeTable.checkBlueNode(BNHostname)) {
                     //we might have him associated but we may not have his rrd
                     BlueNode bn;
                     try {
-                        bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(BNHostname);
+                        bn = this.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
                         BlueNodeClient cl = new BlueNodeClient(bn);
                         String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
                         if (!remoteHostname.equals("OFFLINE")) {
-                            Bluenode.getInstance().blueNodeTable.leaseRRn(bn, remoteHostname, destvaddress);
+                            this.blueNodeTable.leaseRRn(bn, remoteHostname, destvaddress);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -122,20 +128,20 @@ public final class FlyRegister extends SimpleUnstoppedCyclicService {
                     //we were associated now it's time to feed return route
                     BlueNode bn;
                     try {
-                        bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(BNHostname);
+                        bn = this.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
                         cl = new BlueNodeClient(bn);
-                        cl.feedReturnRoute(LocalRedNodeTable.getInstance().getRedNodeInstanceByAddr(sourcevaddress).getHostname(), sourcevaddress);
+                        cl.feedReturnRoute(this.localRedNodeTable.getRedNodeInstanceByAddr(sourcevaddress).getHostname(), sourcevaddress);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
                     //and then request the dest rn hotsname
                     try {
-                        bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(BNHostname);
+                        bn = this.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
                         cl = new BlueNodeClient(bn);
                         String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
                         if (!remoteHostname.equals("OFFLINE")) {
-                            Bluenode.getInstance().blueNodeTable.leaseRRn(bn, remoteHostname, destvaddress);
+                            this.blueNodeTable.leaseRRn(bn, remoteHostname, destvaddress);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();

@@ -10,26 +10,26 @@ import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
-import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.GlobalSocketFunctions;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
 
 /**
  *
  * @author Konstantinos Kagiampakis
  */
-public class BlueNodeFunctions {
+final class BlueNodeFunctions {
 
     private static String pre = "^Blue Node Functions";
     
-    static void associate(String name, PublicKey bnPub, Socket connectionSocket, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {        
+    static void associate(String localBluenodeName, BlueNodeTable blueNodeTable, String name, PublicKey bnPub, Socket connectionSocket, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {
     	try {
 			AppLogger.getInstance().consolePrint(pre + "STARTING A BLUE AUTH AT " + Thread.currentThread().getName());
 	    	InetAddress phAddress;
@@ -37,10 +37,10 @@ public class BlueNodeFunctions {
 	    	int authPort = 0;
 	    	String[] args;
 	        
-	        if (Bluenode.getInstance().getName().equals(name)) {
+	        if (localBluenodeName.equals(name)) {
 	        	SocketUtilities.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
 	        	return;
-	        } else if (Bluenode.getInstance().blueNodeTable.checkBlueNode(name)) {
+	        } else if (blueNodeTable.checkBlueNode(name)) {
 	        	SocketUtilities.sendAESEncryptedStringData("ERROR", socketWriter, sessionKey);
 	        	return;
 	        } else {
@@ -77,7 +77,7 @@ public class BlueNodeFunctions {
 			AppLogger.getInstance().consolePrint(pre + "remote auth port "+bn.getRemoteAuthPort()+" upport "+bn.getServerSendPort()+" downport "+bn.getServerReceivePort());
 	    	
 	    	try {
-				Bluenode.getInstance().blueNodeTable.leaseBn(bn);
+				blueNodeTable.leaseBn(bn);
 				AppLogger.getInstance().consolePrint(pre + "LEASED REMOTE BN "+name);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -126,31 +126,31 @@ public class BlueNodeFunctions {
 		}
     }
     
-    static void releaseBn(String BlueNodeName) {
+    static void releaseBn(BlueNodeTable blueNodeTable, String BlueNodeName) {
         try {
-			Bluenode.getInstance().blueNodeTable.releaseBn(BlueNodeName);
+			blueNodeTable.releaseBn(BlueNodeName);
 		} catch (Exception e) {
 			
 		}        
     }
     
-    static void giveLRNs(DataOutputStream socketWriter, SecretKey sessionKey) {
-    	GlobalSocketFunctions.sendLocalRedNodes(socketWriter, sessionKey);
+    static void giveLRNs(LocalRedNodeTable localRedNodeTable, DataOutputStream socketWriter, SecretKey sessionKey) {
+    	GlobalSocketFunctions.sendLocalRedNodes(localRedNodeTable, socketWriter, sessionKey);
     }
     
-    public static void getLRNs(BlueNode bn, DataInputStream socketReader, SecretKey sessionKey) {
-		GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, sessionKey);
+    public static void getLRNs(BlueNodeTable blueNodeTable, BlueNode bn, DataInputStream socketReader, SecretKey sessionKey) {
+		GlobalSocketFunctions.getRemoteRedNodes(blueNodeTable, bn, socketReader, sessionKey);
 	}
 
-    static void exchangeRNs(BlueNode bn, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {
-    	GlobalSocketFunctions.sendLocalRedNodes(socketWriter, sessionKey);
-    	GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, sessionKey);           
+    static void exchangeRNs(LocalRedNodeTable localRedNodeTable, BlueNodeTable blueNodeTable, BlueNode bn, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {
+    	GlobalSocketFunctions.sendLocalRedNodes(localRedNodeTable, socketWriter, sessionKey);
+    	GlobalSocketFunctions.getRemoteRedNodes(blueNodeTable, bn, socketReader, sessionKey);
     }
     
-    static void getLocalRnHostnameByVaddress(String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
+    static void getLocalRnHostnameByVaddress(LocalRedNodeTable localRedNodeTable, String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
         try {
-	    	if (LocalRedNodeTable.getInstance().checkOnlineByVaddress(vaddress)) {
-	        	SocketUtilities.sendAESEncryptedStringData(LocalRedNodeTable.getInstance().getRedNodeInstanceByAddr(vaddress).getHostname(), socketWriter, sessionKey);
+	    	if (localRedNodeTable.checkOnlineByVaddress(vaddress)) {
+	        	SocketUtilities.sendAESEncryptedStringData(localRedNodeTable.getRedNodeInstanceByAddr(vaddress).getHostname(), socketWriter, sessionKey);
 	        } else {
 	        	SocketUtilities.sendAESEncryptedStringData("OFFLINE", socketWriter, sessionKey);
 	        }
@@ -159,10 +159,10 @@ public class BlueNodeFunctions {
         }
     }
 
-    static void getLocalRnVaddressByHostname(String hostname, DataOutputStream socketWriter, SecretKey sessionKey) {
+    static void getLocalRnVaddressByHostname(LocalRedNodeTable localRedNodeTable, String hostname, DataOutputStream socketWriter, SecretKey sessionKey) {
     	try {
-	    	if (LocalRedNodeTable.getInstance().checkOnlineByHostname(hostname)) {
-	    		SocketUtilities.sendAESEncryptedStringData(LocalRedNodeTable.getInstance().getRedNodeInstanceByHn(hostname).getVaddress(), socketWriter, sessionKey);
+	    	if (localRedNodeTable.checkOnlineByHostname(hostname)) {
+	    		SocketUtilities.sendAESEncryptedStringData(localRedNodeTable.getRedNodeInstanceByHn(hostname).getVaddress(), socketWriter, sessionKey);
 	        } else {
 	        	SocketUtilities.sendAESEncryptedStringData("OFFLINE", socketWriter, sessionKey);
 	        }
@@ -171,9 +171,9 @@ public class BlueNodeFunctions {
         }
     }
 
-    static void getFeedReturnRoute(BlueNode bn, String hostname, String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
+    static void getFeedReturnRoute(BlueNodeTable blueNodeTable,BlueNode bn, String hostname, String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
         try {
-			Bluenode.getInstance().blueNodeTable.leaseRRn(bn, hostname, vaddress);
+			blueNodeTable.leaseRRn(bn, hostname, vaddress);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -195,11 +195,11 @@ public class BlueNodeFunctions {
 		}
 	}
 
-	public static void check(String blueNodeName, DataOutputStream socketWriter, SecretKey sessionKey) {
+	public static void check(BlueNodeTable blueNodeTable, String blueNodeName, DataOutputStream socketWriter, SecretKey sessionKey) {
 		//if associated reset idleTime and update timestamp as well
-		if (Bluenode.getInstance().blueNodeTable.checkBlueNode(blueNodeName)) {
+		if (blueNodeTable.checkBlueNode(blueNodeName)) {
 			try {
-				BlueNode bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(blueNodeName);
+				BlueNode bn = blueNodeTable.getBlueNodeInstanceByName(blueNodeName);
 				bn.resetIdleTime();
 				bn.updateTime();
 			} catch (Exception e) {

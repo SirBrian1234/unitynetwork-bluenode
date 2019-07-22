@@ -4,53 +4,106 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.Optional;
 
 import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
+import org.kostiskag.unitynetwork.bluenode.service.bluenodeservice.BlueNodeServer.ModeOfOperation;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
+
 
 /**
  *
  * @author Konstantinos Kagiampakis
  */
-public class BlueNodeService extends Thread {
+final class BlueNodeService extends Thread {
 
     private static final String PRE = "^BlueNodeService ";
-	private static KeyPair bluenodeKeys;
-	private static PublicKey trackerPublic;
 
     private final String prebn = "BlueNode ";
     private final String prern = "RedNode ";
     private final String pretr = "Tracker ";
-    private final Socket sessionSocket;
+
+    private final String localBluenodeName;
+	private final AccountTable accountTable;
+	private final LocalRedNodeTable rednodeTable;
+	private final BlueNodeTable bluenodeTable;
+	private final TrackerTimeBuilder trackerTimeBuilder;
+	private final KeyPair bluenodeKeyPair;
+	private final PublicKey trackerPublic;
+	private final Socket sessionSocket;
+    private final ModeOfOperation mode;
+    private final Runnable blunodeTerminate;
+
     private DataInputStream socketReader;
     private DataOutputStream socketWriter;
     private SecretKey sessionKey;
 
-    public static void configureService(KeyPair bluenodeKeyPair, PublicKey trackerPublic) {
-    	if (bluenodeKeyPair == null || trackerPublic == null) {
-    		throw new IllegalArgumentException(PRE + " invalid configuration data were given!");
-		}
-
-    	BlueNodeService.trackerPublic = trackerPublic;
-    	BlueNodeService.bluenodeKeys = bluenodeKeyPair;
-	}
-
-    BlueNodeService(Socket sessionSocket) {
-		if (BlueNodeService.bluenodeKeys == null || BlueNodeService.trackerPublic == null) {
+	BlueNodeService(String localBluenodeName, LocalRedNodeTable rednodeTable, BlueNodeTable bluenodeTable, TrackerTimeBuilder trackerTimeBuilder, KeyPair bluenodeKeyPair, PublicKey trackerPublic, Socket sessionSocket, Runnable blunodeTerminate) {
+		if (localBluenodeName == null || rednodeTable == null || bluenodeTable == null || bluenodeKeyPair == null || trackerPublic == null || sessionSocket == null || trackerTimeBuilder == null || blunodeTerminate == null) {
 			throw new IllegalArgumentException(PRE + " invalid configuration data were given!");
 		}
 
+		this.accountTable = null;
+
+		this.localBluenodeName = localBluenodeName;
+		this.rednodeTable = rednodeTable;
+		this.bluenodeTable = bluenodeTable;
+		this.trackerTimeBuilder = trackerTimeBuilder;
+		this.bluenodeKeyPair = bluenodeKeyPair;
+		this.trackerPublic = trackerPublic;
+		this.blunodeTerminate = blunodeTerminate;
         this.sessionSocket = sessionSocket;
+        this.mode = ModeOfOperation.NETWORK;
     }
+
+	//Local Plain mode
+	BlueNodeService(String localBluenodeName, AccountTable accountTable, LocalRedNodeTable rednodeTable, Socket sessionSocket) {
+		if (localBluenodeName == null || rednodeTable == null || sessionSocket == null) {
+			throw new IllegalArgumentException(PRE + " invalid configuration data were given!");
+		}
+
+		this.bluenodeTable = null;
+		this.bluenodeKeyPair = null;
+		this.trackerPublic = null;
+		this.trackerTimeBuilder = null;
+		this.blunodeTerminate = null;
+
+		this.localBluenodeName = localBluenodeName;
+		this.accountTable = accountTable;
+		this.rednodeTable = rednodeTable;
+		this.sessionSocket = sessionSocket;
+		this.mode = ModeOfOperation.LIST;
+	}
+
+    //Local Plain mode
+	BlueNodeService(String localBluenodeName, LocalRedNodeTable rednodeTable, Socket sessionSocket) {
+		if (localBluenodeName == null || rednodeTable == null || sessionSocket == null) {
+			throw new IllegalArgumentException(PRE + " invalid configuration data were given!");
+		}
+
+		this.accountTable = null;
+		this.bluenodeTable = null;
+		this.bluenodeKeyPair = null;
+		this.trackerPublic = null;
+		this.trackerTimeBuilder = null;
+		this.blunodeTerminate = null;
+
+		this.localBluenodeName = localBluenodeName;
+		this.rednodeTable = rednodeTable;
+		this.sessionSocket = sessionSocket;
+		this.mode = ModeOfOperation.PLAIN;
+	}
     
     private void close() {
     	try {
@@ -71,18 +124,18 @@ public class BlueNodeService extends Thread {
 			String receivedStr = new String(received, "utf-8");
 			String[] args = receivedStr.split("\\s+");
 			
-			if (!Bluenode.getInstance().isNetworkMode() && args[0].equals("GETPUB")) {
+			if (mode != ModeOfOperation.NETWORK && args[0].equals("GETPUB")) {
 				// if this bluenode is standalone it is allowed to distribute its public
-				SocketUtilities.sendPlainStringData(CryptoUtilities.objectToBase64StringRepresentation(BlueNodeService.bluenodeKeys.getPublic()), socketWriter);
+				SocketUtilities.sendPlainStringData(CryptoUtilities.objectToBase64StringRepresentation(bluenodeKeyPair.getPublic()), socketWriter);
 			} else {
 				//client uses server's public key collected from the network to send a session key
-				String decrypted = CryptoUtilities.decryptWithPrivate(received, BlueNodeService.bluenodeKeys.getPrivate());
+				String decrypted = CryptoUtilities.decryptWithPrivate(received, bluenodeKeyPair.getPrivate());
 				sessionKey = CryptoUtilities.base64StringRepresentationToObject(decrypted);
-				args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+Bluenode.getInstance().getName(), socketReader, socketWriter, sessionKey);
+				args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+localBluenodeName, socketReader, socketWriter, sessionKey);
 	
 				if (args.length == 2 && args[0].equals("REDNODE")) {
 	                redNodeService(args[1]);
-	            } else if (Bluenode.getInstance().isNetworkMode()) {
+	            } else if (mode == ModeOfOperation.NETWORK) {
 	            	if (args.length == 2 && args[0].equals("BLUENODE")) {
 	                    blueNodeService(args[1]);
 	                } else if (args.length == 1 && args[0].equals("TRACKER")) {
@@ -104,7 +157,7 @@ public class BlueNodeService extends Thread {
     private void redNodeService(String hostname) {
     	String[] args;
     	try {
-	    	if (Bluenode.getInstance().isNetworkMode()) {
+	    	if (mode == ModeOfOperation.NETWORK) {
 	       		//when bluenode is in network mode, it offers an auth question based on rn's pub key and then is verified
 	       		//with usrer credentials
 	       		
@@ -140,7 +193,7 @@ public class BlueNodeService extends Thread {
 			//options
 	        if (args.length == 3 && args[0].equals("LEASE")) {
 				AppLogger.getInstance().consolePrint(PRE +prern+"LEASE"+" from "+sessionSocket.getInetAddress().getHostAddress());
-	            RedNodeFunctions.lease(hostname, args[1], args[2], sessionSocket, socketReader, socketWriter, sessionKey);
+	            RedNodeFunctions.lease(mode, accountTable, rednodeTable, bluenodeTable, hostname, args[1], args[2], sessionSocket, socketReader, socketWriter, sessionKey);
 	        } else {
 				AppLogger.getInstance().consolePrint(PRE +prern+"WRONG_COMMAND "+args[0]+" from "+sessionSocket.getInetAddress().getHostAddress());
 	        	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey); 
@@ -155,9 +208,9 @@ public class BlueNodeService extends Thread {
     		//collect bn's public either from tracker of from table
     		PublicKey bnPub;
     		boolean associated = false;
-    		if (Bluenode.getInstance().blueNodeTable.checkBlueNode(blueNodeName)) {
+    		if (bluenodeTable.checkBlueNode(blueNodeName)) {
     			associated = true;
-    			bnPub = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(blueNodeName).getPub();
+    			bnPub = bluenodeTable.getBlueNodeInstanceByName(blueNodeName).getPub();
     		} else {
     			TrackerClient tr = new TrackerClient();
     			bnPub = tr.getBlueNodesPubKey(blueNodeName);
@@ -191,13 +244,13 @@ public class BlueNodeService extends Thread {
     		//options
             if (args.length == 1 && args[0].equals("CHECK")) {
 				AppLogger.getInstance().consolePrint(PRE +prebn+"CHECK"+" from bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-            	BlueNodeFunctions.check(blueNodeName,socketWriter, sessionKey);
+            	BlueNodeFunctions.check(bluenodeTable, blueNodeName,socketWriter, sessionKey);
             } else if (args.length == 1 && args[0].equals("ASSOCIATE")) {
 				AppLogger.getInstance().consolePrint(PRE +prebn+"ASSOCIATE"+" from bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-                BlueNodeFunctions.associate(blueNodeName, bnPub, sessionSocket,socketReader,socketWriter, sessionKey);
+                BlueNodeFunctions.associate(localBluenodeName, bluenodeTable, blueNodeName, bnPub, sessionSocket,socketReader,socketWriter, sessionKey);
             } else if (associated) {            	
             	//these options are only for leased bns
-            	BlueNode bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(blueNodeName);
+            	BlueNode bn = bluenodeTable.getBlueNodeInstanceByName(blueNodeName);
 				if (args.length == 1 && args[0].equals("UPING")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"UPING"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.Uping(bn, socketWriter, sessionKey);
@@ -206,22 +259,22 @@ public class BlueNodeService extends Thread {
 	                BlueNodeFunctions.Dping(bn);
 	            } else if (args.length == 1 && args[0].equals("RELEASE")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"RELEASE"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.releaseBn(blueNodeName);
+	                BlueNodeFunctions.releaseBn(bluenodeTable, blueNodeName);
 	            } else if (args.length == 1 && args[0].equals("GET_RED_NODES")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"GET_RED_NODES"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.giveLRNs(socketWriter, sessionKey);
+	                BlueNodeFunctions.giveLRNs(rednodeTable, socketWriter, sessionKey);
 	            } else if (args.length == 1 && args[0].equals("GIVE_RED_NODES")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"GIVE_RED_NODES"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.getLRNs(bn, socketReader, sessionKey);
+	                BlueNodeFunctions.getLRNs(bluenodeTable, bn, socketReader, sessionKey);
 	            } else if (args.length == 1 && args[0].equals("EXCHANGE_RED_NODES")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"EXCHANGE_RED_NODES"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.exchangeRNs(bn, socketReader, socketWriter, sessionKey);
+	                BlueNodeFunctions.exchangeRNs(rednodeTable, bluenodeTable, bn, socketReader, socketWriter, sessionKey);
 	            } else if (args.length == 2 && args[0].equals("GET_RED_HOSTNAME")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"GET_RED_HOSTNAME"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.getLocalRnHostnameByVaddress(args[1], socketWriter, sessionKey);
+	                BlueNodeFunctions.getLocalRnHostnameByVaddress(rednodeTable, args[1], socketWriter, sessionKey);
 	            } else if (args.length == 2 && args[0].equals("GET_RED_VADDRESS")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"GET_RED_VADDRESS"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.getLocalRnVaddressByHostname(args[1], socketWriter, sessionKey);
+	                BlueNodeFunctions.getLocalRnVaddressByHostname(rednodeTable, args[1], socketWriter, sessionKey);
 	            } else if (args.length == 2 && args[0].equals("RELEASE_REMOTE_REDNODE_BY_HN")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"RELEASE_REMOTE_REDNODE_BY_HN"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.getRRNToBeReleasedByHn(bn, args[1], socketWriter, sessionKey);
@@ -230,7 +283,7 @@ public class BlueNodeService extends Thread {
 	                BlueNodeFunctions.getRRNToBeReleasedByVaddr(bn, args[1], socketWriter, sessionKey);
 	            } else if (args.length == 3 && args[0].equals("LEASE_REMOTE_REDNODE")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"LEASE_REMOTE_REDNODE"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.getFeedReturnRoute(bn, args[1], args[2], socketWriter, sessionKey);
+	                BlueNodeFunctions.getFeedReturnRoute(bluenodeTable, bn, args[1], args[2], socketWriter, sessionKey);
 	            } else {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"WRONG_COMMAND "+args[0]+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	            	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey); 
@@ -245,16 +298,12 @@ public class BlueNodeService extends Thread {
     }
 
     private void trackingService() {
-    	if (BlueNodeService.trackerPublic == null) {
-    		return;
-		}
-
     	try {
 	    	// generate a random question
 	    	String question = CryptoUtilities.generateQuestion();
 	
 	    	// encrypt question with target's public
-	    	byte[] questionb = CryptoUtilities.encryptWithPublic(question, BlueNodeService.trackerPublic);
+	    	byte[] questionb = CryptoUtilities.encryptWithPublic(question, trackerPublic);
 	
 	    	// encode it to base 64
 	    	String encq = CryptoUtilities.bytesToBase64String(questionb);
@@ -268,25 +317,25 @@ public class BlueNodeService extends Thread {
 				SocketUtilities.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 			} else {
 				SocketUtilities.sendAESEncryptedStringData("NOT_ALLOWED", socketWriter, sessionKey);
-				throw new Exception("RSA auth for Tracker in "+sessionSocket.getInetAddress().getHostAddress()+" has failed.");
+				throw new IOException("RSA auth for Tracker in "+sessionSocket.getInetAddress().getHostAddress()+" has failed.");
 			}
     	
     		args = SocketUtilities.receiveAESEncryptedStringData(socketReader, sessionKey);
     		//options
             if (args.length == 1 && args[0].equals("CHECK")) {
 				AppLogger.getInstance().consolePrint(PRE +pretr+"CHECK"+" from "+sessionSocket.getInetAddress().getHostAddress());
-                TrackingFunctions.check(socketWriter, sessionKey);
+                TrackingFunctions.check(trackerTimeBuilder, socketWriter, sessionKey);
             } else if (args.length == 1 && args[0].equals("GETREDNODES")) {
 				AppLogger.getInstance().consolePrint(PRE +pretr+"GETREDNODES"+" from "+sessionSocket.getInetAddress().getHostAddress());
-                TrackingFunctions.getrns(socketWriter, sessionKey);
+                TrackingFunctions.getRns(rednodeTable, socketWriter, sessionKey);
             } else if (args.length == 1 && args[0].equals("KILLSIG")) {
 				AppLogger.getInstance().consolePrint(PRE +pretr+"KILLSIG"+" from "+sessionSocket.getInetAddress().getHostAddress());
-                TrackingFunctions.killsig(socketWriter, sessionKey);
+                TrackingFunctions.killSig(blunodeTerminate);
             } else {
 				AppLogger.getInstance().consolePrint(PRE +pretr+"WRONG_COMMAND: "+args[0]+" from "+sessionSocket.getInetAddress().getHostAddress());
             	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);  
             }
-        } catch (Exception ex) {
+        } catch (GeneralSecurityException | IOException ex) {
         	ex.printStackTrace();
         }
     }

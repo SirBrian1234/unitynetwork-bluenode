@@ -1,11 +1,11 @@
 package org.kostiskag.unitynetwork.bluenode;
 
+import java.util.Optional;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.Optional;
+import java.util.function.BooleanSupplier;
 
-import org.kostiskag.unitynetwork.bluenode.gui.CollectTrackerKeyView;
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 import org.kostiskag.unitynetwork.common.state.PublicKeyState;
@@ -15,13 +15,12 @@ import org.kostiskag.unitynetwork.bluenode.routing.FlyRegister;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.AccountTable;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
-import org.kostiskag.unitynetwork.bluenode.service.bluenodeservice.BlueNodeService;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeSonarService;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeservice.BlueNodeServer;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
-import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerTimeBuilder;
 import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
 import org.kostiskag.unitynetwork.bluenode.service.NextIpPoll;
+import org.kostiskag.unitynetwork.bluenode.gui.CollectTrackerKeyView;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 
 
@@ -67,6 +66,7 @@ public final class Bluenode {
 		}
 	}
 
+	//TODO to be permanently removed, all its calls should become injected objs instead
 	public static Bluenode getInstance() {
 		return BLUENODE;
 	}
@@ -93,9 +93,19 @@ public final class Bluenode {
 	// run data
 	private boolean joined;
 
-	// these references should be removed from here
-	//public LocalRedNodeTable localRedNodesTable; //make singleton
-	public BlueNodeTable blueNodeTable; //make singleton
+	//TODO security breach public modifiers, to make those injected objs
+	public LocalRedNodeTable localRedNodesTable;
+	public BlueNodeTable blueNodeTable;
+	private BlueNodeSonarService blueNodeSonarService;
+	private BlueNodeServer blueNodeServer;
+
+	//our method "tickets"
+	//what is extremely useful about them is that we can distribute them
+	//as dependency injections and therefore to not have to sent the whole bn object
+	//which results in a more secure environment
+	private final Runnable bluenodeTerminate = () -> this.terminate();
+	private final boolean isNetworkMode = this.isNetworkMode();
+	private final BooleanSupplier isJoinedNetwork = () -> this.isJoinedNetwork();
 
 
 	private Bluenode(
@@ -129,7 +139,6 @@ public final class Bluenode {
 			if (this.trackerPublicKey != null) {
 				//The bn has never requested tracker's public!
 				TrackerClient.configureTracker(this.name, this.bluenodeKeys, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
-				BlueNodeService.configureService(this.bluenodeKeys, this.trackerPublicKey);
 			}
 			CollectTrackerKeyView.configureView(Optional.ofNullable(this.trackerPublicKey));
 		}
@@ -140,6 +149,8 @@ public final class Bluenode {
 		if (gui) {
 			boolean trackerKeySet = trackerPublicKey == null;
 			MainWindow.MainWindowPrefs mainWindowPrefs = new MainWindow.MainWindowPrefs(
+
+					//this this
 					this.name,
 					this.authPort,
 					this.maxRednodeEntries,
@@ -148,7 +159,7 @@ public final class Bluenode {
 					this.networkMode,
 					trackerKeySet,
 					this.listMode);
-			MainWindow.newInstance(mainWindowPrefs);
+			MainWindow.newInstance(mainWindowPrefs, bluenodeTerminate);
 		}
 
 		// 3. Logger (logger needs gui to be set in the case it is enabled)
@@ -163,18 +174,17 @@ public final class Bluenode {
 		/*
 		 *  5. Initialize tables
 		 */
-		LocalRedNodeTable.newInstance(maxRednodeEntries);
-		//localRedNodesTable = new LocalRedNodeTable(maxRednodeEntries);
+		this.localRedNodesTable = LocalRedNodeTable.newInstance(maxRednodeEntries);
 		if (networkMode) {
-			blueNodeTable = new BlueNodeTable();
+			this.blueNodeTable = BlueNodeTable.newInstance();
 		}
 
 		/*
 		 *  6. lease with the network, use a predefined user's list or dynamically allocate
 		 *  virtual addresses to connected RNs
 		 */
-		if (networkMode) {
-			try {
+		try {
+			if (networkMode) {
 				if (joinNetwork()) {
 					/*
 					 * 5. Initialize Register On The Fly
@@ -186,7 +196,7 @@ public final class Bluenode {
 					 *  FlyReg is meaningful to work only in a network.
 					 *
 					 */
-					FlyRegister.newInstance();
+					FlyRegister.newInstance(this.localRedNodesTable, this.blueNodeTable);
 
 					/*
 					 * 4. Initialize sonar
@@ -195,43 +205,36 @@ public final class Bluenode {
 					 * whereas the timeBuilder keeps track of the remote BNs associated as servers
 					 *
 					 */
-					BlueNodeSonarService.newInstance(Timings.BLUENODE_CHECK_TIME.getWaitTimeInSec());
-
-					/*
-					 * Time builder periodically checks the tracker to determine if it's alive!
-					 *
-					 */
-					TrackerTimeBuilder.newInstance(Timings.TRACKER_CHECK_TIME.getWaitTimeInSec()).start();
+					blueNodeSonarService = BlueNodeSonarService.newInstance(this.blueNodeTable, Timings.BLUENODE_CHECK_TIME.getWaitTimeInSec());
 
 					/*
 					 *  7. Finally. Initialize auth server so that the BN may accept clients
 					 *
 					 */
-					BlueNodeServer.newInstance(authPort);
+					blueNodeServer = BlueNodeServer.newInstance(this.name, this.localRedNodesTable, this.blueNodeTable, this.bluenodeKeys, this.trackerPublicKey, Timings.TRACKER_CHECK_TIME.getWaitTimeInSec(), authPort, this.bluenodeTerminate);
 				} else {
 					AppLogger.getInstance().consolePrint("This bluenode is not connected in the network.");
 				}
-			} catch (IllegalAccessException e) {
-				AppLogger.getInstance().consolePrint(pre + " " + e.getMessage());
-				terminate();
+			} else if (isListMode()) {
+				/*
+				 *  Finally. Initialize auth server so that the BN may accept clients
+				 *
+				 */
+				this.blueNodeServer = BlueNodeServer.newInstance(this.name, this.accounts, this.localRedNodesTable, authPort, this.bluenodeTerminate);
+				AppLogger.getInstance().consolePrint(pre + "USES A LIST MODE!");
+
+			} else if (isPlainMode()) {
+				NextIpPoll.newInstance();
+				/*
+				 *  Finally. Initialize auth server so that the BN may accept clients
+				 *
+				 */
+				this.blueNodeServer = BlueNodeServer.newInstance(this.name, localRedNodesTable, authPort, this.bluenodeTerminate);
+				AppLogger.getInstance().consolePrint("WARNING! BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nWHICH MEANS THAT ANYONE WHO KNOWS THE BN'S ADDRESS AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
 			}
-
-		} else if (isListMode()) {
-			/*
-			 *  Finally. Initialize auth server so that the BN may accept clients
-			 *
-			 */
-			BlueNodeServer.newInstance(authPort);
-			AppLogger.getInstance().consolePrint(pre + "USES A LIST MODE!");
-
-		} else if (isPlainMode()) {
-			NextIpPoll.newInstance();
-			/*
-			 *  Finally. Initialize auth server so that the BN may accept clients
-			 *
-			 */
-			BlueNodeServer.newInstance(authPort);
-			AppLogger.getInstance().consolePrint("WARNING! BLUENODE DOES NOT USE EITHER NETWORK NOR A USERLIST\nWHICH MEANS THAT ANYONE WHO KNOWS THE BN'S ADDRESS AND IS PHYSICALY ABLE TO CONNECT CAN LOGIN");
+		} catch (IOException | IllegalAccessException e) {
+			AppLogger.getInstance().consolePrint(pre + " " + e.getMessage());
+			terminate();
 		}
 	}
 
@@ -285,6 +288,11 @@ public final class Bluenode {
 		return response;
 	}
 
+	//TODO
+	public void revokePubKey(String ticket) {
+
+	}
+
 	public void terminate() {
 		silentTerminate();
 		exit();
@@ -292,17 +300,16 @@ public final class Bluenode {
 
 	public void silentTerminate() {
 		if (isListMode() || isPlainMode() || isJoinedNetwork()) {
-			BlueNodeServer.getInstance().kill();
+			this.blueNodeServer.kill();
 		}
-		LocalRedNodeTable.getInstance().exitAll();
+		localRedNodesTable.exitAll();
 
 		if (isJoinedNetwork()) {
 			FlyRegister.getInstance().kill();
-			BlueNodeSonarService.getInstance().kill();
-			TrackerTimeBuilder.getInstance().kill();
+			this.blueNodeSonarService.kill();
 
-			blueNodeTable.sendKillSigsAndReleaseForAll();
 			new TrackerClient().releaseBn();
+			blueNodeTable.sendKillSigsAndReleaseForAll();
 			joined = false;
 		}
 	}
@@ -336,8 +343,4 @@ public final class Bluenode {
 		return !this.listMode && !this.networkMode;
 	}
 
-	public AccountTable getAccounts() {
-		//get them only on uselist mode
-		return this.listMode ? accounts: null;
-	}
 }

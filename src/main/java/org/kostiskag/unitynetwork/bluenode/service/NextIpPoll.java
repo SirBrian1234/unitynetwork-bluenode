@@ -5,7 +5,7 @@ package org.kostiskag.unitynetwork.bluenode.service;
  *
  * @author Konstantinos Kagiampakis
  */
-public class NextIpPoll {
+public final class NextIpPoll {
 
     private static NextIpPoll IP_POLL;
 

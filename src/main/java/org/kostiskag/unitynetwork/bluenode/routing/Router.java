@@ -1,5 +1,6 @@
 package org.kostiskag.unitynetwork.bluenode.routing;
 
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
@@ -39,9 +40,7 @@ public class Router extends Thread {
             byte[] data;
             try {
                 data = queueToRoute.poll();
-            } catch (java.lang.NullPointerException ex1) {
-                continue;
-            } catch (java.util.NoSuchElementException ex) {
+            } catch (NullPointerException | NoSuchElementException ex) {
                 continue;
             }
             
@@ -80,9 +79,9 @@ public class Router extends Thread {
 	                } else if (destvaddress.equals("10.0.0.1")) {
 	                	// the first address is reserved
 	                	
-	                } else if (LocalRedNodeTable.getInstance().checkOnlineByVaddress(destvaddress)) {
+	                } else if (Bluenode.getInstance().localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
 	                    //load the packet data to local red node's queue
-						LocalRedNodeTable.getInstance().getRedNodeInstanceByAddr(destvaddress).getSendQueue().offer(data);
+						Bluenode.getInstance().localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getSendQueue().offer(data);
 						AppLogger.getInstance().trafficPrint(pre+"LOCAL DESTINATION", MessageType.ROUTING, NodeType.REDNODE);
 	                    
 	                } else if (Bluenode.getInstance().isJoinedNetwork()) {

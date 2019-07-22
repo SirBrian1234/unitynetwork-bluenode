@@ -1,4 +1,4 @@
-package org.kostiskag.unitynetwork.bluenode.service.trackclient;
+package org.kostiskag.unitynetwork.bluenode.service.bluenodeservice;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -10,28 +10,30 @@ import org.kostiskag.unitynetwork.common.service.SimpleCyclicService;
  *
  * @author Konstantinos Kagiampakis
  */
-public class TrackerTimeBuilder extends SimpleCyclicService {
+final class TrackerTimeBuilder extends SimpleCyclicService {
 
     private static final String PRE = "^Tracker sonar ";
-    private static TrackerTimeBuilder TRACKER_TIME_BUILDER;
+    private static boolean INSTANTIATED;
 
-    public static TrackerTimeBuilder newInstance(int timeInSec) throws IllegalAccessException {
-        if (TRACKER_TIME_BUILDER == null) {
-            TRACKER_TIME_BUILDER = new TrackerTimeBuilder(timeInSec);
-            TRACKER_TIME_BUILDER.start();
+    private final Runnable bluenodeTerminate;
+
+    public static TrackerTimeBuilder newInstance(int timeInSec, Runnable bluenodeTerminate) throws IllegalAccessException {
+        //makes only one instance returns only one reference
+        if (!INSTANTIATED) {
+            INSTANTIATED = true;
+            var timeBuilder = new TrackerTimeBuilder(timeInSec, bluenodeTerminate);
+            timeBuilder.start();
+            return timeBuilder;
         }
-        return TRACKER_TIME_BUILDER;
-    }
-
-    public static TrackerTimeBuilder getInstance() {
-        return TRACKER_TIME_BUILDER;
+        return null;
     }
 
     // triggers
     private AtomicInteger trackerRespond = new AtomicInteger(0);
 
-    private TrackerTimeBuilder(int timeInSec) throws IllegalAccessException {
+    private TrackerTimeBuilder(int timeInSec, Runnable bluenodeTerminate) throws IllegalAccessException {
         super(timeInSec);
+        this.bluenodeTerminate = bluenodeTerminate;
     }
 
     @Override
@@ -56,7 +58,7 @@ public class TrackerTimeBuilder extends SimpleCyclicService {
 
         if (passedTime > getTime() * 60) {
             AppLogger.getInstance().consolePrint(PRE + "GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL");
-            Bluenode.getInstance().terminate();
+            bluenodeTerminate.run();
         }
     }
 

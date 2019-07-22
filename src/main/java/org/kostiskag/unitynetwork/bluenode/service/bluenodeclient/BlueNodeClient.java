@@ -19,6 +19,8 @@ import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
@@ -31,27 +33,37 @@ import org.kostiskag.unitynetwork.bluenode.service.GlobalSocketFunctions;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class BlueNodeClient {
+public final class BlueNodeClient {
 
 	public static String pre = "^BlueNodeClient ";
+
+	private static PrivateKey bluenodePrivate;
+	private static BlueNodeTable blueNodeTable;
+	private static LocalRedNodeTable localRedNodeTable;
+	private static String localBluenodeName;
+
 	private final String name;
 	private final String phAddressStr;
 	private final int authPort;
 	private final BlueNode bn;
 	private final PublicKey pub;
+
 	private SecretKey sessionKey;
 	private InetAddress phAddress;
 	private Socket sessionSocket;
 	private DataInputStream socketReader;
 	private DataOutputStream socketWriter;
-	private boolean connected = false;
-	private static PrivateKey bluenodePrivate;
+	private boolean connected;
 
-	public static void configureBlueNodeClient(PrivateKey bluenodePrivate) {
-		if (bluenodePrivate == null) {
+
+	public static void configureBlueNodeClient(String localBluenodeName, LocalRedNodeTable redNodeTable, BlueNodeTable blueNodeTable, PrivateKey bluenodePrivate) {
+		if (localBluenodeName == null || blueNodeTable == null || redNodeTable == null || bluenodePrivate == null) {
 			throw new IllegalArgumentException("null data were given");
 		}
 
+		BlueNodeClient.localBluenodeName = localBluenodeName;
+		BlueNodeClient.blueNodeTable = blueNodeTable;
+		BlueNodeClient.localRedNodeTable = localRedNodeTable;
 		BlueNodeClient.bluenodePrivate = bluenodePrivate;
 	}
 
@@ -108,7 +120,7 @@ public class BlueNodeClient {
 			System.out.println(args[0]+" "+args[1]);
 			
 			//this bn is to be authenticated by the target bn
-			args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+ Bluenode.getInstance().getName(), socketReader, socketWriter, sessionKey);
+			args = SocketUtilities.sendReceiveAESEncryptedStringData("BLUENODE "+ localBluenodeName, socketReader, socketWriter, sessionKey);
 			
 			//decode question
 			byte[] question = CryptoUtilities.base64StringTobytes(args[0]);
@@ -158,11 +170,11 @@ public class BlueNodeClient {
 	public void associateClient() throws Exception {
 		if (connected) {
 			
-			if (name.equals(Bluenode.getInstance().getName())) {
+			if (localBluenodeName.equals(name)) {
 				closeConnection();
 				AppLogger.getInstance().consolePrint(pre + "BNs are not allowed to create a u-turn association");
 				throw new Exception(pre+"BNs are not allowed to create a u-turn association");
-			} else if (Bluenode.getInstance().blueNodeTable.checkBlueNode(name)) {
+			} else if (BlueNodeClient.blueNodeTable.checkBlueNode(name)) {
 				closeConnection();
 				AppLogger.getInstance().consolePrint(pre+"BN is already an associated memeber.");
 				throw new Exception(pre+"BN is already an associated memeber.");
@@ -196,7 +208,7 @@ public class BlueNodeClient {
 			}       
 			
 			//lease to local bn table
-			Bluenode.getInstance().blueNodeTable.leaseBn(node);
+			BlueNodeClient.blueNodeTable.leaseBn(node);
 			closeConnection();
 			AppLogger.getInstance().consolePrint(pre + "LEASED REMOTE BN "+name);
 		}
@@ -286,7 +298,7 @@ public class BlueNodeClient {
 			if (connected) {
 				try {
 					SocketUtilities.sendAESEncryptedStringData("GET_RED_NODES", socketWriter, sessionKey);
-					GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, sessionKey);
+					GlobalSocketFunctions.getRemoteRedNodes(BlueNodeClient.blueNodeTable, bn, socketReader, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}   
@@ -304,7 +316,7 @@ public class BlueNodeClient {
 			if (connected) {
 				try {
 					SocketUtilities.sendAESEncryptedStringData("GIVE_RED_NODES", socketWriter, sessionKey);
-					GlobalSocketFunctions.sendLocalRedNodes(socketWriter, sessionKey);
+					GlobalSocketFunctions.sendLocalRedNodes(BlueNodeClient.localRedNodeTable, socketWriter, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}   
@@ -318,8 +330,8 @@ public class BlueNodeClient {
 			if (connected) {
 				try {
 					SocketUtilities.sendAESEncryptedStringData("EXCHANGE_RED_NODES", socketWriter, sessionKey);
-					GlobalSocketFunctions.getRemoteRedNodes(bn, socketReader, sessionKey);
-			        GlobalSocketFunctions.sendLocalRedNodes(socketWriter, sessionKey);	    
+					GlobalSocketFunctions.getRemoteRedNodes(BlueNodeClient.blueNodeTable, bn, socketReader, sessionKey);
+			        GlobalSocketFunctions.sendLocalRedNodes(BlueNodeClient.localRedNodeTable, socketWriter, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

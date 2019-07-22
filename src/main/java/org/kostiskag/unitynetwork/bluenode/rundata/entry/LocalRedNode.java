@@ -74,7 +74,7 @@ public class LocalRedNode {
 
     	//notify the gui variables
     	if (!didTrigger) {
-    		if (Bluenode.getInstance().isGui()) {
+    		if (AppLogger.getInstance().isGui()) {
     			MainWindow.getInstance().setOneUserAsConnected();
     		}
             didTrigger = true;

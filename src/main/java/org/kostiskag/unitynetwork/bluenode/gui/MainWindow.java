@@ -17,6 +17,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.*;
 
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 
 import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
@@ -49,6 +50,7 @@ public final class MainWindow extends JFrame {
 
     //instance data
     private final MainWindowPrefs prefs;
+    private final Runnable bluenodeTerminate;
     private boolean autoScrollDownTraffic = true;
     private boolean autoScrollDownConsole = true;
     private boolean viewTraffic = true;
@@ -60,14 +62,14 @@ public final class MainWindow extends JFrame {
     private About about;
 
     public static class MainWindowPrefs {
-        final String bluenodeName;
-        final int authPort;
-        final int maxRednodeEntries;
-        final int startPort;
-        final int endPort;
-        final boolean networkMode;
-        final boolean isTrackerKeySet;
-        final boolean useListMode;
+        private final String bluenodeName;
+        private final int authPort;
+        private final int maxRednodeEntries;
+        private final int startPort;
+        private final int endPort;
+        private final boolean networkMode;
+        private final boolean isTrackerKeySet;
+        private final boolean useListMode;
 
         public MainWindowPrefs(String bluenodeName, int authPort, int maxRednodeEntries, int startPort, int endPort, boolean networkMode, boolean isTrackerKeySet, boolean useListMode) {
             this.bluenodeName = bluenodeName;
@@ -81,9 +83,9 @@ public final class MainWindow extends JFrame {
         }
     }
     
-    public static MainWindow newInstance(MainWindowPrefs prefs) {
+    public static MainWindow newInstance(MainWindowPrefs prefs, Runnable bluenodeTerminate) {
         if (MAIN_WINDOW == null) {
-            MAIN_WINDOW = new MainWindow(prefs);
+            MAIN_WINDOW = new MainWindow(prefs, bluenodeTerminate);
         }
         return MAIN_WINDOW;
     }
@@ -92,8 +94,9 @@ public final class MainWindow extends JFrame {
         return MAIN_WINDOW;
     }
 
-    private MainWindow(MainWindowPrefs prefs) {
+    private MainWindow(MainWindowPrefs prefs, Runnable bluenodeTerminate) {
         this.prefs = prefs;
+        this.bluenodeTerminate = bluenodeTerminate;
         for (AppLogger.MessageType m : AppLogger.MessageType.values()) {
             viewType.put(m, true);    
         }
@@ -201,13 +204,12 @@ public final class MainWindow extends JFrame {
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent we)
-            { 
-            String ObjButtons[] = {"Yes","No"};
-            int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you wish to terminate this Blue Node?\nThis may result in a partial network termination.\nIf you decide to close the BLue Node, it will send the appropriate kill signals to the connected Red Nodes.","",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
-            if(PromptResult==JOptionPane.YES_OPTION) {
-                Bluenode.getInstance().terminate();
-            }
+            public void windowClosing(WindowEvent we) {
+                String ObjButtons[] = {"Yes","No"};
+                int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you wish to terminate this Blue Node?\nThis may result in a partial network termination.\nIf you decide to close the BLue Node, it will send the appropriate kill signals to the connected Red Nodes.","",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
+                if(PromptResult==JOptionPane.YES_OPTION) {
+                    bluenodeTerminate.run();
+                }
             }
         });
         
@@ -962,7 +964,7 @@ public final class MainWindow extends JFrame {
     }
 
     public void updateLocalRns() {
-        String[][] guiObj = LocalRedNodeTable.getInstance().buildGUIObj();
+        String[][] guiObj = Bluenode.getInstance().localRedNodesTable.buildGUIObj();
         updateLocalRns(guiObj);
     }
 

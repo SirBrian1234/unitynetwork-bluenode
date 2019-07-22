@@ -19,7 +19,7 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 public final class LocalRedNodeTable {
 
     private static final String PRE = "^LOCAL RN TABLE ";
-    private static LocalRedNodeTable LOCAL_REDNODE_TABLE;
+    private static boolean INSTANTIATED;
 
     private final LinkedList<LocalRedNode> list;
     private final int maxRednodeEntries;
@@ -27,14 +27,12 @@ public final class LocalRedNodeTable {
     private final boolean notifyGui;
 
     public static LocalRedNodeTable newInstance(int maxEntries) {
-        if (LOCAL_REDNODE_TABLE == null) {
-            LOCAL_REDNODE_TABLE = new LocalRedNodeTable(maxEntries);
+        //the only one who can get the only one reference is the first caller
+        if (!INSTANTIATED) {
+            INSTANTIATED = true;
+            return new LocalRedNodeTable(maxEntries);
         }
-        return LOCAL_REDNODE_TABLE;
-    }
-
-    public static LocalRedNodeTable getInstance() {
-        return LOCAL_REDNODE_TABLE;
+        return null;
     }
 
     public LocalRedNodeTable(int maxRednodeEntries) {
