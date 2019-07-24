@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.security.PublicKey;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.util.function.BooleanSupplier;
 
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
+import org.kostiskag.unitynetwork.bluenode.ModeOfOperation;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
@@ -24,14 +26,28 @@ import org.kostiskag.unitynetwork.bluenode.Bluenode;
  */
 final class NonAssociatedBlueNodeClientView extends JFrame {
 
-	BlueNode bn;
+	private JLabel jLabel4;
+	private JLabel lblResponce;
+	private JButton jButton1;
+	private JTextField jTextField1;
+	private JTextField textField;
+
+	private final BooleanSupplier isJoinedNetwork;
+	private final ModeOfOperation mode;
 	
     /**
      * Creates new form AddBlueNode
      */
-    public NonAssociatedBlueNodeClientView() {
-    	setTitle("Public Blue Node Client Functions (Debug)");
-    	initComponents();    	
+    public NonAssociatedBlueNodeClientView(ModeOfOperation mode, BooleanSupplier isJoinedNetwork) {
+    	if (mode != ModeOfOperation.NETWORK) {
+    		throw new IllegalArgumentException("This window may only be called on network");
+		} else {
+			setTitle("Public Blue Node Client Functions (Debug)");
+			this.mode = mode;
+			this.isJoinedNetwork = isJoinedNetwork;
+			initComponents();
+			setVisible(true);
+		}
     }
     
     private void initComponents() {
@@ -109,7 +125,7 @@ final class NonAssociatedBlueNodeClientView extends JFrame {
 
     
 	private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (Bluenode.getInstance().isJoinedNetwork()) {
+        if (isJoinedNetwork.getAsBoolean()) {
 	    	if (!jTextField1.getText().isEmpty() && jTextField1.getText().length() <= NumericConstraints.MAX_STR_LEN_SMALL.size()) {
 	    		String bnName = jTextField1.getText();
 	    		TrackerClient tr = new TrackerClient();	
@@ -148,7 +164,7 @@ final class NonAssociatedBlueNodeClientView extends JFrame {
     }
 
 	protected void jButton2ActionPerformed(ActionEvent arg0) {
-		if (Bluenode.getInstance().isJoinedNetwork()) {
+		if (isJoinedNetwork.getAsBoolean()) {
 	    	if (!jTextField1.getText().isEmpty() && jTextField1.getText().length() <= NumericConstraints.MAX_STR_LEN_SMALL.size()) {
 	    		TrackerClient tr = new TrackerClient();	
 	        	String[] args = tr.getPhysicalBn(jTextField1.getText());	 
@@ -175,10 +191,4 @@ final class NonAssociatedBlueNodeClientView extends JFrame {
 	        }
         }
 	}
-
-    private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JTextField jTextField1;
-    private JTextField textField;
-    private JLabel lblResponce;
 }

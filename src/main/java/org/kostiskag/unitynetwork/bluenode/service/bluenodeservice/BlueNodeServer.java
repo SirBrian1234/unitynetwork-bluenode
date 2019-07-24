@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.security.KeyPair;
 import java.security.PublicKey;
 
+import org.kostiskag.unitynetwork.bluenode.ModeOfOperation;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 import org.kostiskag.unitynetwork.common.service.SimpleUnstoppedCyclicService;
 
@@ -45,12 +46,6 @@ public final class BlueNodeServer extends SimpleUnstoppedCyclicService {
     private final Runnable terminateBluenode;
 
     private boolean didTrigger;
-
-    enum ModeOfOperation {
-        PLAIN,
-        LIST,
-        NETWORK;
-    }
 
     public static BlueNodeServer newInstance(String localBluenodeName, LocalRedNodeTable rednodeTable, int authPort, Runnable terminateBluenode) throws IOException, IllegalAccessException {
         return BlueNodeServer.newInstance(ModeOfOperation.PLAIN, localBluenodeName, null, rednodeTable, null, null, null, 0, authPort, terminateBluenode);

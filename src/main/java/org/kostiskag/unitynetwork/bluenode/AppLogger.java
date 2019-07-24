@@ -3,6 +3,7 @@ package org.kostiskag.unitynetwork.bluenode;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 
+
 public final class AppLogger {
 
     public static AppLogger APP_LOGGER;
@@ -19,6 +20,10 @@ public final class AppLogger {
     private final boolean log;
     private final boolean printTraffic;
 
+    public static AppLogger newInstance(boolean log, boolean printTraffic) {
+        return AppLogger.newInstance(false, null, log, printTraffic);
+    }
+
     public static AppLogger newInstance(boolean gui, MainWindow mainWindow, boolean log, boolean printTraffic) {
         if (APP_LOGGER == null) {
             APP_LOGGER = new AppLogger(gui, mainWindow, log, printTraffic);
@@ -30,9 +35,14 @@ public final class AppLogger {
         return APP_LOGGER;
     }
 
-    public AppLogger(boolean gui, MainWindow mainWindow, boolean log, boolean printTraffic) {
-        this.gui = gui;
-        this.mainWindow = mainWindow;
+    private AppLogger(boolean gui, MainWindow mainWindow, boolean log, boolean printTraffic) {
+        if (gui && mainWindow != null) {
+            this.gui = true;
+            this.mainWindow = mainWindow;
+        } else {
+            this.gui = false;
+            this.mainWindow = null;
+        }
         this.log = log;
         this.printTraffic = printTraffic;
     }

@@ -18,7 +18,7 @@ import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.bluenode.service.NextIpPoll;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
-import org.kostiskag.unitynetwork.bluenode.service.bluenodeservice.BlueNodeServer.ModeOfOperation;
+import org.kostiskag.unitynetwork.bluenode.ModeOfOperation;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
 

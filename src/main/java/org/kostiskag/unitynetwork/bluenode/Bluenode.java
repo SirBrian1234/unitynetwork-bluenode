@@ -8,6 +8,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 import org.kostiskag.unitynetwork.common.state.PublicKeyState;
@@ -68,16 +69,16 @@ public final class Bluenode {
 	}
 
 	//TODO to be permanently removed, all its calls should become injected objs instead
+	//BlueNodeTimeBuilder, Router still need this
 	public static Bluenode getInstance() {
 		return BLUENODE;
 	}
 
 	// initial configuration settings
-	private final boolean networkMode;
+	private final ModeOfOperation modeOfOperation;
 	private final PhysicalAddress trackerAddress;
 	private final int trackerMaxIdleTimeMin;
 	private final String name;
-	private final boolean listMode;
 	private final int authPort;
 	private final int startPort;
 	private final int endPort;
@@ -106,7 +107,7 @@ public final class Bluenode {
 	//what is extremely useful about them is that we can distribute them
 	//as dependency injections and therefore to not have to sent the whole bn object
 	//which results in a more secure environment
-	private final boolean isNetworkMode = this.isNetworkMode();
+	private final Supplier<ModeOfOperation> getModeOfOperation = () -> this.getModeOfOperation();
 	private final BooleanSupplier isJoinedNetwork = () -> this.isJoinedNetwork();
 	private final Function<String, PublicKeyState> offerPubKey = a -> this.offerPubKey(a);
 	private final Supplier<PublicKeyState> revokePubKey = () -> this.revokePubKey();
@@ -119,12 +120,10 @@ public final class Bluenode {
 		KeyPair bluenodeKeys,
 		PublicKey trackerPublicKey
 	) {
-		this.networkMode = prefs.network;
 		this.trackerAddress = prefs.trackerAddress;
 		this.trackerPort = prefs.trackerPort;
 		this.trackerMaxIdleTimeMin = prefs.trackerMaxIdleTimeMin;
 		this.name = prefs.name;
-		this.listMode = prefs.useList;
 		this.authPort = prefs.authPort;
 		this.startPort = prefs.startPort;
 		this.endPort = prefs.endPort;
@@ -137,13 +136,20 @@ public final class Bluenode {
 		//from all of these data only tracker public key may be null!
 		this.trackerPublicKey = trackerPublicKey;
 
-		System.out.println(pre + "started BlueNode at thread " + Thread.currentThread().getName());
+		if(prefs.network) {
+			modeOfOperation = ModeOfOperation.NETWORK;
+		} else if (prefs.useList) {
+			modeOfOperation = ModeOfOperation.LIST;
+		} else {
+			modeOfOperation = ModeOfOperation.PLAIN;
+		}
 
-		// 1. initial data distribution
-		if (networkMode) {
+		// 0. initial static data distribution
+		if (isNetworkMode()) {
 			if (this.trackerPublicKey != null) {
-				//The bn has never requested tracker's public!
+				//The bn has set tracker's public key!
 				TrackerClient.configureTracker(this.name, this.bluenodeKeys, this.trackerPublicKey, this.trackerAddress, this.trackerPort);
+				BlueNodeClient.configureBlueNodeClient(this.name, this.localRedNodesTable, this.blueNodeTable, this.bluenodeKeys.getPrivate());
 			}
 		}
 
@@ -159,9 +165,8 @@ public final class Bluenode {
 					this.maxRednodeEntries,
 					this.startPort,
 					this.endPort,
-					this.networkMode,
-					trackerKeySet,
-					this.listMode);
+					this.modeOfOperation,
+					trackerKeySet);
 
 			this.mainWindow = MainWindow.newInstance(
 					mainWindowPrefs,
@@ -169,11 +174,17 @@ public final class Bluenode {
 					offerPubKey,
 					revokePubKey,
 					Optional.ofNullable(this.trackerPublicKey),
-					collectTrackerPublicKey);
-		}
+					collectTrackerPublicKey,
+					isJoinedNetwork,
+					localRedNodesTable,
+					blueNodeTable);
 
-		// 3. Logger (logger needs gui to be set in the case it is enabled)
-		AppLogger.newInstance(this.gui, this.mainWindow, this.log, this.soutTraffic);
+			// 3. Logger (logger needs gui to be set in the case it is enabled)
+			AppLogger.newInstance(this.gui, this.mainWindow, this.log, this.soutTraffic);
+		} else {
+			// 3. Logger no gui
+			AppLogger.newInstance(this.log, this.soutTraffic);
+		}
 
 		//verbose rsa public key
 		AppLogger.getInstance().consolePrint("Your public key is:\n" + CryptoUtilities.bytesToBase64String(bluenodeKeys.getPublic().getEncoded()));
@@ -185,7 +196,7 @@ public final class Bluenode {
 		 *  5. Initialize tables
 		 */
 		this.localRedNodesTable = LocalRedNodeTable.newInstance(maxRednodeEntries);
-		if (networkMode) {
+		if (isNetworkMode()) {
 			this.blueNodeTable = BlueNodeTable.newInstance();
 		}
 
@@ -194,7 +205,7 @@ public final class Bluenode {
 		 *  virtual addresses to connected RNs
 		 */
 		try {
-			if (networkMode) {
+			if (isNetworkMode()) {
 				if (joinNetwork()) {
 
 					/*
@@ -234,7 +245,7 @@ public final class Bluenode {
 				this.blueNodeServer = BlueNodeServer.newInstance(this.name, this.accounts, this.localRedNodesTable, authPort, this.bluenodeTerminate);
 				AppLogger.getInstance().consolePrint(pre + "USES A LIST MODE!");
 
-			} else if (isPlainMode()) {
+			} else {
 				NextIpPoll.newInstance();
 				/*
 				 *  Finally. Initialize auth server so that the BN may accept clients
@@ -255,7 +266,7 @@ public final class Bluenode {
 					"In order to download the key press the Collect Tracker Key button and follow the guide.\n" +
 					"After you have a Public Key for the provided tracker you may restart the bluenode.");
 			return false;
-		} else if (networkMode && !name.isEmpty() && authPort > 0 && authPort <= NumericConstraints.MAX_ALLOWED_PORT_NUM.size()) {
+		} else if (isNetworkMode() && !name.isEmpty() && authPort > 0 && authPort <= NumericConstraints.MAX_ALLOWED_PORT_NUM.size()) {
 			TrackerClient tr = new TrackerClient();
 			boolean leased = tr.leaseBn(authPort);
 			if (tr.isConnected() && leased) {
@@ -303,7 +314,7 @@ public final class Bluenode {
 		PublicKeyState responce = PublicKeyState.valueOf(new TrackerClient().revokePubKey());
 		if (responce.equals(PublicKeyState.KEY_REVOKED)) {
 			AppLogger.getInstance().consolePrint("Your public key has been revoked from tracker. This bluenode will terminate");
-			Bluenode.getInstance().terminate();
+			this.terminate();
 		}
 		return responce;
 	}
@@ -314,7 +325,7 @@ public final class Bluenode {
 	}
 
 	private void silentTerminate() {
-		if (isListMode() || isPlainMode() || isJoinedNetwork()) {
+		if (this.blueNodeServer != null) {
 			this.blueNodeServer.kill();
 		}
 		localRedNodesTable.exitAll();
@@ -334,20 +345,23 @@ public final class Bluenode {
 		System.exit(1);
 	}
 
+	public ModeOfOperation getModeOfOperation() {
+		return this.modeOfOperation;
+	}
+
 	public boolean isNetworkMode() {
-		return this.networkMode;
+		return this.modeOfOperation == ModeOfOperation.NETWORK;
 	}
 
 	public boolean isJoinedNetwork() {
-		return this.networkMode && this.joined;
+		return this.modeOfOperation == ModeOfOperation.NETWORK && this.joined;
 	}
 
 	public boolean isListMode() {
-		return this.listMode;
+		return this.modeOfOperation == ModeOfOperation.LIST;
 	}
 
 	public boolean isPlainMode() {
-		return !this.listMode && !this.networkMode;
+		return this.modeOfOperation == ModeOfOperation.PLAIN;
 	}
-
 }

@@ -12,9 +12,8 @@ import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import org.kostiskag.unitynetwork.bluenode.ModeOfOperation;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
-
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
 
 final class CollectTrackerKeyView {
@@ -23,21 +22,29 @@ final class CollectTrackerKeyView {
 	private JTextField txtNotSet;
 	private JTextArea txtpnWii;
 	private JButton btnCollectTrackersPublic;
+
+	private final ModeOfOperation mode;
 	private final Optional<PublicKey> trackerPublicKey;
 	private final Runnable collectTrackerPublicKey;
 
 	/**
 	 * Create the application.
 	 */
-	public CollectTrackerKeyView(Optional<PublicKey> trackerPublicKey, Runnable collectTrackerPublicKey) {
-		this.trackerPublicKey = trackerPublicKey;
-		this.collectTrackerPublicKey = collectTrackerPublicKey;
-		initialize();
-		if (Bluenode.getInstance().isNetworkMode() && this.trackerPublicKey.isPresent()) {
-			txtNotSet.setText("Key is set");
-			txtpnWii.setText(CryptoUtilities.bytesToBase64String(this.trackerPublicKey.get().getEncoded()));
-			btnCollectTrackersPublic.setEnabled(false);
-		} 
+	public CollectTrackerKeyView(ModeOfOperation mode, Optional<PublicKey> trackerPublicKey, Runnable collectTrackerPublicKey) {
+		if (mode != ModeOfOperation.NETWORK) {
+			throw new IllegalArgumentException("This window may only be called on network");
+		} else {
+			this.mode = mode;
+			this.trackerPublicKey = trackerPublicKey;
+			this.collectTrackerPublicKey = collectTrackerPublicKey;
+			initialize();
+			if (this.trackerPublicKey.isPresent()) {
+				txtNotSet.setText("Key is set");
+				txtpnWii.setText(CryptoUtilities.bytesToBase64String(this.trackerPublicKey.get().getEncoded()));
+				btnCollectTrackersPublic.setEnabled(false);
+			}
+			frame.setVisible(true);
+		}
 	}
 
 	/**
@@ -95,9 +102,5 @@ final class CollectTrackerKeyView {
 		} else {
 			txtNotSet.setText("Key not set");
 		}
-	}
-
-	public void setVisible() {
-		frame.setVisible(true);
 	}
 }

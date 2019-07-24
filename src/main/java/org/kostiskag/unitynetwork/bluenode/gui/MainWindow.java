@@ -1,8 +1,12 @@
 package org.kostiskag.unitynetwork.bluenode.gui;
 
-import java.security.PublicKey;
+import java.util.function.BooleanSupplier;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.Optional;
 import java.util.Map;
 import java.util.HashMap;
+import java.security.PublicKey;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -10,22 +14,21 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
+import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
-import javax.swing.*;
 
+import org.kostiskag.unitynetwork.common.state.PublicKeyState;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 
+import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
+import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
+import org.kostiskag.unitynetwork.bluenode.ModeOfOperation;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
-import org.kostiskag.unitynetwork.common.state.PublicKeyState;
 
 
 /**
@@ -35,10 +38,10 @@ import org.kostiskag.unitynetwork.common.state.PublicKeyState;
  * @author Konstantinos Kagiampakis
  */
 public final class MainWindow extends JFrame {
-    
-    private static MainWindow MAIN_WINDOW;
-    private static final int TEXT_AREA_MAX_MESSAGE_VALUE = 10000;
+
     private static final long serialVersionUID = 5505085647328297106L;
+    private static final int TEXT_AREA_MAX_MESSAGE_VALUE = 10000;
+    private static MainWindow MAIN_WINDOW;
 
     //table models
     private final DefaultTableModel localRedNodeTableModel = new DefaultTableModel(new String[][]{}, new String[]{"Hostname", "Virtual Address", "Physical Address", "Auth Port", "Send Port", "Receive Port"});
@@ -52,22 +55,26 @@ public final class MainWindow extends JFrame {
     private final Object lockConsole = new Object();
     //instance data
     private final MainWindowPrefs prefs;
+    //tables
+    private final LocalRedNodeTable localRedNodeTable;
+    private final BlueNodeTable blueNodeTable;
     //our "action tickets"
     private final Runnable bluenodeTerminate;
     private final Function<String, PublicKeyState> offerPublicKey;
     private final Supplier<PublicKeyState> revokePublicKey;
     private final Optional<PublicKey> trackerPubKey;
     private final Runnable collectTrackerPublicKey;
+    private final BooleanSupplier isJoinedNetwork;
+    //view options
+    private final Map<AppLogger.MessageType, Boolean> viewType = new HashMap<>();
+    private final Map<NodeType, Boolean> viewhostType = new HashMap<>();
     //verbose
     private boolean autoScrollDownTraffic = true;
     private boolean autoScrollDownConsole = true;
     private boolean viewTraffic = true;
     private int messageCountConsole = 0;
     private int messageCountTraffic = 0;
-    //tables
-    private final Map<AppLogger.MessageType, Boolean> viewType = new HashMap<>();
-    private final Map<NodeType, Boolean> viewhostType = new HashMap<>();
-	
+
     private About about;
 
     public static class MainWindowPrefs {
@@ -76,25 +83,24 @@ public final class MainWindow extends JFrame {
         private final int maxRednodeEntries;
         private final int startPort;
         private final int endPort;
-        private final boolean networkMode;
+        private final ModeOfOperation modeOfOperation;
         private final boolean isTrackerKeySet;
-        private final boolean useListMode;
 
-        public MainWindowPrefs(String bluenodeName, int authPort, int maxRednodeEntries, int startPort, int endPort, boolean networkMode, boolean isTrackerKeySet, boolean useListMode) {
+        public MainWindowPrefs(String bluenodeName, int authPort, int maxRednodeEntries, int startPort, int endPort, ModeOfOperation modeOfOperation, boolean isTrackerKeySet) {
             this.bluenodeName = bluenodeName;
             this.authPort = authPort;
             this.maxRednodeEntries = maxRednodeEntries;
             this.startPort = startPort;
             this.endPort = endPort;
-            this.networkMode = networkMode;
+            this.modeOfOperation = modeOfOperation;
             this.isTrackerKeySet = isTrackerKeySet;
-            this.useListMode = useListMode;
+
         }
     }
     
-    public static MainWindow newInstance(MainWindowPrefs prefs, Runnable bluenodeTerminate, Function<String, PublicKeyState> offerPublicKey, Supplier<PublicKeyState> revokePublicKey, Optional<PublicKey> trackerPubKey, Runnable collectTrackerPublicKey) {
+    public static MainWindow newInstance(MainWindowPrefs prefs, Runnable bluenodeTerminate, Function<String, PublicKeyState> offerPublicKey, Supplier<PublicKeyState> revokePublicKey, Optional<PublicKey> trackerPubKey, Runnable collectTrackerPublicKey, BooleanSupplier isJoinedNetwork, LocalRedNodeTable localRedNodeTable, BlueNodeTable blueNodeTable) {
         if (MAIN_WINDOW == null) {
-            MAIN_WINDOW = new MainWindow(prefs, bluenodeTerminate, offerPublicKey, revokePublicKey, trackerPubKey, collectTrackerPublicKey);
+            MAIN_WINDOW = new MainWindow(prefs, bluenodeTerminate, offerPublicKey, revokePublicKey, trackerPubKey, collectTrackerPublicKey, isJoinedNetwork, localRedNodeTable, blueNodeTable);
         }
         return MAIN_WINDOW;
     }
@@ -103,13 +109,16 @@ public final class MainWindow extends JFrame {
         return MAIN_WINDOW;
     }
 
-    private MainWindow(MainWindowPrefs prefs, Runnable bluenodeTerminate, Function<String, PublicKeyState> offerPublicKey, Supplier<PublicKeyState> revokePublicKey, Optional<PublicKey> trackerPubKey, Runnable collectTrackerPublicKey) {
+    private MainWindow(MainWindowPrefs prefs, Runnable bluenodeTerminate, Function<String, PublicKeyState> offerPublicKey, Supplier<PublicKeyState> revokePublicKey, Optional<PublicKey> trackerPubKey, Runnable collectTrackerPublicKey , BooleanSupplier isJoinedNetwork, LocalRedNodeTable localRedNodeTable, BlueNodeTable blueNodeTable) {
         this.prefs = prefs;
         this.bluenodeTerminate = bluenodeTerminate;
         this.offerPublicKey = offerPublicKey;
         this.revokePublicKey = revokePublicKey;
         this.trackerPubKey = trackerPubKey;
         this.collectTrackerPublicKey = collectTrackerPublicKey;
+        this.isJoinedNetwork = isJoinedNetwork;
+        this.localRedNodeTable = localRedNodeTable;
+        this.blueNodeTable = blueNodeTable;
         for (AppLogger.MessageType m : AppLogger.MessageType.values()) {
             viewType.put(m, true);    
         }
@@ -123,12 +132,12 @@ public final class MainWindow extends JFrame {
         maxEntriesTextField.setText("" + prefs.maxRednodeEntries);
         portRangeTextField.setText("" + prefs.startPort + "-" + prefs.endPort);
 
-        if (prefs.networkMode) {
+        if (prefs.modeOfOperation == ModeOfOperation.NETWORK) {
             txtOpMode.setText("Network");
             if (prefs.isTrackerKeySet) {
                 uploadPublicKeyButton.setEnabled(false);
             }
-        } else if (prefs.useListMode){
+        } else if (prefs.modeOfOperation == ModeOfOperation.LIST){
             txtOpMode.setText("Standalone/List");
         } else {
             txtOpMode.setText("Standalone/Plain");
@@ -319,14 +328,14 @@ public final class MainWindow extends JFrame {
         uploadPublicKeyButton = new JButton("Manage BlueNode's Public Key");
         uploadPublicKeyButton.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		new UploadBluenodesKeyView(offerPublicKey, revokePublicKey).setVisible();
+        		new UploadBluenodesKeyView(prefs.modeOfOperation, isJoinedNetwork, offerPublicKey, revokePublicKey);
         	}
         });
         
         btnCollectTrackersPublic = new JButton("Collect Tracker's Public Key");
         btnCollectTrackersPublic.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent arg0) {
-        		new CollectTrackerKeyView(trackerPubKey, collectTrackerPublicKey).setVisible();
+        		new CollectTrackerKeyView(prefs.modeOfOperation, trackerPubKey, collectTrackerPublicKey);
         	}
         });
 
@@ -883,11 +892,11 @@ public final class MainWindow extends JFrame {
     }
 
     private void trackerRNLookup(ActionEvent evt) {
-        new TrackerLookupView().setVisible(true);
+        new TrackerLookupView(prefs.modeOfOperation, isJoinedNetwork);
     }
 
     private void openNewBnWindow() {
-        new NonAssociatedBlueNodeClientView().setVisible(true);
+        new NonAssociatedBlueNodeClientView(prefs.modeOfOperation, isJoinedNetwork);
     }
 
     private void openAssosiatedWindow() {
@@ -895,7 +904,15 @@ public final class MainWindow extends JFrame {
 			int row = remoteBluenodeTable.getSelectedRow();
 			if (row >= 0) {
 				try {
-					new AssociatedBlueNodeClientView((String) remoteBluenodeTable.getValueAt(row, 0)).setVisible();
+                    var name = (String) remoteBluenodeTable.getValueAt(row, 0);
+                    Runnable r = () -> {
+                        try {
+                            blueNodeTable.releaseBn(name);
+                        } catch (Exception e) {
+                            AppLogger.getInstance().consolePrint("release bn "+e.getLocalizedMessage());
+                        }
+                    };
+					new AssociatedBlueNodeClientView(prefs.modeOfOperation, isJoinedNetwork, blueNodeTable.getBlueNodeInstanceByName(name), r);
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -977,7 +994,7 @@ public final class MainWindow extends JFrame {
     }
 
     public void updateLocalRns() {
-        String[][] guiObj = Bluenode.getInstance().localRedNodesTable.buildGUIObj();
+        String[][] guiObj = localRedNodeTable.buildGUIObj();
         updateLocalRns(guiObj);
     }
 
@@ -995,7 +1012,7 @@ public final class MainWindow extends JFrame {
     }
 
     public void updateRemoteRns() {
-        String[][] guiObj = Bluenode.getInstance().blueNodeTable.buildRRNGUIObj();
+        String[][] guiObj = blueNodeTable.buildRRNGUIObj();
         updateRemoteRns(guiObj);
     }
 
@@ -1013,7 +1030,7 @@ public final class MainWindow extends JFrame {
     }
 
     public void updateBNs() {
-        String[][] guiObj = Bluenode.getInstance().blueNodeTable.buildBNGUIObj();
+        String[][] guiObj = blueNodeTable.buildBNGUIObj();
         updateBNs(guiObj);
     }
 

@@ -1,7 +1,9 @@
 package org.kostiskag.unitynetwork.bluenode.gui;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -13,42 +15,46 @@ import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import org.kostiskag.unitynetwork.bluenode.ModeOfOperation;
 import org.kostiskag.unitynetwork.common.state.PublicKeyState;
 
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
-
 final class UploadBluenodesKeyView {
-	private final Function<String, PublicKeyState> offerPublicKey;
-	private final Supplier<PublicKeyState> revokePublicKey;
-
 	private JFrame uploadPublicKeyFrm;
 	private JTextArea ticketTextArea;
 	private JTextField statusTextField;
 	private JButton uploadPubKeyButton;
 	private JButton revokePubKeyButton;
 
+	private final ModeOfOperation mode;
+	private final Function<String, PublicKeyState> offerPublicKey;
+	private final Supplier<PublicKeyState> revokePublicKey;
+	private final BooleanSupplier isJoinedNetwork;
+
+
 	/**
 	 * Create the application.
 	 */
-	public UploadBluenodesKeyView(Function<String, PublicKeyState> offerPublicKey, Supplier<PublicKeyState> revokePublicKey) {
-		this.offerPublicKey = offerPublicKey;
-		this.revokePublicKey = revokePublicKey;
-
-		initialize();
-		if (Bluenode.getInstance().isJoinedNetwork()) {
-			ticketTextArea.setEditable(false);
-			uploadPubKeyButton.setEnabled(false);
-			revokePubKeyButton.setEnabled(true);
-
+	public UploadBluenodesKeyView(ModeOfOperation mode, BooleanSupplier isJoinedNetwork, Function<String, PublicKeyState> offerPublicKey, Supplier<PublicKeyState> revokePublicKey) {
+		if (mode != ModeOfOperation.NETWORK) {
+			throw new IllegalArgumentException("This window may only be called on network");
 		} else {
-			ticketTextArea.setEditable(true);
-			uploadPubKeyButton.setEnabled(true);
-			revokePubKeyButton.setEnabled(false);
+			this.mode = mode;
+			this.isJoinedNetwork = isJoinedNetwork;
+			this.offerPublicKey = offerPublicKey;
+			this.revokePublicKey = revokePublicKey;
+
+			initialize();
+			if (isJoinedNetwork.getAsBoolean()) {
+				ticketTextArea.setEditable(false);
+				uploadPubKeyButton.setEnabled(false);
+				revokePubKeyButton.setEnabled(true);
+			} else {
+				ticketTextArea.setEditable(true);
+				uploadPubKeyButton.setEnabled(true);
+				revokePubKeyButton.setEnabled(false);
+			}
+			uploadPublicKeyFrm.setVisible(true);
 		}
-	}
-	
-	public void setVisible() {
-		uploadPublicKeyFrm.setVisible(true);
 	}
 
 	/**

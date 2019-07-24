@@ -4,15 +4,17 @@ import java.awt.Font;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.util.function.BooleanSupplier;
 
 import javax.swing.JFrame;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.bluenode.ModeOfOperation;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
 
 /**
@@ -22,69 +24,37 @@ import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient
 final class AssociatedBlueNodeClientView {
 
 	private JFrame frmAssociatedBlueNode;
+	private JLabel lblName;
 	private JTextField textField;
 	private JTextField textField_1;
 	private JTextField textField_2;
 	private JTextField textField_3;
 	private JTextField textField_4;
 	private JTextField textField_5;
-	private final String name;
-	private final BlueNode bn;
-	private JLabel lblName;
 	private JTextField textField_6;
+
+	private final ModeOfOperation mode;
+	private final BooleanSupplier isJoinedNetwork;
+	private final BlueNode bn;
+	private final Runnable releaseBn;
 
 	/**
 	 * Create the application.
 	 * @throws Exception 
 	 */
-	public AssociatedBlueNodeClientView(String name) throws Exception {
-		this.name = name;
-		this.bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByName(name);
-		initialize();
-		lblName.setText(name);
-		
-		JButton btnCheckbluenode = new JButton("checkBlueNode()");
-		btnCheckbluenode.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				check();
-			}
-		});
-		btnCheckbluenode.setBounds(10, 11, 166, 23);
-		frmAssociatedBlueNode.getContentPane().add(btnCheckbluenode);
-		
-		JButton btnNewButton_9 = new JButton("BlueNode Table release selected Blue Node");
-		btnNewButton_9.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				releaseBn();
-			}
-		});
-		btnNewButton_9.setBounds(10, 391, 292, 23);
-		frmAssociatedBlueNode.getContentPane().add(btnNewButton_9);
-		
-		textField_6 = new JTextField();
-		textField_6.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		textField_6.setBounds(107, 446, 306, 22);
-		frmAssociatedBlueNode.getContentPane().add(textField_6);
-		textField_6.setColumns(10);
-		
-		JLabel lblResponce = new JLabel("Responce");
-		lblResponce.setForeground(Color.RED);
-		lblResponce.setFont(new Font("Tahoma", Font.BOLD, 14));
-		lblResponce.setBounds(24, 449, 71, 16);
-		frmAssociatedBlueNode.getContentPane().add(lblResponce);
-		
-		JButton btnGivelocalrednodes = new JButton("giveLocalRedNodes()");
-		btnGivelocalrednodes.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				giveLocalRNs();
-			}
-		});
-		btnGivelocalrednodes.setBounds(221, 141, 199, 23);
-		frmAssociatedBlueNode.getContentPane().add(btnGivelocalrednodes);
-	}
+	public AssociatedBlueNodeClientView(ModeOfOperation mode, BooleanSupplier isJoinedNetwork, BlueNode bn, Runnable releaseBn) {
+		if (mode != ModeOfOperation.NETWORK || isJoinedNetwork == null || bn == null) {
+				throw new IllegalArgumentException("This window may only be called on network");
+		} else {
+			this.mode = mode;
+			this.isJoinedNetwork = isJoinedNetwork;
+			this.bn = bn;
+			this.releaseBn = releaseBn;
 
-	public void setVisible() {
-		frmAssociatedBlueNode.setVisible(true);
+			initialize();
+			lblName.setText(bn.getName());
+			frmAssociatedBlueNode.setVisible(true);
+		}
 	}
 
 	/**
@@ -96,7 +66,46 @@ final class AssociatedBlueNodeClientView {
 		frmAssociatedBlueNode.setBounds(100, 100, 668, 545);
 		frmAssociatedBlueNode.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frmAssociatedBlueNode.getContentPane().setLayout(null);
-		
+
+		JButton btnCheckbluenode = new JButton("checkBlueNode()");
+		btnCheckbluenode.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				check();
+			}
+		});
+		btnCheckbluenode.setBounds(10, 11, 166, 23);
+		frmAssociatedBlueNode.getContentPane().add(btnCheckbluenode);
+
+		JButton btnNewButton_9 = new JButton("BlueNode Table release selected Blue Node");
+		btnNewButton_9.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				releaseBn();
+			}
+		});
+		btnNewButton_9.setBounds(10, 391, 292, 23);
+		frmAssociatedBlueNode.getContentPane().add(btnNewButton_9);
+
+		textField_6 = new JTextField();
+		textField_6.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		textField_6.setBounds(107, 446, 306, 22);
+		frmAssociatedBlueNode.getContentPane().add(textField_6);
+		textField_6.setColumns(10);
+
+		JLabel lblResponce = new JLabel("Responce");
+		lblResponce.setForeground(Color.RED);
+		lblResponce.setFont(new Font("Tahoma", Font.BOLD, 14));
+		lblResponce.setBounds(24, 449, 71, 16);
+		frmAssociatedBlueNode.getContentPane().add(lblResponce);
+
+		JButton btnGivelocalrednodes = new JButton("giveLocalRedNodes()");
+		btnGivelocalrednodes.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				giveLocalRNs();
+			}
+		});
+		btnGivelocalrednodes.setBounds(221, 141, 199, 23);
+		frmAssociatedBlueNode.getContentPane().add(btnGivelocalrednodes);
+
 		JButton btnNewButton = new JButton(" uping()");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -358,7 +367,7 @@ final class AssociatedBlueNodeClientView {
 
 	protected void releaseBn() {
 		try {
-			Bluenode.getInstance().blueNodeTable.releaseBn(name);
+			releaseBn.run();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

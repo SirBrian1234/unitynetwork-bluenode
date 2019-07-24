@@ -1,9 +1,11 @@
 package org.kostiskag.unitynetwork.bluenode.gui;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.function.BooleanSupplier;
 import java.io.IOException;
 import java.security.PublicKey;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.Font;
 
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
@@ -12,10 +14,9 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
+import org.kostiskag.unitynetwork.bluenode.ModeOfOperation;
 
-import java.awt.Font;
 
 /**
  *
@@ -23,16 +24,32 @@ import java.awt.Font;
  */
 final class TrackerLookupView extends JFrame {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 2134450119636073406L;
-	/**
-     * Creates new form AddRemoteRedNode
-     */
-    public TrackerLookupView() {
-    	setTitle("Remote Red Node Lookup (Debug)");
-        initComponents();
+    private static final long serialVersionUID = 2134450119636073406L;
+
+	private JLabel label;
+	private JLabel jLabel2;
+	private JLabel lblResponce;
+	private JButton jButton1;
+	private JButton btnNewButton;
+	private JTextArea textField;
+	private JTextField jTextField2;
+	private final ButtonGroup buttonGroup = new ButtonGroup();
+
+	private final ModeOfOperation mode;
+    private final BooleanSupplier isJoinedNetwork;
+
+
+    public TrackerLookupView(ModeOfOperation mode, BooleanSupplier isJoinedNetwork) {
+    	if (mode != ModeOfOperation.NETWORK) {
+    		throw new IllegalArgumentException("This window may only be called on network");
+		} else {
+			setTitle("Remote Red Node Lookup (Debug)");
+			this.mode = mode;
+			this.isJoinedNetwork = isJoinedNetwork;
+
+			initComponents();
+			this.setVisible(true);
+		}
     }
 
     private void initComponents() {
@@ -71,7 +88,7 @@ final class TrackerLookupView extends JFrame {
         JButton btnNewButton_1 = new JButton("GETBNPUB");
         btnNewButton_1.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent arg0) {
-        		if (Bluenode.getInstance().isJoinedNetwork()) {
+        		if (isJoinedNetwork.getAsBoolean()) {
                 	String bnName = jTextField2.getText();
                 	if (!bnName.isEmpty() && bnName.length() < NumericConstraints.MAX_STR_LEN_SMALL.size()) {
                 		TrackerClient tr = new TrackerClient();
@@ -93,7 +110,7 @@ final class TrackerLookupView extends JFrame {
         JButton btnNewButton_2 = new JButton("GETRNPUB");
         btnNewButton_2.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		if (Bluenode.getInstance().isJoinedNetwork()) {
+        		if (isJoinedNetwork.getAsBoolean()) {
                 	String hostname = jTextField2.getText();
                 	if (!hostname.isEmpty() && hostname.length() < NumericConstraints.MAX_STR_LEN_SMALL.size()) {
                 		TrackerClient tr = new TrackerClient();
@@ -171,7 +188,7 @@ final class TrackerLookupView extends JFrame {
     }
 
 	private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        if (Bluenode.getInstance().isJoinedNetwork()) {
+        if (isJoinedNetwork.getAsBoolean()) {
         	String rnhostname = jTextField2.getText();
         	if (!rnhostname.isEmpty() && rnhostname.length() < NumericConstraints.MAX_STR_LEN_SMALL.size()) {
         		TrackerClient tr = new TrackerClient();
@@ -198,12 +215,5 @@ final class TrackerLookupView extends JFrame {
     	}		
 	}
 
-    private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JTextField jTextField2;
-    private final ButtonGroup buttonGroup = new ButtonGroup();
-    private JButton btnNewButton;
-    private JLabel label;
-    private JTextArea textField;
-    private JLabel lblResponce;
+
 }
