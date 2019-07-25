@@ -171,6 +171,8 @@ public final class BlueNodeServer extends SimpleUnstoppedCyclicService {
     @Override
     public void kill() {
         super.kill();
-        trackerTimeBuilder.kill();
+        if (operationMode == ModeOfOperation.NETWORK) {
+            trackerTimeBuilder.kill();
+        }
     }
 }

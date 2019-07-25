@@ -162,7 +162,7 @@ final class BlueNodeFunctions {
     static void getLocalRnVaddressByHostname(LocalRedNodeTable localRedNodeTable, String hostname, DataOutputStream socketWriter, SecretKey sessionKey) {
     	try {
 	    	if (localRedNodeTable.checkOnlineByHostname(hostname)) {
-	    		SocketUtilities.sendAESEncryptedStringData(localRedNodeTable.getRedNodeInstanceByHn(hostname).getVaddress(), socketWriter, sessionKey);
+	    		SocketUtilities.sendAESEncryptedStringData(localRedNodeTable.getRedNodeInstanceByHn(hostname).getAddress().asString(), socketWriter, sessionKey);
 	        } else {
 	        	SocketUtilities.sendAESEncryptedStringData("OFFLINE", socketWriter, sessionKey);
 	        }

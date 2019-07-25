@@ -72,7 +72,7 @@ public final class LocalRedNodeTable {
         Iterator<LocalRedNode> it = list.listIterator();
         while(it.hasNext()) {
         	LocalRedNode rn = it.next();
-        	if (rn.getVaddress().equals(vaddress)) {
+        	if (rn.getAddress().asString().equals(vaddress)) {
         		return rn;
         	}
         }
@@ -83,7 +83,7 @@ public final class LocalRedNodeTable {
         if (list.size() < maxRednodeEntries) {
             list.add(redNode);
             if (verbose) {
-                AppLogger.getInstance().consolePrint(PRE + " LEASED " + redNode.getVaddress() + " ~ " + redNode.getPhAddress());
+                AppLogger.getInstance().consolePrint(PRE + " LEASED " + redNode.getAddress().asString() + " ~ " + redNode.getPhAddress());
             }
             notifyGUI();
         } else {
@@ -126,7 +126,7 @@ public final class LocalRedNodeTable {
         Iterator<LocalRedNode> it = list.listIterator();
         while(it.hasNext()) {
         	LocalRedNode rn = it.next();
-        	if (rn.getVaddress().equals(vAddress)) {
+        	if (rn.getAddress().asString().equals(vAddress)) {
         		return true;
         	}
         }
@@ -150,7 +150,7 @@ public final class LocalRedNodeTable {
 		Iterator<LocalRedNode> it = list.listIterator();
         while(it.hasNext()) {
         	LocalRedNode rn = it.next();
-        	fetched.add(rn.getHostname()+" "+rn.getVaddress());
+        	fetched.add(rn.getHostname()+" "+rn.getAddress().asString());
         }
         return fetched;
 	}
@@ -161,7 +161,7 @@ public final class LocalRedNodeTable {
         int i=0;
     	while(it.hasNext()) {
         	LocalRedNode rn = it.next();
-        	object[i] = new String[]{rn.getHostname(), rn.getVaddress(), rn.getPhAddress(), ""+rn.getPort(), ""+rn.getSend().getServerPort(), ""+rn.getReceive().getServerPort()};
+        	object[i] = new String[]{rn.getHostname(), rn.getAddress().asString(), rn.getPhAddress().asString(), ""+rn.getPort(), ""+rn.getSend().getServerPort(), ""+rn.getReceive().getServerPort()};
         	i++;
         }
     	return object;

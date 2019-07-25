@@ -2,20 +2,26 @@ package org.kostiskag.unitynetwork.bluenode.rundata.entry;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.security.GeneralSecurityException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.crypto.SecretKey;
 
+import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
+import org.kostiskag.unitynetwork.common.entry.NodeEntry;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.Bluenode.Timings;
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.routing.QueueManager;
 import org.kostiskag.unitynetwork.bluenode.routing.Router;
 import org.kostiskag.unitynetwork.bluenode.redthreads.RedReceive;
 import org.kostiskag.unitynetwork.bluenode.redthreads.RedlSend;
+import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 
 
 /** 
@@ -25,100 +31,85 @@ import org.kostiskag.unitynetwork.bluenode.redthreads.RedlSend;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class LocalRedNode {
+public class LocalRedNode extends NodeEntry<VirtualAddress> {
 
-	//to check if a RN is connected in another BN before auth
-	private final String pre = "^AUTH ";
+    private static final String pre = "^AUTH ";
+    private static boolean didTrigger;
+
+    private static final int MAX_UPING_OFFER_ATTEMPTS = 12;
+    private static final long UPING_TIME_PERIOD = 500;
+    private static final int MAX_DPING_OFFER_ATTEMPTS = 10;
+    private static final long DPING_TIME_PERIOD = 200;
+    private static final long DREFRESH_WAIT_TIME = 1000;
+    private static final long UREFRESH_WAIT_TIME = 1000;
+
     //object data
-	private String Hostname;
-    private String Vaddress;
-    private SecretKey sessionKey;
-    private String phAddressStr;
-	private int port;    
-    private int state = 0;
+    private final SecretKey sessionKey;
+    private final PhysicalAddress phAddress;
+    private final int port;
     //socket objects
-    private DataInputStream socketReader;
-    private DataOutputStream socketWriter;
+    private final DataInputStream socketReader;
+    private final DataOutputStream socketWriter;
     //thread objects
+    private final QueueManager sendQueue;
+    private final QueueManager receiveQueue;
+    private final Router router;
     private RedReceive receive;
     private RedlSend send;
-    private QueueManager sendQueue;
-    private QueueManager receiveQueue;
-    private Router router;
     //loggers
-    private boolean uping = false;
-    private boolean didTrigger = false;
+    private AtomicBoolean uping = new AtomicBoolean(false);
+    private boolean connected;
 
-    public LocalRedNode() {
-        state = 0;
-    }
-    
-    /**
-     * This is a test constructor
-     */
-    public LocalRedNode(String Hostname, String Vaddress) {
-        this.Hostname = Hostname;
-        this.Vaddress = Vaddress;
-        this.state = 0;
-    }
+    public LocalRedNode(
+            String hostname,
+            String vAddress,
+            String phAddress,
+            int port,
+            DataInputStream socketReader,
+            DataOutputStream socketWriter,
+            SecretKey sessionKey) throws UnknownHostException, IllegalAccessException{
 
-    public LocalRedNode(String hostname, String vAddress, String phAddress, int port, DataInputStream socketReader, DataOutputStream socketWriter, SecretKey sessionKey) {
-    	this.Hostname = hostname;
-        this.Vaddress = vAddress;
+        super(hostname, VirtualAddress.valueOf(vAddress));
+        this.phAddress = PhysicalAddress.valueOf(phAddress);
+
         this.sessionKey = sessionKey;
-        
         this.socketReader = socketReader;
-    	this.socketWriter = socketWriter;
-    	this.phAddressStr = phAddress;
+        this.socketWriter = socketWriter;
     	this.port = port;
 
     	//notify the gui variables
     	if (!didTrigger) {
-    		if (AppLogger.getInstance().isGui()) {
-    			MainWindow.getInstance().setOneUserAsConnected();
-    		}
             didTrigger = true;
+            if (AppLogger.getInstance().isGui()) {
+                MainWindow.getInstance().setOneUserAsConnected();
+            }
         }
 
         //set queues
-        sendQueue = new QueueManager(10, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
-        receiveQueue = new QueueManager(10, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
-        router = new Router(getHostname(), receiveQueue);
+        this.sendQueue = new QueueManager(10, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
+        this.receiveQueue = new QueueManager(10, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
+        this.router = new Router(getHostname(), receiveQueue);
 
-        //set downlink (allways by the aspect of bluenode)
-        receive = new RedReceive(this);
+        //set downlink (always by the aspect of bluenode)
+        this.receive = new RedReceive(this);
 
-        //set uplink (allways by the aspect of bluenode)
-        send = new RedlSend(this);
+        //set uplink (always by the aspect of bluenode)
+        this.send = new RedlSend(this);
         
         //start the above
         receive.start();
         send.start();        
         router.start();
-        
-        state = 1;
     }
 
-    public String getHostname() {
-        return Hostname;
-    }
-
-    public String getVaddress() {
-        return Vaddress;
-    }
-
-    public String getPhAddress() {
-        return phAddressStr;
+    public PhysicalAddress getPhAddress() {
+        return phAddress;
     }
 
     public int getPort() {
 		return port;
 	}
-    
-    public int getStatus() {
-        return state;
-    }
-    
+
     public QueueManager getSendQueue() {
         return sendQueue;
     }
@@ -128,7 +119,7 @@ public class LocalRedNode {
     }
     
     private boolean getUPing() {
-        return uping;
+        return uping.get();
     }
 
     public RedlSend getSend() {
@@ -140,11 +131,11 @@ public class LocalRedNode {
     }
 
     public boolean isUPinged() {
-        return uping;
+        return uping.get();
     }
     
     public void setUPing(boolean b) {
-        this.uping = b;
+        this.uping.set(b);
     }
 
     /**
@@ -152,146 +143,122 @@ public class LocalRedNode {
      * send commands to the BN monitoring his status
      */
     public void initTerm() {
-        if (state > 0) {
-            while (true) {
-                String[] args = null;
-                try {
-                    args = SocketUtilities.receiveAESEncryptedStringData(socketReader, sessionKey);
-                } catch (Exception ex) {
-                    break;
-                }
-                
-                if (args == null) {
-                    break;
-                }
-                
-                if (args[0].equals("PING")) {
-                	try {
-                        SocketUtilities.sendAESEncryptedStringData("PING OK", socketWriter, sessionKey);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-                } else if (args[0].equals("UPING")) {
-                	setUPing(false);
-                	boolean set = false;
-                	try {
-                        SocketUtilities.sendAESEncryptedStringData("SET", socketWriter, sessionKey);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-                    for (int i = 0; i < 12; i++) {
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException ex) {
-                            ex.printStackTrace();
-                        }
-                        if (getUPing()) {
-                        	try {
-                                SocketUtilities.sendAESEncryptedStringData("UPING OK", socketWriter, sessionKey);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-                            set = true;
-                            break;
-                        }
-                    }
-                    if (!set) {
-                    	try {
-                            SocketUtilities.sendAESEncryptedStringData("UPING FAILED", socketWriter, sessionKey);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-                    }
-                    setUPing(false);
+        connected = true;
+        while (true) {
+            String[] args = null;
+            try {
+                args = SocketUtilities.receiveAESEncryptedStringData(socketReader, sessionKey);
+            } catch (GeneralSecurityException | IOException ex) {
+                break;
+            }
+            if (args == null || args.length != 1) {
+                continue;
+            }
 
-                } else if (args[0].equals("DPING")) {                    
-                        byte[] data = UnityPacket.buildDpingPacket();
-                        for (int i = 0; i < 10; i++) {
-                            getSendQueue().offer(data);
-                            try {
-								Thread.sleep(200);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-                        }                                                                  
-                } else if (args[0].equals("DREFRESH")) {
-                    AppLogger.getInstance().consolePrint(pre + " " + Vaddress + " UP REFRESH");
-                    drefresh();
-                } else if (args[0].equals("UREFRESH")) {
-                    AppLogger.getInstance().consolePrint(pre + Vaddress + " DOWN REFRESH");
-                    urefresh();
-                } else if (args[0].equals("WHOAMI")) {
-                    whoami();
-                } else if (args[0].equals("EXIT")) {
-                    break;
-                } else {
-                    //not recognized command
-                	try {
-                        SocketUtilities.sendAESEncryptedStringData("NRC", socketWriter, sessionKey);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-                }
-            }    
-            
-            //remember you can't kill the socket here
-        	//you have to let initTerm return and the socket closes by itself
-        	
-            //killing user tasks
-            receive.kill();
-            send.kill();
-            router.kill();
-            
-            //setting state
-            state = -1;       
+            if (args[0].equals("PING")) {
+                ping();
+            } else if (args[0].equals("UPING")) {
+                uPing();
+            } else if (args[0].equals("DPING")) {
+                dPing();
+            } else if (args[0].equals("DREFRESH")) {
+                dRefresh();
+            } else if (args[0].equals("UREFRESH")) {
+                uRefresh();
+            } else if (args[0].equals("WHOAMI")) {
+                whoami();
+            } else if (args[0].equals("EXIT")) {
+                break;
+            } else {
+                nrc();
+            }
         }
-    }
-    
-    private void whoami() {
-    	try {
-            SocketUtilities.sendAESEncryptedStringData(Hostname + "/" + Vaddress + " ~ " + phAddressStr + ":" + send.getServerPort() + ":" + receive.getServerPort(), socketWriter, sessionKey);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-    }
 
-    private void drefresh() {
-        send.kill();
-        send = new RedlSend(this);
-        send.start();
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
-        try {
-            SocketUtilities.sendAESEncryptedStringData("DREFRESH "+send.getServerPort(), socketWriter, sessionKey);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-    }
+        //remember you can't kill the socket here
+        //you have to let initTerm return and the socket closes by itself
 
-    private void urefresh() {
+        //killing user tasks
         receive.kill();
-        receive = new RedReceive(this);
-        receive.start();
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
-        try {
-            SocketUtilities.sendAESEncryptedStringData("UREFRESH "+receive.getServerPort(), socketWriter, sessionKey);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        send.kill();
+        router.kill();
+
+        connected = false;
+    }
+
+    private void ping() {
+        response("PING OK");
+    }
+
+    private void whoami() {
+        response(getHostname() + "/" + getAddress() + " ~ " + phAddress.asString() + ":" + send.getServerPort() + ":" + receive.getServerPort());
+    }
+
+    private void nrc() {
+        //not recognized command
+        response("NRC");
     }
 
     public void exit() {
-    	try {
-            SocketUtilities.sendAESEncryptedStringData("BYE", socketWriter, sessionKey);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        response("BYE");
+    }
+
+    private void uPing() {
+        setUPing(false);
+        boolean set = false;
+        response("SET");
+        for (int i = 0; i < MAX_UPING_OFFER_ATTEMPTS; i++) {
+            waitTimePeriod(UPING_TIME_PERIOD);
+            if (getUPing()) {
+                response("UPING OK");
+                set = true;
+                break;
+            }
+        }
+        if (!set) {
+            response("UPING FAILED");
+        }
+        setUPing(false);
+    }
+
+    private void dPing() {
+        byte[] data = UnityPacket.buildDpingPacket();
+        for (int i = 0; i < MAX_DPING_OFFER_ATTEMPTS; i++) {
+            getSendQueue().offer(data);
+            waitTimePeriod(DPING_TIME_PERIOD);
+        }
+    }
+
+    private void dRefresh() {
+        AppLogger.getInstance().consolePrint(pre + " " + getAddress().asString() + " UP REFRESH");
+        send.kill();
+        send = new RedlSend(this);
+        send.start();
+        waitTimePeriod(DREFRESH_WAIT_TIME);
+        response("DREFRESH "+send.getServerPort());
+    }
+
+    private void uRefresh() {
+        AppLogger.getInstance().consolePrint(pre + getAddress().asString() + " DOWN REFRESH");
+        receive.kill();
+        receive = new RedReceive(this);
+        receive.start();
+        waitTimePeriod(UREFRESH_WAIT_TIME);
+        response("UREFRESH "+receive.getServerPort());
+    }
+
+    private void response(String response) {
+        try {
+            SocketUtilities.sendAESEncryptedStringData(response, socketWriter, sessionKey);
+        } catch (GeneralSecurityException | IOException e) {
+            AppLogger.getInstance().consolePrint(pre+" socket error "+e.getLocalizedMessage());
+        }
+    }
+
+    private void waitTimePeriod(long timeInMilliSec) {
+        try {
+            Thread.sleep(timeInMilliSec);
+        } catch (InterruptedException e) {
+            AppLogger.getInstance().consolePrint(pre+" interrupted time socket error "+e.getLocalizedMessage());
+        }
     }
 }

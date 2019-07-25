@@ -147,11 +147,17 @@ final class RedNodeFunctions {
         //building the local rn object
         String phAddress = connectionSocket.getInetAddress().getHostAddress();
         int port = connectionSocket.getPort();
-    	LocalRedNode RNclient = new LocalRedNode( hostname, Vaddress, phAddress, port, socketReader, socketWriter, sessionKey);
-        
+		LocalRedNode redNodeClient = null;
+        try {
+			redNodeClient = new LocalRedNode( hostname, Vaddress, phAddress, port, socketReader, socketWriter, sessionKey);
+		} catch (IllegalAccessException | UnknownHostException e) {
+        	AppLogger.getInstance().consolePrint(pre+"could not create red node object.");
+        	return;
+		}
+
     	//leasing it to the local red node table
 		try {
-			redonodeTable.lease(RNclient);
+			redonodeTable.lease(redNodeClient);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
@@ -165,12 +171,12 @@ final class RedNodeFunctions {
         }
         
         try {
-			SocketUtilities.sendAESEncryptedStringData("REG_OK "+RNclient.getVaddress()+" "+RNclient.getReceive().getServerPort()+" "+RNclient.getSend().getServerPort(), socketWriter, sessionKey);
-            AppLogger.getInstance().consolePrint(pre+"RED NODE OK " +  RNclient.getHostname() + "/" + RNclient.getVaddress() +" ~ " + RNclient.getPhAddress() + ":" + RNclient.getSend().getServerPort() + ":" + RNclient.getReceive().getServerPort());
+			SocketUtilities.sendAESEncryptedStringData("REG_OK "+redNodeClient.getAddress().asString()+" "+redNodeClient.getReceive().getServerPort()+" "+redNodeClient.getSend().getServerPort(), socketWriter, sessionKey);
+            AppLogger.getInstance().consolePrint(pre+"RED NODE OK " +  redNodeClient.getHostname() + "/" + redNodeClient.getAddress().asString() +" ~ " + redNodeClient.getPhAddress() + ":" + redNodeClient.getSend().getServerPort() + ":" + redNodeClient.getReceive().getServerPort());
 	        
 	        //initTerm will use the session socket and will hold this thread
-	        RNclient.initTerm();
-	        //holds the thread as its statefull
+	        redNodeClient.initTerm();
+	        //holds the thread as its stateful
 	        //when RNclient.initTerm() returns the release process follows
         } catch (Exception e1) {
 			e1.printStackTrace();
@@ -179,7 +185,7 @@ final class RedNodeFunctions {
         //release from the network
         if (mode == ModeOfOperation.NETWORK) {
         	TrackerClient tr = new TrackerClient();
-            tr.releaseRnByHostname(RNclient.getHostname());
+            tr.releaseRnByHostname(redNodeClient.getHostname());
             bluenodeTable.releaseLocalRedNodeByHostnameFromAll(hostname);
         }
         
