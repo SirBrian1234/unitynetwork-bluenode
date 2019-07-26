@@ -19,7 +19,7 @@ public class BlueNodeTimeBuilder extends Thread {
     
     public BlueNodeTimeBuilder(BlueNode bn, int buildStepSec, int maxWaitTimeSec) {
     	this.bn = bn;
-    	this.pre = "^BlueNodeTimeBuilder "+bn.getName()+" ";
+    	this.pre = "^BlueNodeTimeBuilder "+bn.getHostname()+" ";
     	this.buildStepSec = buildStepSec;
     	this.maxWaitTimeSec = maxWaitTimeSec;
     }
@@ -40,7 +40,7 @@ public class BlueNodeTimeBuilder extends Thread {
             if (passedTime > maxWaitTimeSec*1000) {
                 AppLogger.getInstance().consolePrint(pre+"BlueNode is not responding releasing from the local bn table");
             	try {
-					Bluenode.getInstance().blueNodeTable.releaseBn(bn.getName());
+					Bluenode.getInstance().blueNodeTable.releaseBn(bn.getHostname());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

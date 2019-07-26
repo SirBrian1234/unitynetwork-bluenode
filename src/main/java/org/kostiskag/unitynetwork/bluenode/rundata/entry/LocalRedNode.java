@@ -88,7 +88,7 @@ public class LocalRedNode extends NodeEntry<VirtualAddress> {
         //set queues
         this.sendQueue = new QueueManager(10, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
         this.receiveQueue = new QueueManager(10, Timings.KEEP_ALIVE_TIME.getWaitTimeInSec());
-        this.router = new Router(getHostname(), receiveQueue);
+        this.router = new Router(this, receiveQueue);
 
         //set downlink (always by the aspect of bluenode)
         this.receive = new RedReceive(this);

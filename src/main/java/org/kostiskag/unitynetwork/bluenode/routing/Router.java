@@ -3,7 +3,9 @@ package org.kostiskag.unitynetwork.bluenode.routing;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
+import org.kostiskag.unitynetwork.common.entry.NodeEntry;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
@@ -21,14 +23,19 @@ import org.kostiskag.unitynetwork.bluenode.Bluenode;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class Router extends Thread {
+public class Router<A extends NodeEntry> extends Thread {
 
-    public final String pre;
-    public final QueueManager queueToRoute;
-    public final AtomicBoolean kill = new AtomicBoolean(false);
+    private final String pre;
+    private final A owner;
+    private final QueueManager queueToRoute;
+    private final AtomicBoolean kill = new AtomicBoolean(false);
     
-    public Router(String name, QueueManager queueToRoute) {
-    	this.pre = "^Router "+name+" ";
+    public Router(A owner, QueueManager queueToRoute) {
+    	if(!(owner instanceof LocalRedNode) && !(owner instanceof BlueNode)) {
+    		throw new IllegalArgumentException("router by a non-allowed NodeEntry object");
+		}
+    	this.owner = owner;
+    	this.pre = "^Router "+this.owner.getHostname()+" ";
     	this.queueToRoute = queueToRoute;
     }
 
@@ -91,7 +98,7 @@ public class Router extends Thread {
 							try {
 								bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
 								bn.getSendQueue().offer(data);
-								AppLogger.getInstance().trafficPrint(pre +"REMOTE DESTINATION -> " + bn.getName(), MessageType.ROUTING, NodeType.BLUENODE);
+								AppLogger.getInstance().trafficPrint(pre +"REMOTE DESTINATION -> " + bn.getHostname(), MessageType.ROUTING, NodeType.BLUENODE);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}                        

@@ -52,7 +52,7 @@ final class AssociatedBlueNodeClientView {
 			this.releaseBn = releaseBn;
 
 			initialize();
-			lblName.setText(bn.getName());
+			lblName.setText(bn.getHostname());
 			frmAssociatedBlueNode.setVisible(true);
 		}
 	}
@@ -241,9 +241,9 @@ final class AssociatedBlueNodeClientView {
 		try {
         	BlueNodeClient cl = new BlueNodeClient(bn);
 			if (cl.checkBlueNode()) {
-				textField_6.setText(bn.getName()+"is active.");
+				textField_6.setText(bn.getHostname()+"is active.");
 			} else {
-				textField_6.setText(bn.getName()+"is offline.");
+				textField_6.setText(bn.getHostname()+"is offline.");
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();

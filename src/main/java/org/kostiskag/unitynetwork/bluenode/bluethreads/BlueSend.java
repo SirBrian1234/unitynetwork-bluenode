@@ -1,14 +1,12 @@
 package org.kostiskag.unitynetwork.bluenode.bluethreads;
 
+import java.net.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
 
+import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
@@ -34,7 +32,7 @@ public class BlueSend extends Thread {
     //connection
     private int serverPort;
     private int portToSend;    
-    private InetAddress blueNodePhAddress;
+    private PhysicalAddress blueNodePhAddress;
     private DatagramSocket socket;    
     //triggers
     private boolean didTrigger = false;
@@ -48,8 +46,8 @@ public class BlueSend extends Thread {
     public BlueSend(BlueNode blueNode) {
     	this.isServer = true;
     	this.blueNode = blueNode;
-    	this.pre = "^BlueSend "+blueNode.getName()+" ";
-        this.blueNodePhAddress = blueNode.getPhaddress();
+    	this.pre = "^BlueSend "+blueNode.getHostname()+" ";
+        this.blueNodePhAddress = blueNode.getAddress();
         this.serverPort = PortHandle.getInstance().requestPort();
     }
     
@@ -57,11 +55,11 @@ public class BlueSend extends Thread {
      * This is the client constructor
      * It collects a port to send from the auth
      */
-    public BlueSend(BlueNode blueNode, int portToSend) {
+    public BlueSend(BlueNode blueNode, int portToSend) throws UnknownHostException {
     	this.isServer = false;
 		this.blueNode = blueNode;
-		this.pre = "^BlueSend " + blueNode.getName() + " ";
-		this.blueNodePhAddress = blueNode.getPhaddress();		
+		this.pre = "^BlueSend " + blueNode.getHostname() + " ";
+		this.blueNodePhAddress = blueNode.getAddress();
 		//when in client, port to send may be collected from auth
 		this.portToSend = portToSend;
 	}
@@ -89,7 +87,12 @@ public class BlueSend extends Thread {
     @Override
     public void run() {
     	if (isServer) {
-    		buildServer();
+    	    try {
+                buildServer();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+
     	} else {
     		buildClient();
     	}
@@ -109,7 +112,7 @@ public class BlueSend extends Thread {
 				packet = UnityPacket.buildKeepAlivePacket();
 			} 
 
-            DatagramPacket sendUDPPacket = new DatagramPacket(packet, packet.length, blueNodePhAddress, portToSend);
+            DatagramPacket sendUDPPacket = new DatagramPacket(packet, packet.length, blueNodePhAddress.asInet(), portToSend);
             try {
             	if (UnityPacket.isUnity(packet)) {
 					if (UnityPacket.isKeepAlive(packet)) {
@@ -186,7 +189,7 @@ public class BlueSend extends Thread {
 		}
 	}
 
-	private void buildServer() {
+	private void buildServer() throws UnknownHostException {
         AppLogger.getInstance().consolePrint(pre+"building server.");
         try {
             socket = new DatagramSocket(serverPort);
@@ -219,7 +222,7 @@ public class BlueSend extends Thread {
 
         //when in server, port to send may be found when a client sends a packet
         portToSend = receivedUDPPacket.getPort();
-        blueNodePhAddress = receivedUDPPacket.getAddress();		
+        blueNodePhAddress = PhysicalAddress.valueOf(receivedUDPPacket.getAddress().getHostAddress());
 	}
 
 }

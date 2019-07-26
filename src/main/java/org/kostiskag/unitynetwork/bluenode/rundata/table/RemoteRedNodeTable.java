@@ -1,6 +1,7 @@
 package org.kostiskag.unitynetwork.bluenode.rundata.table;
 
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -28,7 +29,7 @@ public class RemoteRedNodeTable {
         list =  new LinkedList<RemoteRedNode>();
         verbose = true;
         notifyGui = true;
-		AppLogger.getInstance().consolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
+		AppLogger.getInstance().consolePrint(pre + "INITIALIZED FOR "+blueNode.getHostname());
     }
     
     public RemoteRedNodeTable(BlueNode blueNode, LinkedList<RemoteRedNode> list) {
@@ -36,7 +37,7 @@ public class RemoteRedNodeTable {
         this.list =  list;
         verbose = true;
         notifyGui = true;
-		AppLogger.getInstance().consolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
+		AppLogger.getInstance().consolePrint(pre + "INITIALIZED FOR "+blueNode.getHostname());
     }
     
     public RemoteRedNodeTable(BlueNode blueNode, boolean verbose, boolean notifyGui) {
@@ -45,7 +46,7 @@ public class RemoteRedNodeTable {
         this.verbose = verbose;
         this.notifyGui = notifyGui;
         if (verbose) {
-			AppLogger.getInstance().consolePrint(pre + "INITIALIZED FOR "+blueNode.getName());
+			AppLogger.getInstance().consolePrint(pre + "INITIALIZED FOR "+blueNode.getHostname());
         }
     }
     
@@ -90,11 +91,11 @@ public class RemoteRedNodeTable {
 			rn = RemoteRedNode.newInstance(hostname, vAddress, blueNode);
 			list.add(rn);
 			if (verbose) {
-				AppLogger.getInstance().consolePrint(pre +"LEASED " + hostname + " - " + vAddress + " ON BLUE NODE " + blueNode.getName());
+				AppLogger.getInstance().consolePrint(pre +"LEASED " + hostname + " - " + vAddress + " ON BLUE NODE " + blueNode.getHostname());
 			}
 			notifyGUI();
 		} catch (UnknownHostException | IllegalAccessException e) {
-			AppLogger.getInstance().consolePrint(pre +"failed to lease " + hostname + " - " + vAddress + " ON BLUE NODE " + blueNode.getName()+" "+e.getLocalizedMessage());
+			AppLogger.getInstance().consolePrint(pre +"failed to lease " + hostname + " - " + vAddress + " ON BLUE NODE " + blueNode.getHostname()+" "+e.getLocalizedMessage());
 		}
     }
 
@@ -105,7 +106,7 @@ public class RemoteRedNodeTable {
     		if (rn.getHostname().equals(hostname)) {
     			it.remove();
     			if (verbose) {
-					AppLogger.getInstance().consolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getAddress().asString() + " FROM BLUE NODE " + blueNode.getName());
+					AppLogger.getInstance().consolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getAddress().asString() + " FROM BLUE NODE " + blueNode.getHostname());
     			}
     			notifyGUI();
     			return;
@@ -121,7 +122,7 @@ public class RemoteRedNodeTable {
     		if (rn.getAddress().asString().equals(vAddress)) {
     			it.remove();
     			if (verbose) {
-					AppLogger.getInstance().consolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getAddress().asString() + " FROM BLUE NODE " + blueNode.getName());
+					AppLogger.getInstance().consolePrint(pre +"RELEASED " + rn.getHostname() + " - " + rn.getAddress().asString() + " FROM BLUE NODE " + blueNode.getHostname());
     			}
     			notifyGUI();
     			return;
@@ -164,10 +165,19 @@ public class RemoteRedNodeTable {
     public synchronized void removeAll() {
         list.clear();
         if (verbose) {
-			AppLogger.getInstance().consolePrint(pre + "REMOVED ALL ENTRIES FOR BLUENODE "+blueNode.getName());
+			AppLogger.getInstance().consolePrint(pre + "REMOVED ALL ENTRIES FOR BLUENODE "+blueNode.getHostname());
         }
         notifyGUI();
     }
+
+	public synchronized void update(Collection<RemoteRedNode> rrns) {
+		list.clear();
+		list.addAll(rrns);
+		if (verbose) {
+			AppLogger.getInstance().consolePrint(pre + "UPDATED ALL RRN ENTRIES FOR BLUENODE "+blueNode.getHostname());
+		}
+		notifyGUI();
+	}
     
     //no build guiObj here it will be called from  thhe bns table
     //here we just notify

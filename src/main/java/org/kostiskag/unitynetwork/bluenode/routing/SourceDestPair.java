@@ -11,5 +11,5 @@ class SourceDestPair {
     public SourceDestPair(String sourcevaddress, String destvaddress) {
         this.sourcevaddress = sourcevaddress;
         this.destvaddress = destvaddress;
-    }        
+    }
 }

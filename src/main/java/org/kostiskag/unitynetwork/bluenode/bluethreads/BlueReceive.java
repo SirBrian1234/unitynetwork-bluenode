@@ -47,7 +47,7 @@ public class BlueReceive extends Thread {
     	this.isServer = true;
         this.serverPort = PortHandle.getInstance().requestPort();
         this.blueNode = blueNode;
-        this.pre = "^BlueDownServiceServer "+blueNode.getName()+" ";
+        this.pre = "^BlueDownServiceServer "+blueNode.getHostname()+" ";
         //simply since the server listens the port to receive is the server port
         this.portToReceive = serverPort;
     }
@@ -58,8 +58,8 @@ public class BlueReceive extends Thread {
     public BlueReceive(BlueNode blueNode, int portToReceive) {
     	this.isServer = false;
         this.blueNode = blueNode;
-        this.pre = "^BlueReceive "+blueNode.getName()+" ";
-        this.blueNodePhAddress = blueNode.getPhaddress();    	
+        this.pre = "^BlueReceive "+blueNode.getHostname()+" ";
+        this.blueNodePhAddress = blueNode.getAddress().asInet();
         //collects the port to receive from auth
     	this.portToReceive = portToReceive;        
     }

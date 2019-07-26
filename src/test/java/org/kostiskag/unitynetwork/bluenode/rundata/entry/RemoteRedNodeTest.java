@@ -17,8 +17,8 @@ public class RemoteRedNodeTest {
 	}
 
 	@Test
-	public void test() throws GeneralSecurityException, UnknownHostException, IllegalAccessException{
-		RemoteRedNode rn = RemoteRedNode.newInstance("ouiou", "10.0.0.200", new BlueNode("Pakis"));
+	public void test() throws GeneralSecurityException, UnknownHostException, IllegalAccessException, InterruptedException{
+		RemoteRedNode rn = RemoteRedNode.newInstance("ouiou", "10.0.0.200", new BlueNode("Pakis",null, "1.2.3.4", 0));
 		assertEquals(rn.getHostname(), "ouiou");
 		assertEquals(rn.getAddress().asString(), "10.0.0.200");
 		System.out.println(rn.getTimestamp());

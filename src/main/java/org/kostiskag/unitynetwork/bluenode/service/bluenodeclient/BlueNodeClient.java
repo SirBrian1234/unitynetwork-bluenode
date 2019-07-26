@@ -69,9 +69,9 @@ public final class BlueNodeClient {
 
 	public BlueNodeClient(BlueNode bn) {
 		this.bn = bn;
-		this.name = bn.getName();
-		this.phAddressStr = bn.getPhAddressStr();
-		this.phAddress = bn.getPhaddress();
+		this.name = bn.getHostname();
+		this.phAddressStr = bn.getAddress().asString();
+		this.phAddress = bn.getAddress().asInet();
 		this.authPort = bn.getRemoteAuthPort();
 		this.pub = bn.getPub();
 		initConnection();

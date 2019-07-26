@@ -181,7 +181,7 @@ final class BlueNodeFunctions {
 
 	public static void getRRNToBeReleasedByHn(BlueNode bn, String hostname, DataOutputStream socketWriter, SecretKey sessionKey) {
 		try {
-			bn.table.releaseByHostname(hostname);
+			bn.getTable().releaseByHostname(hostname);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -189,7 +189,7 @@ final class BlueNodeFunctions {
 	
 	public static void getRRNToBeReleasedByVaddr(BlueNode bn, String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
 		try {
-			bn.table.releaseByVaddr(vaddress);
+			bn.getTable().releaseByVaddr(vaddress);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -201,7 +201,7 @@ final class BlueNodeFunctions {
 			try {
 				BlueNode bn = blueNodeTable.getBlueNodeInstanceByName(blueNodeName);
 				bn.resetIdleTime();
-				bn.updateTime();
+				bn.updateTimestamp();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

@@ -1,5 +1,6 @@
 package org.kostiskag.unitynetwork.bluenode.rundata.table;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -48,7 +49,7 @@ public final class BlueNodeTable {
     	Iterator<BlueNode> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNode bn = it.next();
-    		if (bn.getName().equals(name)) {
+    		if (bn.getHostname().equals(name)) {
     			return bn;
     		}
     	}
@@ -59,7 +60,7 @@ public final class BlueNodeTable {
     	Iterator<BlueNode> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNode bn = it.next();
-    		if (bn.table.checkByVaddr(vaddress)) {
+    		if (bn.getTable().checkByVaddr(vaddress)) {
     			return bn;
     		}
     	}
@@ -70,7 +71,7 @@ public final class BlueNodeTable {
     	Iterator<BlueNode> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNode bn = it.next();
-    		if (bn.table.checkByHostname(hostname)) {
+    		if (bn.getTable().checkByHostname(hostname)) {
     			return bn;
     		}
     	}
@@ -83,15 +84,15 @@ public final class BlueNodeTable {
     	Iterator<BlueNode> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNode bn = it.next();
-    		if (bn.getName().equals(blueNode.getName())) {
-    			throw new Exception(pre+"DUPLICATE ENTRY "+blueNode.getName()+" ATTEMPTED TO JOIN BNTABLE.");
+    		if (bn.getHostname().equals(blueNode.getHostname())) {
+    			throw new Exception(pre+"DUPLICATE ENTRY "+blueNode.getHostname()+" ATTEMPTED TO JOIN BNTABLE.");
     		}
     	}
     	
     	//add if not found
     	list.add(blueNode);
     	if (verbose) {
-			AppLogger.getInstance().consolePrint(pre +"LEASED BLUE NODE " + blueNode.getName());
+			AppLogger.getInstance().consolePrint(pre +"LEASED BLUE NODE " + blueNode.getHostname());
     	}
     	notifyGUI();
     }
@@ -101,25 +102,25 @@ public final class BlueNodeTable {
     	Iterator<BlueNode> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNode bn = it.next();
-    		if (bn.table.checkByHostname(hostname) || bn.table.checkByVaddr(vaddress)) {
+    		if (bn.getTable().checkByHostname(hostname) || bn.getTable().checkByVaddr(vaddress)) {
     			throw new Exception(pre+"DUPLICATE ENTRY FOR REMOTE RED NODE "+hostname+" "+vaddress);
     		}
     	}    	
     	//notify goes to RemoteRedNodeTable
-    	blueNode.table.lease(hostname, vaddress);
+    	blueNode.getTable().lease(hostname, vaddress);
     }
     
     public synchronized void releaseBn(String name) throws Exception {
     	Iterator<BlueNode> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNode bn = it.next();
-    		if (bn.getName().equals(name)) {
+    		if (bn.getHostname().equals(name)) {
     			BlueNodeClient cl = new BlueNodeClient(bn);
         		cl.removeThisBlueNodesProjection();
         		bn.killtasks();  	    			
     			it.remove();
     			if (verbose) {
-					AppLogger.getInstance().consolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
+					AppLogger.getInstance().consolePrint(pre +"RELEASED BLUE NODE " + bn.getHostname());
     			}
     			notifyGUI();
     			notifyRGUI();
@@ -133,7 +134,7 @@ public final class BlueNodeTable {
     	Iterator<BlueNode> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNode bn = it.next();
-    		if (bn.getName().equals(name)) {
+    		if (bn.getHostname().equals(name)) {
     			return true;
     		}
     	} 
@@ -153,7 +154,7 @@ public final class BlueNodeTable {
     		cl.removeThisBlueNodesProjection();
     		//bn.killtasks();  	
     		if (verbose) {
-                AppLogger.getInstance().consolePrint(pre +"RELEASED BLUE NODE " + bn.getName());
+                AppLogger.getInstance().consolePrint(pre +"RELEASED BLUE NODE " + bn.getHostname());
 			}
     	}
     	list.clear();
@@ -163,7 +164,7 @@ public final class BlueNodeTable {
     	Iterator<BlueNode> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNode bn = it.next();
-    		if (bn.table.checkByHostname(hostname)) {
+    		if (bn.getTable().checkByHostname(hostname)) {
     			return true;
     		}
     	} 
@@ -174,7 +175,7 @@ public final class BlueNodeTable {
     	Iterator<BlueNode> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNode bn = it.next();
-    		if (bn.table.checkByVaddr(vaddress)) {
+    		if (bn.getTable().checkByVaddr(vaddress)) {
     			return true;
     		}
     	} 
@@ -185,7 +186,7 @@ public final class BlueNodeTable {
     	Iterator<BlueNode> it = list.listIterator();
     	while(it.hasNext()){
     		BlueNode bn = it.next();
-    		if (bn.getName().equals(blueNodeName)) {
+    		if (bn.getHostname().equals(blueNodeName)) {
     			BlueNodeClient cl = new BlueNodeClient(bn);
         		cl.removeRedNodeProjectionByHn(hostname);
         		return;
@@ -208,7 +209,7 @@ public final class BlueNodeTable {
         int i=0;
     	while(it.hasNext()) {
         	BlueNode bn = it.next();
-        	object[i] = new String[]{bn.getName(), bn.isTheRemoteAServer(), bn.getPhAddressStr(), ""+bn.getRemoteAuthPort(),""+bn.getPortToSend(), ""+bn.getPortToReceive(), bn.getTime()};
+        	object[i] = new String[]{bn.getHostname(), bn.isTheRemoteAServer(), bn.getAddress().asString(), ""+bn.getRemoteAuthPort(),""+bn.getPortToSend(), ""+bn.getPortToReceive(), bn.getTimestamp().asDate().toString()};
         	i++;
         }
     	return object;
@@ -220,7 +221,7 @@ public final class BlueNodeTable {
     	Iterator<BlueNode> it = list.listIterator();
     	while(it.hasNext()) {
         	BlueNode bn = it.next();
-        	totalSize += bn.table.getSize();
+        	totalSize += bn.getTable().getSize();
     	}
     	String[][] object =  new String[totalSize][];
     	
@@ -229,10 +230,10 @@ public final class BlueNodeTable {
         int i=0;
         while(it.hasNext()) {
          	BlueNode bn = it.next();
-         	Iterator<RemoteRedNode> rit = bn.table.getList().listIterator();
+         	Iterator<RemoteRedNode> rit = bn.getTable().getList().listIterator();
          	while(rit.hasNext()) {
          		RemoteRedNode rn = rit.next();
-         		object[i] = new String[]{rn.getHostname(), rn.getAddress().asString() , bn.getName(), rn.getTimestamp().asDate().toString()};
+         		object[i] = new String[]{rn.getHostname(), rn.getAddress().asString() , bn.getHostname(), rn.getTimestamp().asDate().toString()};
          		i++;
          	}         	
         }
@@ -253,13 +254,13 @@ public final class BlueNodeTable {
 	            	BlueNodeClient cl = new BlueNodeClient(element);
 					if (cl.checkBlueNode()) {
 						if (verbose) {
-							AppLogger.getInstance().consolePrint(pre+"Fetching RNs from BN "+element.getName());
+							AppLogger.getInstance().consolePrint(pre+"Fetching RNs from BN "+element.getHostname());
 						}
-					    element.updateTime();
+					    element.updateTimestamp();
 					    cl = new BlueNodeClient(element);
 					    LinkedList<RemoteRedNode> rns = cl.getRemoteRedNodesObj();
-					    LinkedList<RemoteRedNode> in = element.table.getList();
-					    LinkedList<RemoteRedNode> valid = new LinkedList<RemoteRedNode>();
+					    LinkedList<RemoteRedNode> in = element.getTable().getList();
+					    Collection<RemoteRedNode> valid = new LinkedList<RemoteRedNode>();
 					    Iterator<RemoteRedNode> rnsIt = rns.iterator();
 					    
 					    while (rnsIt.hasNext()) {
@@ -272,12 +273,12 @@ public final class BlueNodeTable {
 					    		}				    	
 				    		}
 					    }				    
-					    element.table = new RemoteRedNodeTable(element, valid);
+					    element.getTable().update(valid);
 					} else { 
 						element.killtasks();
 						iterator.remove();      
 						if (verbose) {
-							AppLogger.getInstance().consolePrint(pre +"RELEASED NON RESPONDING BLUE NODE " + element.getName());
+							AppLogger.getInstance().consolePrint(pre +"RELEASED NON RESPONDING BLUE NODE " + element.getHostname());
 						}
 					}
 				} catch (Exception e) {

@@ -18,8 +18,8 @@ public class RemoteRedNodeTableTest {
 	}
 
 	@Test
-	public void initTest() throws UnknownHostException, GeneralSecurityException {
-		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis"), false, false);
+	public void initTest() throws UnknownHostException, GeneralSecurityException, InterruptedException, IllegalAccessException {
+		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, "1.2.3.4", 0), false, false);
 		assertEquals(table.getSize(),0);
 		table.lease("ouiou", "10.0.0.200");
 		table.lease("ouiou2", "10.0.0.201");
@@ -29,8 +29,8 @@ public class RemoteRedNodeTableTest {
 	}
 
 	@Test
-	public void getByHost() throws UnknownHostException, GeneralSecurityException {
-		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis"), false, false);
+	public void getByHost() throws UnknownHostException, GeneralSecurityException, InterruptedException, IllegalAccessException {
+		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, "1.2.3.4", 0), false, false);
 		assertEquals(table.getSize(),0);
 		table.lease("ouiou", "10.0.0.203");
 		table.lease("ouiou2", "10.0.0.202");
@@ -45,8 +45,8 @@ public class RemoteRedNodeTableTest {
 	}
 	
 	@Test
-	public void getByVaddr() throws UnknownHostException, GeneralSecurityException{
-		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis"), false, false);
+	public void getByVaddr() throws UnknownHostException, GeneralSecurityException, InterruptedException, IllegalAccessException{
+		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, "1.2.3.4", 0), false, false);
 		assertEquals(table.getSize(),0);
 		table.lease("ouiou", "10.0.0.200");
 		table.lease("ouiou2", "10.0.0.201");
@@ -61,8 +61,8 @@ public class RemoteRedNodeTableTest {
 	}
 	
 	@Test
-	public void releaseByHost() throws UnknownHostException, GeneralSecurityException {
-		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis"), false, false);
+	public void releaseByHost() throws UnknownHostException, GeneralSecurityException, InterruptedException, IllegalAccessException {
+		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, "1.2.3.4", 0), false, false);
 		assertEquals(table.getSize(),0);
 		table.lease("ouiou", "10.0.0.200");
 		table.lease("ouiou2", "10.0.0.201");
