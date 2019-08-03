@@ -7,6 +7,7 @@ import java.io.DataOutputStream;
 
 import javax.crypto.SecretKey;
 
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
@@ -46,7 +47,7 @@ public final class GlobalSocketFunctions {
 	        for (int i = 1; i < count+1; i++) {        	
 				args = lines[i].split("\\s+");
 	            try {
-	            	blueNodeTable.leaseRRn(bn, args[0], args[1]);
+	            	blueNodeTable.leaseRRn(bn, args[0], VirtualAddress.valueOf(args[1]));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}				

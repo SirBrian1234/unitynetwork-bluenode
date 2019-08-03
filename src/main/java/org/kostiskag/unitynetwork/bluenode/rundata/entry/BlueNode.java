@@ -4,7 +4,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.net.UnknownHostException;
 import java.security.PublicKey;
+import java.util.concurrent.locks.Lock;
 
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
+import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.entry.NodeEntry;
 
@@ -186,5 +190,45 @@ public class BlueNode extends NodeEntry<PhysicalAddress> {
         }
         
         sendQueue.clear();
+    }
+
+
+    /**
+     * release performs all the inner BlueNode operations for a logical release.
+     *
+     * @throws IllegalAccessException
+     * @throws InterruptedException
+     */
+    public void release() throws IllegalAccessException, InterruptedException {
+        BlueNodeClient cl = new BlueNodeClient(this);
+        cl.removeThisBlueNodesProjection();
+        this.killtasks();
+    }
+
+    /**
+     * Releases a RemoteRedNode only if it's found!
+     *
+     * @param hostname
+     * @throws IllegalAccessException
+     * @throws InterruptedException
+     */
+    public void releaseRRn(String hostname) throws IllegalAccessException, InterruptedException {
+        //do not be confused, the lock for the inner RemoteRedNodeTable is different
+        //from that of BlueNode Table
+        Lock lock = null;
+        try {
+            lock = this.getTable().aquireLock();
+            var o = this.getTable().getOptionalNodeEntry(lock, hostname);
+            if (o.isPresent()) {
+                BlueNodeClient cl = new BlueNodeClient(this);
+                cl.removeRedNodeProjectionByHn(hostname);
+
+                this.getTable().release(lock, o.get());
+            } else {
+                throw new IllegalAccessError("no RRN with hostname " + hostname);
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 }

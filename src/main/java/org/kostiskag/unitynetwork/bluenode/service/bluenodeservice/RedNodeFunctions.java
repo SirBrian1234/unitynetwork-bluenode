@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.locks.Lock;
 
 import javax.crypto.SecretKey;
 
@@ -186,7 +187,16 @@ final class RedNodeFunctions {
         if (mode == ModeOfOperation.NETWORK) {
         	TrackerClient tr = new TrackerClient();
             tr.releaseRnByHostname(redNodeClient.getHostname());
-            bluenodeTable.releaseLocalRedNodeByHostnameFromAll(hostname);
+
+            Lock lock = null;
+            try {
+				lock = bluenodeTable.aquireLock();
+				bluenodeTable.releaseLocalRedNodeByHostnameFromAll(lock, hostname);
+			} catch (IllegalAccessException | InterruptedException e) {
+				AppLogger.getInstance().consolePrint(e.getMessage());
+			} finally {
+				lock.unlock();
+			}
         }
         
         //release from local red node table

@@ -197,7 +197,7 @@ public final class Bluenode {
 		 */
 		this.localRedNodesTable = LocalRedNodeTable.newInstance(maxRednodeEntries);
 		if (isNetworkMode()) {
-			this.blueNodeTable = BlueNodeTable.newInstance();
+			this.blueNodeTable = BlueNodeTable.newInstance(mainWindow);
 		}
 
 		/*

@@ -7,9 +7,11 @@ import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.security.PublicKey;
+import java.util.concurrent.locks.Lock;
 
 import javax.crypto.SecretKey;
 
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
@@ -127,11 +129,15 @@ final class BlueNodeFunctions {
     }
     
     static void releaseBn(BlueNodeTable blueNodeTable, String BlueNodeName) {
-        try {
-			blueNodeTable.releaseBn(BlueNodeName);
+		Lock lock = null;
+    	try {
+    		lock = blueNodeTable.aquireLock();
+			blueNodeTable.releaseBn(lock, BlueNodeName);
 		} catch (Exception e) {
 			
-		}        
+		} finally {
+    		lock.unlock();
+		}
     }
     
     static void giveLRNs(LocalRedNodeTable localRedNodeTable, DataOutputStream socketWriter, SecretKey sessionKey) {
@@ -173,23 +179,29 @@ final class BlueNodeFunctions {
 
     static void getFeedReturnRoute(BlueNodeTable blueNodeTable,BlueNode bn, String hostname, String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
         try {
-			blueNodeTable.leaseRRn(bn, hostname, vaddress);
+			blueNodeTable.leaseRRn(bn, hostname, VirtualAddress.valueOf(vaddress));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
     }
 
 	public static void getRRNToBeReleasedByHn(BlueNode bn, String hostname, DataOutputStream socketWriter, SecretKey sessionKey) {
-		try {
-			bn.getTable().releaseByHostname(hostname);
+		Lock lock = null;
+    	try {
+    		lock = bn.getTable().aquireLock();
+			bn.getTable().release(lock, hostname);
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+    		lock.unlock();
 		}
 	}
 	
 	public static void getRRNToBeReleasedByVaddr(BlueNode bn, String vaddress, DataOutputStream socketWriter, SecretKey sessionKey) {
-		try {
-			bn.getTable().releaseByVaddr(vaddress);
+		Lock lock = null;
+    	try {
+    		lock = bn.getTable().aquireLock();
+			bn.getTable().releaseByVirtualAddress(lock, vaddress);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -197,15 +209,20 @@ final class BlueNodeFunctions {
 
 	public static void check(BlueNodeTable blueNodeTable, String blueNodeName, DataOutputStream socketWriter, SecretKey sessionKey) {
 		//if associated reset idleTime and update timestamp as well
-		if (blueNodeTable.checkBlueNode(blueNodeName)) {
-			try {
-				BlueNode bn = blueNodeTable.getBlueNodeInstanceByName(blueNodeName);
-				bn.resetIdleTime();
-				bn.updateTimestamp();
-			} catch (Exception e) {
-				e.printStackTrace();
+		Lock lock = null;
+		try {
+			lock = blueNodeTable.aquireLock();
+			var o = blueNodeTable.getBlueNodeInstanceByName(lock, blueNodeName);
+			if (o.isPresent()) {
+				o.get().resetIdleTime();
+				o.get().updateTimestamp();
 			}
+		} catch (InterruptedException e) {
+			AppLogger.getInstance().consolePrint(e.getLocalizedMessage());
+		} finally {
+			lock.unlock();
 		}
+
 		try {
 			SocketUtilities.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 		} catch (Exception e) {

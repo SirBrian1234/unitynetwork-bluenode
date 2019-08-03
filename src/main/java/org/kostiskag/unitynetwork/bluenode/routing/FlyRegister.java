@@ -2,6 +2,7 @@ package org.kostiskag.unitynetwork.bluenode.routing;
 
 import java.security.PublicKey;
 
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.service.SimpleUnstoppedCyclicService;
 
@@ -90,7 +91,7 @@ public final class FlyRegister extends SimpleUnstoppedCyclicService {
                         BlueNodeClient cl = new BlueNodeClient(bn);
                         String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
                         if (!remoteHostname.equals("OFFLINE")) {
-                            this.blueNodeTable.leaseRRn(bn, remoteHostname, destvaddress);
+                            this.blueNodeTable.leaseRRn(bn, remoteHostname, VirtualAddress.valueOf(destvaddress));
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -141,7 +142,7 @@ public final class FlyRegister extends SimpleUnstoppedCyclicService {
                         cl = new BlueNodeClient(bn);
                         String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
                         if (!remoteHostname.equals("OFFLINE")) {
-                            this.blueNodeTable.leaseRRn(bn, remoteHostname, destvaddress);
+                            this.blueNodeTable.leaseRRn(bn, remoteHostname, VirtualAddress.valueOf(destvaddress));
                         }
                     } catch (Exception e) {
                         e.printStackTrace();

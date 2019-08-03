@@ -6,6 +6,8 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 
+import java.util.concurrent.locks.Lock;
+
 
 /**
  *
@@ -36,10 +38,14 @@ public class BlueNodeTimeBuilder extends TimeBuilder {
     @Override
     protected void postActions() {
         AppLogger.getInstance().consolePrint(pre+"BlueNode is not responding releasing from the local bn table");
+        Lock lock = null;
         try {
-            Bluenode.getInstance().blueNodeTable.releaseBn(bn.getHostname());
-        } catch (Exception e) {
+            Bluenode.getInstance().blueNodeTable.aquireLock();
+            Bluenode.getInstance().blueNodeTable.releaseBn(lock, bn);
+        } catch (InterruptedException | IllegalAccessException e) {
             AppLogger.getInstance().consolePrint(pre+"BlueNodeTable release exception "+e.getLocalizedMessage());
+        } finally {
+            lock.unlock();
         }
     }
 
