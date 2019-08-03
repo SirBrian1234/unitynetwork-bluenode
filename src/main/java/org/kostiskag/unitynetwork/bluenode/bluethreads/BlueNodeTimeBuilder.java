@@ -1,55 +1,50 @@
 package org.kostiskag.unitynetwork.bluenode.bluethreads;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.common.service.TimeBuilder;
+
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
+import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
+
 
 /**
  *
  * @author Konstantinos Kagiampakis
  */
-public class BlueNodeTimeBuilder extends Thread {
+public class BlueNodeTimeBuilder extends TimeBuilder {
 
     private final String pre;
     private final BlueNode bn;
-    private final int buildStepSec;
-    private final int maxWaitTimeSec;
-    private AtomicBoolean kill = new AtomicBoolean(false);
-    
-    public BlueNodeTimeBuilder(BlueNode bn, int buildStepSec, int maxWaitTimeSec) {
-    	this.bn = bn;
+
+    public static BlueNodeTimeBuilder newInstance(BlueNode bn, int buildStepSec, int maxWaitTimeSec) throws IllegalAccessException {
+        var b = new BlueNodeTimeBuilder(bn, buildStepSec, maxWaitTimeSec);
+        b.start();
+        return b;
+    }
+
+    private BlueNodeTimeBuilder(BlueNode bn, int buildStepSec, int maxWaitTimeSec) throws IllegalAccessException{
+    	super(buildStepSec, maxWaitTimeSec);
+        this.bn = bn;
     	this.pre = "^BlueNodeTimeBuilder "+bn.getHostname()+" ";
-    	this.buildStepSec = buildStepSec;
-    	this.maxWaitTimeSec = maxWaitTimeSec;
     }
-    
+
     @Override
-    public void run() {
-
+    protected void preActions() {
         AppLogger.getInstance().consolePrint(pre+"JUST STARTED");
-        while (!kill.get()){
-            AppLogger.getInstance().consolePrint(pre+"WAITING");
-            try {
-                sleep(buildStepSec*1000);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-            if (kill.get()) break;
-            int passedTime = bn.idleTime.addAndGet(buildStepSec*1000);
-            if (passedTime > maxWaitTimeSec*1000) {
-                AppLogger.getInstance().consolePrint(pre+"BlueNode is not responding releasing from the local bn table");
-            	try {
-					Bluenode.getInstance().blueNodeTable.releaseBn(bn.getHostname());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-            }
-        }
-        AppLogger.getInstance().consolePrint(pre+"ENDED");
     }
 
-    public void Kill() {
-        kill.set(true);
-    }       
+    @Override
+    protected void postActions() {
+        AppLogger.getInstance().consolePrint(pre+"BlueNode is not responding releasing from the local bn table");
+        try {
+            Bluenode.getInstance().blueNodeTable.releaseBn(bn.getHostname());
+        } catch (Exception e) {
+            AppLogger.getInstance().consolePrint(pre+"BlueNodeTable release exception "+e.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    protected void interruptedMessage(InterruptedException e) {
+        AppLogger.getInstance().consolePrint(pre+" exception "+e.getLocalizedMessage());
+    }
 }

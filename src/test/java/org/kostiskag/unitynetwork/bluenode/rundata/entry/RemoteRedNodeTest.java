@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
+import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
 
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
@@ -14,6 +15,7 @@ public class RemoteRedNodeTest {
 	@BeforeClass
 	public static void before() {
 		AppLogger.newInstance(false, null,false,false);
+		PortHandle.newInstance(10, 100);
 	}
 
 	@Test

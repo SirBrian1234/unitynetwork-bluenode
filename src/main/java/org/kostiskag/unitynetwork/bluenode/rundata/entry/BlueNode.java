@@ -81,17 +81,14 @@ public class BlueNode extends NodeEntry<PhysicalAddress> {
         } else {
             this.send = new BlueSend(this, upPort);
             this.receive = new BlueReceive(this, downPort);
-            this.timeBuilder = new BlueNodeTimeBuilder(this, Timings.BLUENODE_STEP_TIME.getWaitTimeInSec(), Timings.BLUENODE_MAX_IDLE_TIME.getWaitTimeInSec());
+            //starts on its own!
+            this.timeBuilder = BlueNodeTimeBuilder.newInstance(this, Timings.BLUENODE_STEP_TIME.getWaitTimeInSec(), Timings.BLUENODE_MAX_IDLE_TIME.getWaitTimeInSec());
         }
 
         //starting all threads
         this.send.start();
         this.receive.start();
         this.router.start();
-
-        if (!isServer) {
-            this.timeBuilder.start();
-        }
 
         //hold the thread a bit to catch up the started threads
         Thread.sleep(200);
@@ -185,7 +182,7 @@ public class BlueNode extends NodeEntry<PhysicalAddress> {
         router.kill();
         
         if (!isServer) {
-            timeBuilder.Kill();
+            timeBuilder.kill();
         }
         
         sendQueue.clear();

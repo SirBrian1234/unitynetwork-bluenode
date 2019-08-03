@@ -48,15 +48,15 @@ public final class BlueNodeServer extends SimpleUnstoppedCyclicService {
     private boolean didTrigger;
 
     public static BlueNodeServer newInstance(String localBluenodeName, LocalRedNodeTable rednodeTable, int authPort, Runnable terminateBluenode) throws IOException, IllegalAccessException {
-        return BlueNodeServer.newInstance(ModeOfOperation.PLAIN, localBluenodeName, null, rednodeTable, null, null, null, 0, authPort, terminateBluenode);
+        return BlueNodeServer.newInstance(ModeOfOperation.PLAIN, localBluenodeName, null, rednodeTable, null, null, null, 0, 0, authPort, terminateBluenode);
     }
 
     public static BlueNodeServer newInstance(String localBluenodeName, AccountTable accountTable, LocalRedNodeTable rednodeTable, int authPort, Runnable terminateBluenode) throws IOException, IllegalAccessException {
-        return BlueNodeServer.newInstance(ModeOfOperation.LIST, localBluenodeName, accountTable, rednodeTable, null, null, null, 0, authPort, terminateBluenode);
+        return BlueNodeServer.newInstance(ModeOfOperation.LIST, localBluenodeName, accountTable, rednodeTable, null, null, null, 0, 0, authPort, terminateBluenode);
     }
 
-    public static BlueNodeServer newInstance(String localBluenodeName, LocalRedNodeTable rednodeTable, BlueNodeTable bluenodeTable, KeyPair bluenodeKeyPair, PublicKey trackerPublic, int authPort, int trackerTimeBuilderTIme, Runnable terminateBluenode) throws IOException, IllegalAccessException {
-        return BlueNodeServer.newInstance(ModeOfOperation.NETWORK, localBluenodeName, null, rednodeTable, bluenodeTable, bluenodeKeyPair, trackerPublic, trackerTimeBuilderTIme, authPort, terminateBluenode);
+    public static BlueNodeServer newInstance(String localBluenodeName, LocalRedNodeTable rednodeTable, BlueNodeTable bluenodeTable, KeyPair bluenodeKeyPair, PublicKey trackerPublic, int authPort, int trackerTimeBuilderTIme, int trackerTimeBuilderMaxIdleTime, Runnable terminateBluenode) throws IOException, IllegalAccessException {
+        return BlueNodeServer.newInstance(ModeOfOperation.NETWORK, localBluenodeName, null, rednodeTable, bluenodeTable, bluenodeKeyPair, trackerPublic, trackerTimeBuilderTIme, trackerTimeBuilderMaxIdleTime, authPort, terminateBluenode);
     }
 
     private static BlueNodeServer newInstance(ModeOfOperation mode,
@@ -66,12 +66,13 @@ public final class BlueNodeServer extends SimpleUnstoppedCyclicService {
                                               BlueNodeTable bluenodeTable,
                                               KeyPair bluenodeKeyPair,
                                               PublicKey trackerPublic,
-                                              int trackerTimeBuilderTIme,
+                                              int trackerTimeBuilderTime,
+                                              int trackerTimeBuilderMaxIdleTime,
                                               int authPort,
                                               Runnable terminateBluenode) throws IOException, IllegalAccessException {
         if (!INSTANTIATED) {
             INSTANTIATED = true;
-            var server = new BlueNodeServer(mode, localBluenodeName, accountTable, rednodeTable, bluenodeTable, bluenodeKeyPair, trackerPublic, trackerTimeBuilderTIme, authPort, terminateBluenode);
+            var server = new BlueNodeServer(mode, localBluenodeName, accountTable, rednodeTable, bluenodeTable, bluenodeKeyPair, trackerPublic, trackerTimeBuilderTime, trackerTimeBuilderMaxIdleTime, authPort, terminateBluenode);
             server.start();
             return server;
         }
@@ -85,7 +86,8 @@ public final class BlueNodeServer extends SimpleUnstoppedCyclicService {
                            BlueNodeTable bluenodeTable,
                            KeyPair bluenodeKeyPair,
                            PublicKey trackerPublic,
-                           int trackerTimeBuilderTIme,
+                           int trackerTimeBuilderTime,
+                           int trackerTimeBuilderMaxIdleTime,
                            int authPort,
                            Runnable terminateBluenode)  throws IOException, IllegalAccessException{
 
@@ -95,15 +97,15 @@ public final class BlueNodeServer extends SimpleUnstoppedCyclicService {
             throw new IllegalArgumentException(msg);
         }
         if (mode == ModeOfOperation.PLAIN) {
-            if (rednodeTable == null || accountTable != null || bluenodeTable != null || bluenodeKeyPair != null || trackerPublic != null || trackerTimeBuilderTIme != 0) {
+            if (rednodeTable == null || accountTable != null || bluenodeTable != null || bluenodeKeyPair != null || trackerPublic != null || trackerTimeBuilderTime != 0) {
                 throw new IllegalArgumentException(msg);
             }
         } else if (mode == ModeOfOperation.LIST) {
-            if ( accountTable == null || rednodeTable == null || bluenodeTable != null || bluenodeKeyPair != null || trackerPublic != null || trackerTimeBuilderTIme != 0) {
+            if ( accountTable == null || rednodeTable == null || bluenodeTable != null || bluenodeKeyPair != null || trackerPublic != null || trackerTimeBuilderTime != 0) {
                 throw new IllegalArgumentException(msg);
             }
         } else {
-            if ( rednodeTable == null || bluenodeTable == null || bluenodeKeyPair == null || trackerPublic == null || trackerTimeBuilderTIme == 0 || accountTable != null) {
+            if ( rednodeTable == null || bluenodeTable == null || bluenodeKeyPair == null || trackerPublic == null || trackerTimeBuilderTime == 0 || accountTable != null) {
                 throw new IllegalArgumentException(msg);
             }
         }
@@ -117,7 +119,7 @@ public final class BlueNodeServer extends SimpleUnstoppedCyclicService {
              * Time builder periodically checks the tracker to determine if it's alive!
              *
              */
-            this.trackerTimeBuilder = TrackerTimeBuilder.newInstance(trackerTimeBuilderTIme, terminateBluenode);
+            this.trackerTimeBuilder = TrackerTimeBuilder.newInstance(trackerTimeBuilderTime, trackerTimeBuilderMaxIdleTime, terminateBluenode);
         } else {
             this.trackerTimeBuilder = null;
         }

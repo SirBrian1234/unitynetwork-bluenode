@@ -233,7 +233,7 @@ public final class Bluenode {
 					 *  7. Finally. Initialize auth server so that the BN may accept clients
 					 *
 					 */
-					blueNodeServer = BlueNodeServer.newInstance(this.name, this.localRedNodesTable, this.blueNodeTable, this.bluenodeKeys, this.trackerPublicKey, Timings.TRACKER_CHECK_TIME.getWaitTimeInSec(), authPort, this.bluenodeTerminate);
+					blueNodeServer = BlueNodeServer.newInstance(this.name, this.localRedNodesTable, this.blueNodeTable, this.bluenodeKeys, this.trackerPublicKey, Timings.TRACKER_CHECK_TIME.getWaitTimeInSec(), Timings.TRACKER_MAX_IDLE_TIME.getWaitTimeInSec(), authPort, this.bluenodeTerminate);
 				} else {
 					AppLogger.getInstance().consolePrint("This bluenode is not connected in the network.");
 				}

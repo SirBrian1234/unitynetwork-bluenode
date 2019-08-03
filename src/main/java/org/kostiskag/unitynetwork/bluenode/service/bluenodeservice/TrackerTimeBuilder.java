@@ -5,34 +5,32 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.common.service.SimpleCyclicService;
+import org.kostiskag.unitynetwork.common.service.TimeBuilder;
 
 /**
  *
  * @author Konstantinos Kagiampakis
  */
-final class TrackerTimeBuilder extends SimpleCyclicService {
+final class TrackerTimeBuilder extends TimeBuilder {
 
     private static final String PRE = "^Tracker sonar ";
     private static boolean INSTANTIATED;
 
     private final Runnable bluenodeTerminate;
 
-    public static TrackerTimeBuilder newInstance(int timeInSec, Runnable bluenodeTerminate) throws IllegalAccessException {
+    public static TrackerTimeBuilder newInstance(int buildStepSec, int maxWaitTimeSec, Runnable bluenodeTerminate) throws IllegalAccessException {
         //makes only one instance returns only one reference
         if (!INSTANTIATED) {
             INSTANTIATED = true;
-            var timeBuilder = new TrackerTimeBuilder(timeInSec, bluenodeTerminate);
+            var timeBuilder = new TrackerTimeBuilder(buildStepSec, maxWaitTimeSec, bluenodeTerminate);
             timeBuilder.start();
             return timeBuilder;
         }
         return null;
     }
 
-    // triggers
-    private AtomicInteger trackerRespond = new AtomicInteger(0);
-
-    private TrackerTimeBuilder(int timeInSec, Runnable bluenodeTerminate) throws IllegalAccessException {
-        super(timeInSec);
+    private TrackerTimeBuilder(int buildStepSec, int maxWaitTimeSec, Runnable bluenodeTerminate) throws IllegalAccessException {
+        super(buildStepSec, maxWaitTimeSec);
         this.bluenodeTerminate = bluenodeTerminate;
     }
 
@@ -43,30 +41,13 @@ final class TrackerTimeBuilder extends SimpleCyclicService {
 
     @Override
     protected void postActions() {
-        AppLogger.getInstance().consolePrint(PRE +"DIED");
+        AppLogger.getInstance().consolePrint(PRE + "GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL");
+        bluenodeTerminate.run();
     }
 
     @Override
     protected void interruptedMessage(InterruptedException e) {
-        e.printStackTrace();
+        AppLogger.getInstance().consolePrint(PRE + "interrupted "+e.getLocalizedMessage());
     }
 
-    @Override
-    protected void cyclicPayload() {
-        int passedTime = trackerRespond.addAndGet(getTime());
-        AppLogger.getInstance().consolePrint(PRE + " BUILDING TIME " + passedTime);
-
-        if (passedTime > getTime() * 60) {
-            AppLogger.getInstance().consolePrint(PRE + "GRAVE ERROR TRACKER DIED!!! REMOVING RNS, STARTING BN KILL");
-            bluenodeTerminate.run();
-        }
-    }
-
-    public int getTotalElapsedTime() {
-        return trackerRespond.get();
-    }
-
-    public void resetClock() {
-        trackerRespond.set(0);
-    }
 }
