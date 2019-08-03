@@ -17,8 +17,8 @@ public class QueueManager extends Thread {
 	 * This constructor can be used from the bluenode and for each local rednode
 	 * or bluenode instance.
 	 * 
-	 * @param blueNode
 	 * @param maxCapacity
+	 * @param maxWaitTimeSec
 	 */
 	public QueueManager(int maxCapacity, int maxWaitTimeSec) {
 		this.maxCapacity = maxCapacity;
