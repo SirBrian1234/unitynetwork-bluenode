@@ -1,5 +1,6 @@
 package org.kostiskag.unitynetwork.bluenode;
 
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +58,7 @@ final class ReadBluenodePreferencesFile extends ReadPreferencesFile {
 
     public static List<LocalAccount> ParseHostClientList(File hostListFile) throws GeneralSecurityException, IOException {
 		List<LocalAccount> list = new ArrayList<>();
-        try(BufferedReader br = new BufferedReader(new FileReader(hostListFile))) {
+        try(var br = Files.newBufferedReader(hostListFile.toPath())) {
 			while (br.ready()) {
 				String line = br.readLine();
 				if (!line.isEmpty() && !line.startsWith("#") && !line.startsWith("\n") && !line.startsWith(" ")) {
