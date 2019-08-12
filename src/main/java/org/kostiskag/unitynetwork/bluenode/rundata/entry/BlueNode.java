@@ -121,11 +121,11 @@ public class BlueNode extends NodeEntry<PhysicalAddress> {
 		return uploadMan;
 	}
     
-    public QueueManager getSendQueue() {
+    public QueueManager<byte[]> getSendQueue() {
         return sendQueue;
     }
     
-    public QueueManager getReceiveQueue() {
+    public QueueManager<byte[]> getReceiveQueue() {
 		return receiveQueue;
 	}
     
