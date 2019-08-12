@@ -27,7 +27,7 @@ public class Router<A extends NodeEntry> extends Thread {
 
     private final String pre;
     private final A owner;
-    private final QueueManager queueToRoute;
+    private final QueueManager<byte[]> queueToRoute;
     private final AtomicBoolean kill = new AtomicBoolean(false);
     
     public Router(A owner, QueueManager queueToRoute) {
