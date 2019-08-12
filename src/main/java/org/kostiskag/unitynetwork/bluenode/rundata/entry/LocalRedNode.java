@@ -51,8 +51,8 @@ public class LocalRedNode extends NodeEntry<VirtualAddress> {
     private final DataInputStream socketReader;
     private final DataOutputStream socketWriter;
     //thread objects
-    private final QueueManager sendQueue;
-    private final QueueManager receiveQueue;
+    private final QueueManager<byte[]> sendQueue;
+    private final QueueManager<byte[]> receiveQueue;
     private final Router router;
     private RedReceive receive;
     private RedlSend send;
@@ -110,11 +110,11 @@ public class LocalRedNode extends NodeEntry<VirtualAddress> {
 		return port;
 	}
 
-    public QueueManager getSendQueue() {
+    public QueueManager<byte[]> getSendQueue() {
         return sendQueue;
     }
     
-    public QueueManager getReceiveQueue() {
+    public QueueManager<byte[]> getReceiveQueue() {
         return receiveQueue;
     }
     

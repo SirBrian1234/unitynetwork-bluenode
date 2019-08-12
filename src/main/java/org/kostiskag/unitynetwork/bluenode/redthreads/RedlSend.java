@@ -9,16 +9,15 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
-import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 
+import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
+import org.kostiskag.unitynetwork.bluenode.AppLogger;
 
 
 /**
