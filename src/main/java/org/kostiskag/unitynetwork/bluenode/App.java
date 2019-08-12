@@ -57,7 +57,7 @@ final class App extends Thread {
 	}
 
 	public static synchronized void writeTrackerPublicKey(PublicKey trackerKey) throws IOException {
-		CryptoUtilities.objectToFile(trackerKey, FileNames.TRACKER_KEY_FILE.getPath().toFile());
+		CryptoUtilities.objectToFile(trackerKey, FileNames.TRACKER_KEY_FILE.getPath());
 	}
 
 	/**
@@ -105,7 +105,7 @@ final class App extends Thread {
 			// the tracker has key pair
 			System.out.println(pre+"Loading RSA key pair from file...");
 			try {
-				keys = CryptoUtilities.fileToObject(keyPairFile.toFile());
+				keys = CryptoUtilities.fileToObject(keyPairFile);
 				System.out.println(pre +
 						"Your public key is:\n" + CryptoUtilities.bytesToBase64String(keys.getPublic().getEncoded()));
 			} catch (GeneralSecurityException | IOException e) {
@@ -122,7 +122,7 @@ final class App extends Thread {
 				keys = CryptoUtilities.generateRSAkeyPair();
 				// and storing
 				System.out.println(pre + "Generating key file...");
-				CryptoUtilities.objectToFile(keys, keyPairFile.toFile());
+				CryptoUtilities.objectToFile(keys, keyPairFile);
 				System.out.println(pre +
 						"Your public key is:\n" + CryptoUtilities.bytesToBase64String(keys.getPublic().getEncoded()));
 			} catch (GeneralSecurityException | IOException e) {
@@ -137,7 +137,7 @@ final class App extends Thread {
 		Path trackerPublic = FileNames.TRACKER_KEY_FILE.getPath();
 		if (Files.exists(trackerPublic)) {
 			try {
-				trackerKey = CryptoUtilities.fileToObject(trackerPublic.toFile());
+				trackerKey = CryptoUtilities.fileToObject(trackerPublic);
 			} catch (GeneralSecurityException | IOException e) {
 				System.out.println(pre+"could not read public key");
 				System.out.println(e.getMessage());
