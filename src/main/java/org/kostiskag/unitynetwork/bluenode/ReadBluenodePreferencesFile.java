@@ -1,13 +1,11 @@
 package org.kostiskag.unitynetwork.bluenode;
 
-import java.nio.file.Files;
-import java.security.GeneralSecurityException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.File;
-import java.io.FileReader;
-import java.io.BufferedReader;
+import java.nio.file.Files;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
@@ -20,7 +18,7 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalAccount;
  *
  * @author Konstantinos Kagiampakis
  */
-final class ReadBluenodePreferencesFile extends ReadPreferencesFile {
+final class ReadBluenodePreferencesFile {
 	public final boolean network;
 	public final PhysicalAddress trackerAddress;
 	public final int trackerPort;
@@ -35,30 +33,31 @@ final class ReadBluenodePreferencesFile extends ReadPreferencesFile {
 	public final boolean soutTraffic;
 	public final boolean log;
 
-	public ReadBluenodePreferencesFile(File file) throws IOException {
-		super(file);
-		this.network = Boolean.parseBoolean(cfg.getProperty("Network").strip());
-		this.trackerAddress = PhysicalAddress.valueOf(cfg.getProperty("UnityTrackerAddress").strip());
-		this.trackerPort = Integer.parseInt(cfg.getProperty("UnityTrackerAuthPort").strip());
-		this.trackerMaxIdleTimeMin = Integer.parseInt( cfg.getProperty("TrackerMaxIdleTimeMin").strip());
-		this.name = cfg.getProperty("Name").strip();
-		this.useList = Boolean.parseBoolean(cfg.getProperty("UseHostList").strip());
-		this.authPort = Integer.parseInt(cfg.getProperty("AuthPort").strip());
-		this.startPort = Integer.parseInt(cfg.getProperty("udpstart").strip());
-		this.endPort = Integer.parseInt(cfg.getProperty("udpend").strip());
-		this.maxRednodeEntries = Integer.parseInt(cfg.getProperty("RedNodeLimit").strip());
-		this.gui = Boolean.parseBoolean(cfg.getProperty("UseGUI").strip());
-		this.soutTraffic = Boolean.parseBoolean(cfg.getProperty("ConsoleTraffic").strip());
-		this.log = Boolean.parseBoolean(cfg.getProperty("Log").strip());
+	public ReadBluenodePreferencesFile(Path filePath) throws IOException {
+		var prefs = ReadPreferencesFile.readPreferencesFile(filePath);
+
+		this.network = Boolean.parseBoolean(prefs.getProperty("Network").strip());
+		this.trackerAddress = PhysicalAddress.valueOf(prefs.getProperty("UnityTrackerAddress").strip());
+		this.trackerPort = Integer.parseInt(prefs.getProperty("UnityTrackerAuthPort").strip());
+		this.trackerMaxIdleTimeMin = Integer.parseInt( prefs.getProperty("TrackerMaxIdleTimeMin").strip());
+		this.name = prefs.getProperty("Name").strip();
+		this.useList = Boolean.parseBoolean(prefs.getProperty("UseHostList").strip());
+		this.authPort = Integer.parseInt(prefs.getProperty("AuthPort").strip());
+		this.startPort = Integer.parseInt(prefs.getProperty("udpstart").strip());
+		this.endPort = Integer.parseInt(prefs.getProperty("udpend").strip());
+		this.maxRednodeEntries = Integer.parseInt(prefs.getProperty("RedNodeLimit").strip());
+		this.gui = Boolean.parseBoolean(prefs.getProperty("UseGUI").strip());
+		this.soutTraffic = Boolean.parseBoolean(prefs.getProperty("ConsoleTraffic").strip());
+		this.log = Boolean.parseBoolean(prefs.getProperty("Log").strip());
 	}
 
-	public static ReadBluenodePreferencesFile ParseConfigFile(File file) throws IOException {
-        return new ReadBluenodePreferencesFile(file);
+	public static ReadBluenodePreferencesFile ParseConfigFile(Path filePath) throws IOException {
+        return new ReadBluenodePreferencesFile(filePath);
     }
 
-    public static List<LocalAccount> ParseHostClientList(File hostListFile) throws GeneralSecurityException, IOException {
+    public static List<LocalAccount> ParseHostClientList(Path hostListFilePath) throws GeneralSecurityException, IOException {
 		List<LocalAccount> list = new ArrayList<>();
-        try(var br = Files.newBufferedReader(hostListFile.toPath())) {
+        try(var br = Files.newBufferedReader(hostListFilePath)) {
 			while (br.ready()) {
 				String line = br.readLine();
 				if (!line.isEmpty() && !line.startsWith("#") && !line.startsWith("\n") && !line.startsWith(" ")) {
@@ -70,8 +69,8 @@ final class ReadBluenodePreferencesFile extends ReadPreferencesFile {
         return list;
     }
     
-    public static void GenerateConfigFile(File file) throws IOException {
-		ReadPreferencesFile.generateFile(file, () -> String.join("\n",
+    public static void GenerateConfigFile(Path filePath) throws IOException {
+		ReadPreferencesFile.generateFile(filePath, () -> String.join("\n",
 			"#####################################",
 			"#   BlueNode Configuration File     #",
 			"#####################################",
@@ -158,8 +157,8 @@ final class ReadBluenodePreferencesFile extends ReadPreferencesFile {
 			""));
     }
     
-    public static void GenerateHostClientFile(File file) throws IOException {
-		ReadPreferencesFile.generateFile(file, () -> String.join("\n",
+    public static void GenerateHostClientFile(Path filePath) throws IOException {
+		ReadPreferencesFile.generateFile(filePath, () -> String.join("\n",
 			"###############################",
 			"#   Host-Client List File     #",
 			"###############################",

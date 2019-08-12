@@ -3,6 +3,8 @@ package org.kostiskag.unitynetwork.bluenode;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
@@ -35,19 +37,19 @@ final class App extends Thread {
 		KEY_PAIR_FILE("public_private.keypair"),
 		TRACKER_KEY_FILE("tracker_public.key");
 
-		private File f;
+		private Path path;
 
 		FileNames(String name) {
-			this.f = new File(name);
+			this.path = Path.of(name);
 		}
 
-		public File getFile() {
-			return f;
+		public Path getPath() {
+			return path;
 		}
 	}
 
 	public static synchronized void writeToLogFile(String message) {
-		try (FileWriter fw = new FileWriter(FileNames.LOG_FILE.getFile(), true)) {
+		try (FileWriter fw = new FileWriter(FileNames.LOG_FILE.getPath().toFile(), true)) {
 			fw.append(message + "\n");
 		} catch (IOException ex) {
 			System.out.println(ex.getLocalizedMessage());
@@ -55,7 +57,7 @@ final class App extends Thread {
 	}
 
 	public static synchronized void writeTrackerPublicKey(PublicKey trackerKey) throws IOException {
-		CryptoUtilities.objectToFile(trackerKey, FileNames.TRACKER_KEY_FILE.getFile());
+		CryptoUtilities.objectToFile(trackerKey, FileNames.TRACKER_KEY_FILE.getPath().toFile());
 	}
 
 	/**
@@ -77,8 +79,8 @@ final class App extends Thread {
 		//loading .conf file if exists or generating a new file and load the default settings if non existing.
 		System.out.println(pre+"Checking configuration file " + FileNames.CONFIG_FILE + "...");
 		ReadBluenodePreferencesFile prefs = null;
-		File configFile = FileNames.CONFIG_FILE.getFile();
-		if (configFile.exists()) {
+		Path configFile = FileNames.CONFIG_FILE.getPath();
+		if (Files.exists(configFile)) {
 			try {
 				prefs = ReadBluenodePreferencesFile.ParseConfigFile(configFile);
 			} catch (IOException e) {
@@ -98,12 +100,12 @@ final class App extends Thread {
 		
 		// 3. rsa key pair
 		KeyPair keys = null;
-		File keyPairFile = FileNames.KEY_PAIR_FILE.getFile();
-		if (keyPairFile.exists()) {
+		Path keyPairFile = FileNames.KEY_PAIR_FILE.getPath();
+		if (Files.exists(keyPairFile)) {
 			// the tracker has key pair
 			System.out.println(pre+"Loading RSA key pair from file...");
 			try {
-				keys = CryptoUtilities.fileToObject(keyPairFile);
+				keys = CryptoUtilities.fileToObject(keyPairFile.toFile());
 				System.out.println(pre +
 						"Your public key is:\n" + CryptoUtilities.bytesToBase64String(keys.getPublic().getEncoded()));
 			} catch (GeneralSecurityException | IOException e) {
@@ -120,7 +122,7 @@ final class App extends Thread {
 				keys = CryptoUtilities.generateRSAkeyPair();
 				// and storing
 				System.out.println(pre + "Generating key file...");
-				CryptoUtilities.objectToFile(keys, keyPairFile);
+				CryptoUtilities.objectToFile(keys, keyPairFile.toFile());
 				System.out.println(pre +
 						"Your public key is:\n" + CryptoUtilities.bytesToBase64String(keys.getPublic().getEncoded()));
 			} catch (GeneralSecurityException | IOException e) {
@@ -132,10 +134,10 @@ final class App extends Thread {
 		
 		// tracker's public
 		PublicKey trackerKey = null;
-		File trackerPublic = FileNames.TRACKER_KEY_FILE.getFile();
-		if (trackerPublic.exists()) {
+		Path trackerPublic = FileNames.TRACKER_KEY_FILE.getPath();
+		if (Files.exists(trackerPublic)) {
 			try {
-				trackerKey = CryptoUtilities.fileToObject(trackerPublic);
+				trackerKey = CryptoUtilities.fileToObject(trackerPublic.toFile());
 			} catch (GeneralSecurityException | IOException e) {
 				System.out.println(pre+"could not read public key");
 				System.out.println(e.getMessage());
@@ -146,8 +148,8 @@ final class App extends Thread {
 		// generating hostlist file if not existing
 	    System.out.println(pre+"Checking file " + FileNames.HOST_LIST_FILE.toString() + "...");
 		AccountTable accounts = null;
-		File hostFile = FileNames.HOST_LIST_FILE.getFile();
-		if (configFile.exists()) {
+		Path hostFile = FileNames.HOST_LIST_FILE.getPath();
+		if (Files.exists(hostFile)) {
 			//loading accounts
 			System.out.println(pre+"File "+configFile+" exists in the dir.");
 			if (!prefs.network && prefs.useList) {
