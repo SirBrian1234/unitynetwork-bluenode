@@ -2,24 +2,22 @@ package org.kostiskag.unitynetwork.bluenode.rundata.entry;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
 import java.net.UnknownHostException;
 import java.security.PublicKey;
-import java.util.concurrent.locks.Lock;
 
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
-import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
-import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
+import org.kostiskag.unitynetwork.common.routing.QueueManager;
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.entry.NodeEntry;
 
-import org.kostiskag.unitynetwork.bluenode.Bluenode.Timings;
-import org.kostiskag.unitynetwork.bluenode.routing.QueueManager;
+import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
 import org.kostiskag.unitynetwork.bluenode.routing.Router;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.RemoteRedNodeTable;
 import org.kostiskag.unitynetwork.bluenode.bluethreads.BlueReceive;
 import org.kostiskag.unitynetwork.bluenode.bluethreads.BlueNodeTimeBuilder;
 import org.kostiskag.unitynetwork.bluenode.bluethreads.BlueSend;
 import org.kostiskag.unitynetwork.bluenode.bluethreads.UploadManager;
+import org.kostiskag.unitynetwork.bluenode.Bluenode.Timings;
 
 
 /**

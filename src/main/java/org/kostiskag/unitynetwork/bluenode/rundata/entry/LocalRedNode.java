@@ -1,26 +1,26 @@
 package org.kostiskag.unitynetwork.bluenode.rundata.entry;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.crypto.SecretKey;
 
+import org.kostiskag.unitynetwork.common.entry.NodeEntry;
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
-import org.kostiskag.unitynetwork.common.entry.NodeEntry;
+import org.kostiskag.unitynetwork.common.routing.QueueManager;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
-import org.kostiskag.unitynetwork.bluenode.Bluenode.Timings;
-import org.kostiskag.unitynetwork.bluenode.routing.QueueManager;
 import org.kostiskag.unitynetwork.bluenode.routing.Router;
 import org.kostiskag.unitynetwork.bluenode.redthreads.RedReceive;
 import org.kostiskag.unitynetwork.bluenode.redthreads.RedlSend;
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
+import org.kostiskag.unitynetwork.bluenode.Bluenode.Timings;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 
 
