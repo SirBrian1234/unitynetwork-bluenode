@@ -6,7 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 
-public class RedNodeInstanceTest {
+public class RedNodeTest {
 
 	@BeforeClass
 	public static void before() {
