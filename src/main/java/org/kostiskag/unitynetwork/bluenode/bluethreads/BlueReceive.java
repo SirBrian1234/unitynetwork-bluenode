@@ -132,7 +132,7 @@ public class BlueReceive extends Thread {
                             AppLogger.getInstance().trafficPrint(pre + "MESSAGE RECEIVED", AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
     						
     						//build and offer a short routed ack towards the sender bluenode
-    						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(blueNode.getReceiveQueue().getlen());
+    						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket((short) blueNode.getReceiveQueue().getlen());
     						blueNode.getSendQueue().offer(ACKS);
     					}        				
                     } else if (IPv4Packet.isIPv4(packet)) {
@@ -140,7 +140,7 @@ public class BlueReceive extends Thread {
                         AppLogger.getInstance().trafficPrint(pre + "IPV4 RECEIVED", AppLogger.MessageType.ROUTING, NodeType.BLUENODE);
                     	
                     	//build and offer a short routed ack towards the sender bluenode
-						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(blueNode.getReceiveQueue().getlen());
+						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket((short) blueNode.getReceiveQueue().getlen());
 						blueNode.getSendQueue().offer(ACKS);
                     }
                     

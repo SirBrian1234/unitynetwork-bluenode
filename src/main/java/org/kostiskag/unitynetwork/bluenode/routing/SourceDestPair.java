@@ -1,15 +1,17 @@
 package org.kostiskag.unitynetwork.bluenode.routing;
 
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
+
 /**
  *
  * @author Konstantinos Kagiampakis
  */
-class SourceDestPair {
-    public final String sourcevaddress;
-    public final String destvaddress;
+final class SourceDestPair {
+    public final VirtualAddress sourceAddress;
+    public final VirtualAddress destAddress;
 
-    public SourceDestPair(String sourcevaddress, String destvaddress) {
-        this.sourcevaddress = sourcevaddress;
-        this.destvaddress = destvaddress;
+    public SourceDestPair(VirtualAddress sourceAddress, VirtualAddress destAddress) {
+        this.sourceAddress = sourceAddress;
+        this.destAddress = destAddress;
     }
 }

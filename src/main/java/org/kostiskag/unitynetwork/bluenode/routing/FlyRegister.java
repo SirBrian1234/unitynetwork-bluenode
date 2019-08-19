@@ -69,19 +69,19 @@ public final class FlyRegister extends SimpleUnstoppedCyclicService {
             return;
         }
 
-        String sourcevaddress = pair.sourcevaddress;
-        String destvaddress = pair.destvaddress;
+        VirtualAddress sourceAddress = pair.sourceAddress;
+        VirtualAddress destAddress = pair.destAddress;
 
-        AppLogger.getInstance().consolePrint(PRE + "Seeking to associate "+sourcevaddress+" with "+destvaddress);
+        AppLogger.getInstance().consolePrint(PRE + "Seeking to associate "+sourceAddress.asString()+" with "+destAddress.asString());
 
-        if (this.blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
+        if (this.blueNodeTable.checkRemoteRedNodeByVaddress(destAddress.asString())) {
             //check if it was associated one loop back
             AppLogger.getInstance().consolePrint(PRE + "Allready associated entry");
             return;
         } else {
             //make stuff
             TrackerClient tr = new TrackerClient();
-            String BNHostname = tr.checkRnOnlineByVaddr(destvaddress);
+            String BNHostname = tr.checkRnOnlineByVaddr(destAddress.asString());
             if (BNHostname != null) {
                 if (this.blueNodeTable.checkBlueNode(BNHostname)) {
                     //we might have him associated but we may not have his rrd
@@ -89,9 +89,9 @@ public final class FlyRegister extends SimpleUnstoppedCyclicService {
                     try {
                         bn = this.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
                         BlueNodeClient cl = new BlueNodeClient(bn);
-                        String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
+                        String remoteHostname = cl.getRedNodeHostnameByVaddress(destAddress.asString());
                         if (!remoteHostname.equals("OFFLINE")) {
-                            this.blueNodeTable.leaseRRn(bn, remoteHostname, VirtualAddress.valueOf(destvaddress));
+                            this.blueNodeTable.leaseRRn(bn, remoteHostname, destAddress);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -131,7 +131,7 @@ public final class FlyRegister extends SimpleUnstoppedCyclicService {
                     try {
                         bn = this.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
                         cl = new BlueNodeClient(bn);
-                        cl.feedReturnRoute(this.localRedNodeTable.getRedNodeInstanceByAddr(sourcevaddress).getHostname(), sourcevaddress);
+                        cl.feedReturnRoute(this.localRedNodeTable.getRedNodeInstanceByAddr(sourceAddress.asString()).getHostname(), sourceAddress.asString());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -140,22 +140,22 @@ public final class FlyRegister extends SimpleUnstoppedCyclicService {
                     try {
                         bn = this.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
                         cl = new BlueNodeClient(bn);
-                        String remoteHostname = cl.getRedNodeHostnameByVaddress(destvaddress);
+                        String remoteHostname = cl.getRedNodeHostnameByVaddress(destAddress.asString());
                         if (!remoteHostname.equals("OFFLINE")) {
-                            this.blueNodeTable.leaseRRn(bn, remoteHostname, VirtualAddress.valueOf(destvaddress));
+                            this.blueNodeTable.leaseRRn(bn, remoteHostname, destAddress);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
             } else {
-                AppLogger.getInstance().consolePrint(PRE + "NOT FOUND "+destvaddress+" ON NETWORK");
+                AppLogger.getInstance().consolePrint(PRE + "NOT FOUND "+destAddress.asString()+" ON NETWORK");
             }
         }
     }
 
-    public void seekDest(String sourcevaddress, String destvaddress) {
-        SourceDestPair pair = new SourceDestPair(sourcevaddress, destvaddress);        
+    public void seekDest(VirtualAddress sourceAddress, VirtualAddress destAddress) {
+        SourceDestPair pair = new SourceDestPair(sourceAddress, destAddress);
         queue.offer(pair);        
     }
     

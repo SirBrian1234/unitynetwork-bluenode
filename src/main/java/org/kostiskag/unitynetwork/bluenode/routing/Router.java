@@ -1,19 +1,23 @@
 package org.kostiskag.unitynetwork.bluenode.routing;
 
 import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.io.IOException;
 
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.entry.NodeEntry;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.routing.QueueManager;
 import org.kostiskag.unitynetwork.common.routing.packet.IPv4Packet;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
+import org.kostiskag.unitynetwork.common.service.SimpleUnstoppedCyclicService;
 
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.AppLogger.MessageType;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
+
 
 /**
  * An object of this class can be owned either by a blue node or a red node instance
@@ -23,12 +27,11 @@ import org.kostiskag.unitynetwork.bluenode.Bluenode;
  * 
  * @author Konstantinos Kagiampakis
  */
-public class Router<A extends NodeEntry> extends Thread {
+public class Router<A extends NodeEntry> extends SimpleUnstoppedCyclicService {
 
     private final String pre;
     private final A owner;
     private final QueueManager<byte[]> queueToRoute;
-    private final AtomicBoolean kill = new AtomicBoolean(false);
     
     public Router(A owner, QueueManager queueToRoute) {
     	if(!(owner instanceof LocalRedNode) && !(owner instanceof BlueNode)) {
@@ -39,90 +42,88 @@ public class Router<A extends NodeEntry> extends Thread {
     	this.queueToRoute = queueToRoute;
     }
 
-    @Override
-    public void run() {
+	@Override
+	protected void preActions() {
 		AppLogger.getInstance().consolePrint(pre + "started routing at thread " + Thread.currentThread().getName());
+	}
 
-        while (!kill.get()) {
-            byte[] data;
-            try {
-                data = queueToRoute.poll();
-            } catch (NullPointerException | NoSuchElementException ex) {
-                continue;
-            }
-            
-            /* 
-             * from this point on a packet needs to be routed... now lets check 
-             * if destination is registered check vaddress table and sent to 
-             * specific udp vaddr - addr:udp then when you get the stuff send it
-             */
+	@Override
+	protected void postActions() {
+		AppLogger.getInstance().consolePrint(pre + "ended");
+	}
 
-            String sourcevaddress = null;
-            String destvaddress = null;
+	@Override
+	protected void cyclicActions() {
+		byte[] data;
+		try {
+			data = queueToRoute.poll();
+		} catch (NullPointerException | NoSuchElementException ex) {
+			return;
+		}
 
-            if (IPv4Packet.isIPv4(data) || UnityPacket.isMessage(data) || UnityPacket.isLongRoutedAck(data)) {
-                if (IPv4Packet.isIPv4(data)) {
-                	try {
-						sourcevaddress = IPv4Packet.getSourceAddress(data).getHostAddress();
-						destvaddress = IPv4Packet.getDestAddress(data).getHostAddress();
-						AppLogger.getInstance().trafficPrint(pre + "IP " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", MessageType.ROUTING, NodeType.REDNODE);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}                	
-                } else {
-                    try {
-						sourcevaddress = UnityPacket.getSourceAddress(data).getHostAddress();
-						destvaddress = UnityPacket.getDestAddress(data).getHostAddress();
-						AppLogger.getInstance().trafficPrint(pre + "Unity " + sourcevaddress + " -> " + destvaddress + " " + data.length + "B", MessageType.ROUTING, NodeType.REDNODE);
-                    } catch (Exception e) {
-						e.printStackTrace();
-					}                    
-                }
+		/*
+		 * from this point on a packet needs to be routed... now lets check
+		 * if destination is registered check vaddress table and sent to
+		 * specific udp vaddr - addr:udp then when you get the stuff send it
+		 */
+		if (IPv4Packet.isIPv4(data) || UnityPacket.isMessage(data) || UnityPacket.isLongRoutedAck(data)) {
+			VirtualAddress sourceAddress = null;
+			VirtualAddress destAddress = null;
+			if (IPv4Packet.isIPv4(data)) {
+				try {
+					sourceAddress = IPv4Packet.getSourceAddress(data);
+					destAddress = IPv4Packet.getDestAddress(data);
+					AppLogger.getInstance().trafficPrint(pre + "IP " + sourceAddress + " -> " + destAddress + " " + data.length + "B", MessageType.ROUTING, NodeType.REDNODE);
+				} catch (IOException e) {
+					AppLogger.getInstance().consolePrint(pre+e.getMessage());
+					return;
+				}
+			} else {
+				try {
+					sourceAddress = UnityPacket.getSourceAddress(data);
+					destAddress = UnityPacket.getDestAddress(data);
+					AppLogger.getInstance().trafficPrint(pre + "Unity " + sourceAddress + " -> " + destAddress + " " + data.length + "B", MessageType.ROUTING, NodeType.REDNODE);
+				} catch (IOException e) {
+					AppLogger.getInstance().consolePrint(pre+e.getMessage());
+					return;
+				}
+			}
 
-                if (destvaddress.startsWith("10.")) {
-	                if (destvaddress.equals("10.0.0.0") || destvaddress.equals("10.255.255.255")) {
-	                	// allow no special purpose addresses
-	                	
-	                } else if (destvaddress.equals("10.0.0.1")) {
-	                	// the first address is reserved
-	                	
-	                } else if (Bluenode.getInstance().localRedNodesTable.checkOnlineByVaddress(destvaddress)) {
-	                    //load the packet data to local red node's queue
-						Bluenode.getInstance().localRedNodesTable.getRedNodeInstanceByAddr(destvaddress).getSendQueue().offer(data);
-						AppLogger.getInstance().trafficPrint(pre+"LOCAL DESTINATION", MessageType.ROUTING, NodeType.REDNODE);
-	                    
-	                } else if (Bluenode.getInstance().isJoinedNetwork()) {
-	                    if (Bluenode.getInstance().blueNodeTable.checkRemoteRedNodeByVaddress(destvaddress)) {
-	                    	//load the packet to remote blue node's queue
-	                        BlueNode bn;
-							try {
-								bn = Bluenode.getInstance().blueNodeTable.getBlueNodeInstanceByRRNVaddr(destvaddress);
-								bn.getSendQueue().offer(data);
-								AppLogger.getInstance().trafficPrint(pre +"REMOTE DESTINATION -> " + bn.getHostname(), MessageType.ROUTING, NodeType.BLUENODE);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}                        
-	                    } else {
-	                    	//lookup via tracker from a bluenode with this rrd
-							AppLogger.getInstance().trafficPrint(pre +"NOT KNOWN RRN WITH "+destvaddress+" SEEKING TARGET BN", MessageType.ROUTING, NodeType.BLUENODE);
-	                        FlyRegister.getInstance().seekDest(sourcevaddress, destvaddress);
-	                    }
-	                } else {
-						AppLogger.getInstance().trafficPrint(pre +"NOT IN THIS BN " + destvaddress, MessageType.ROUTING, NodeType.BLUENODE);
-	                }
-                } else {
-					AppLogger.getInstance().trafficPrint(pre+"source address "+sourcevaddress+" does not belong in network range.",MessageType.ROUTING,NodeType.BLUENODE);
-                }
-            } else {
-				AppLogger.getInstance().trafficPrint(pre+"wrong header packet detected in router.", MessageType.ROUTING, NodeType.BLUENODE);
-				
-            }           
-        }
-        AppLogger.getInstance().consolePrint(pre + "ended");
-    }
-    
+			if (Bluenode.getInstance().localRedNodesTable.checkOnlineByVaddress(destAddress.asString())) {
+				//load the packet data to local red node's queue
+				Bluenode.getInstance().localRedNodesTable.getRedNodeInstanceByAddr(destAddress.asString()).getSendQueue().offer(data);
+				AppLogger.getInstance().trafficPrint(pre+"LOCAL DESTINATION", MessageType.ROUTING, NodeType.REDNODE);
+
+			} else if (Bluenode.getInstance().isJoinedNetwork()) {
+				var bnt = Bluenode.getInstance().blueNodeTable;
+				Lock lock = null;
+				try {
+					lock = bnt.aquireLock();
+					var opt = bnt.getBlueNodeInstanceByRRNVaddr(lock, destAddress);
+					if (opt.isPresent()) {
+						var bn = opt.get();
+						bn.getSendQueue().offer(data);
+						AppLogger.getInstance().trafficPrint(pre +"REMOTE DESTINATION -> " + bn.getHostname(), MessageType.ROUTING, NodeType.BLUENODE);
+					} else {
+						//lookup via tracker from a bluenode with this rrd
+						AppLogger.getInstance().trafficPrint(pre +"NOT KNOWN RRN WITH "+destAddress+" SEEKING TARGET BN", MessageType.ROUTING, NodeType.BLUENODE);
+						FlyRegister.getInstance().seekDest(sourceAddress, destAddress);
+					}
+				} catch (InterruptedException e) {
+					AppLogger.getInstance().trafficPrint(pre +"Could not aquire lock for bluenode table the package drops "+e.getLocalizedMessage(), MessageType.ROUTING, NodeType.BLUENODE);
+				} finally {
+					lock.unlock();
+				}
+			} else {
+				AppLogger.getInstance().trafficPrint(pre +"NOT IN THIS BN " + destAddress, MessageType.ROUTING, NodeType.BLUENODE);
+			}
+		} else {
+			AppLogger.getInstance().trafficPrint(pre +"wrong header packet detected in router.", MessageType.ROUTING, NodeType.BLUENODE);
+		}
+	}
+
     public void kill() {
-    	kill.set(true);
+    	super.kill();
     	queueToRoute.exit();
     }
 }

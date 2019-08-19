@@ -98,7 +98,7 @@ public class RedReceive extends Thread {
                             AppLogger.getInstance().trafficPrint(pre + "SHORT ACK RECEIVED", MessageType.PINGS, NodeType.REDNODE);
                         } else if (UnityPacket.isLongRoutedAck(packet)){
                         	try {
-                                AppLogger.getInstance().trafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED", MessageType.ACKS, NodeType.REDNODE);
+                                AppLogger.getInstance().trafficPrint(pre + "ACK -> "+UnityPacket.getDestAddress(packet).asString()+" RECEIVED", MessageType.ACKS, NodeType.REDNODE);
 								//now you have control over the buffer
 								// do stuff here
 								rn.getReceiveQueue().offer(packet);
@@ -107,13 +107,13 @@ public class RedReceive extends Thread {
 							}
                         } else if (UnityPacket.isMessage(packet)) {
                         	try {
-                                AppLogger.getInstance().trafficPrint(pre + "Message -> "+UnityPacket.getDestAddress(packet).getHostAddress()+" RECEIVED", MessageType.ACKS, NodeType.REDNODE);
+                                AppLogger.getInstance().trafficPrint(pre + "Message -> "+UnityPacket.getDestAddress(packet).asString()+" RECEIVED", MessageType.ACKS, NodeType.REDNODE);
 								//now you have controll over the buffer
 								// do stuff here
 								rn.getReceiveQueue().offer(packet);
 								
 								//build and offer a short routed ack
-								byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(rn.getReceiveQueue().getlen());
+								byte[] ACKS = UnityPacket.buildShortRoutedAckPacket((short)rn.getReceiveQueue().getlen());
 								rn.getSendQueue().offer(ACKS);
 								
                         	} catch (Exception e) {
@@ -127,7 +127,7 @@ public class RedReceive extends Thread {
 						rn.getReceiveQueue().offer(packet);   
 						
 						//build and offer a short routed ack
-						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket(rn.getReceiveQueue().getlen());
+						byte[] ACKS = UnityPacket.buildShortRoutedAckPacket((short) rn.getReceiveQueue().getlen());
 						rn.getSendQueue().offer(ACKS);
                     }
                     if (AppLogger.getInstance().isGui() && !didTrigger) {
