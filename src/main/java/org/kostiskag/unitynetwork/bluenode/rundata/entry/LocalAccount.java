@@ -1,8 +1,8 @@
 package org.kostiskag.unitynetwork.bluenode.rundata.entry;
 
 
-import java.security.GeneralSecurityException;
 import java.util.Objects;
+import java.security.GeneralSecurityException;
 
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.HashUtilities;
@@ -14,7 +14,7 @@ import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
  *
  * @author Konstantinos Kagiampakis
  */
-public final class LocalAccount {
+public final class LocalAccount implements Comparable<LocalAccount> {
 
     private final String username;
     private final String password;
@@ -69,6 +69,11 @@ public final class LocalAccount {
         LocalAccount that = (LocalAccount) o;
         return hostname.equals(that.hostname) ||
                 vaddress.equals(that.vaddress);
+    }
+
+    @Override
+    public int compareTo(LocalAccount given) {
+        return this.hostname.compareTo(given.hostname);
     }
 
     @Override
