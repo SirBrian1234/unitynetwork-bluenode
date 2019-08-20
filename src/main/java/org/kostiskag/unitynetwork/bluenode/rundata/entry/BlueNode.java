@@ -49,20 +49,20 @@ public class BlueNode extends NodeEntry<PhysicalAddress> {
      * This is the server constructor.
      * 
      */
-    public BlueNode(String name, PublicKey pub, String phAddressStr, int authPort) throws UnknownHostException, IllegalAccessException, InterruptedException {
-        this(true, name, pub, phAddressStr, authPort, 0, 0);
+    public BlueNode(String name, PublicKey pub, PhysicalAddress address, int authPort) throws UnknownHostException, IllegalAccessException, InterruptedException {
+        this(true, name, pub, address, authPort, 0, 0);
     }
 
     /**
      * This is the client constructor.
      * 
      */
-    public BlueNode(String name, PublicKey pub, String phAddress, int authPort, int upPort, int downPort) throws UnknownHostException, IllegalAccessException, InterruptedException {
-        this(false, name, pub, phAddress, authPort, upPort, downPort);
+    public BlueNode(String name, PublicKey pub, PhysicalAddress address, int authPort, int upPort, int downPort) throws UnknownHostException, IllegalAccessException, InterruptedException {
+        this(false, name, pub, address, authPort, upPort, downPort);
     }
 
-    private BlueNode(boolean isServer, String name, PublicKey pub, String phAddress, int authPort, int upPort, int downPort) throws UnknownHostException, IllegalAccessException, InterruptedException{
-        super(name, PhysicalAddress.valueOf(phAddress));
+    private BlueNode(boolean isServer, String name, PublicKey pub, PhysicalAddress address, int authPort, int upPort, int downPort) throws UnknownHostException, IllegalAccessException, InterruptedException{
+        super(name, address);
         this.isServer = isServer;
         this.pub = pub;
         this.pre = "^BLUENODE "+name+" ";
