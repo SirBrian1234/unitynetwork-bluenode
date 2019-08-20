@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.concurrent.locks.Lock;
 
 import javax.crypto.SecretKey;
 
@@ -204,20 +205,26 @@ final class BlueNodeService extends Thread {
     }
     
     private void blueNodeService(String blueNodeName) {
-    	try {
-    		//collect bn's public either from tracker of from table
-    		PublicKey bnPub;
-    		boolean associated = false;
-    		if (bluenodeTable.checkBlueNode(blueNodeName)) {
-    			associated = true;
-    			bnPub = bluenodeTable.getBlueNodeInstanceByName(blueNodeName).getPub();
-    		} else {
-    			TrackerClient tr = new TrackerClient();
-    			bnPub = tr.getBlueNodesPubKey(blueNodeName);
-    		}
-    		
+    	Lock lock = null;
+		try {
+			lock = bluenodeTable.aquireLock(); //we are going to need a lock for all the process of this service
+			BlueNode bn = null;
+			PublicKey bnPub = null;
+			boolean associated = false;
+
+			//collect bn's public either from tracker of from table
+			var bno = bluenodeTable.getOptionalEntry(lock, blueNodeName);
+			if (bno.isPresent()) {
+				associated = true;
+				bn = bno.get();
+				bnPub = bn.getPub();
+			} else {
+				TrackerClient tr = new TrackerClient();
+				bnPub = tr.getBlueNodesPubKey(blueNodeName);
+			}
+
     		if (bnPub == null) {
-    			throw new Exception("BlueNode's key could not be retrieved from online table or from tracker.");
+    			throw new GeneralSecurityException("BlueNode's key could not be retrieved from online table or from tracker.");
     		}
     		
         	// generate a random question
@@ -237,38 +244,37 @@ final class BlueNodeService extends Thread {
 				SocketUtilities.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 			} else {
 				SocketUtilities.sendAESEncryptedStringData("NOT_ALLOWED", socketWriter, sessionKey);
-				throw new Exception("RSA auth for Tracker in "+sessionSocket.getInetAddress().getHostAddress()+" has failed.");
+				throw new IOException("RSA auth for Tracker in "+sessionSocket.getInetAddress().getHostAddress()+" has failed.");
 			}
     	
     		args = SocketUtilities.receiveAESEncryptedStringData(socketReader, sessionKey);
     		//options
             if (args.length == 1 && args[0].equals("CHECK")) {
 				AppLogger.getInstance().consolePrint(PRE +prebn+"CHECK"+" from bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-            	BlueNodeFunctions.check(bluenodeTable, blueNodeName,socketWriter, sessionKey);
+            	BlueNodeFunctions.check(lock, bluenodeTable, blueNodeName,socketWriter, sessionKey);
             } else if (args.length == 1 && args[0].equals("ASSOCIATE")) {
 				AppLogger.getInstance().consolePrint(PRE +prebn+"ASSOCIATE"+" from bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-                BlueNodeFunctions.associate(localBluenodeName, bluenodeTable, blueNodeName, bnPub, sessionSocket,socketReader,socketWriter, sessionKey);
+                BlueNodeFunctions.associate(lock, bluenodeTable, localBluenodeName, blueNodeName, bnPub, sessionSocket,socketReader,socketWriter, sessionKey);
             } else if (associated) {            	
             	//these options are only for leased bns
-            	BlueNode bn = bluenodeTable.getBlueNodeInstanceByName(blueNodeName);
-				if (args.length == 1 && args[0].equals("UPING")) {
+            	if (args.length == 1 && args[0].equals("UPING")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"UPING"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.Uping(bn, socketWriter, sessionKey);
+	                BlueNodeFunctions.uPing(bn, socketWriter, sessionKey);
 	            } else if (args.length == 1 && args[0].equals("DPING")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"DPING"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.Dping(bn);
+	                BlueNodeFunctions.dPing(bn);
 	            } else if (args.length == 1 && args[0].equals("RELEASE")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"RELEASE"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.releaseBn(bluenodeTable, blueNodeName);
+	                BlueNodeFunctions.releaseBn(lock, bluenodeTable, blueNodeName);
 	            } else if (args.length == 1 && args[0].equals("GET_RED_NODES")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"GET_RED_NODES"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.giveLRNs(rednodeTable, socketWriter, sessionKey);
 	            } else if (args.length == 1 && args[0].equals("GIVE_RED_NODES")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"GIVE_RED_NODES"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.getLRNs(bluenodeTable, bn, socketReader, sessionKey);
+	                BlueNodeFunctions.getLRNs(bn, socketReader, sessionKey);
 	            } else if (args.length == 1 && args[0].equals("EXCHANGE_RED_NODES")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"EXCHANGE_RED_NODES"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.exchangeRNs(rednodeTable, bluenodeTable, bn, socketReader, socketWriter, sessionKey);
+	                BlueNodeFunctions.exchangeRNs(rednodeTable, bn, socketReader, socketWriter, sessionKey);
 	            } else if (args.length == 2 && args[0].equals("GET_RED_HOSTNAME")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"GET_RED_HOSTNAME"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	                BlueNodeFunctions.getLocalRnHostnameByVaddress(rednodeTable, args[1], socketWriter, sessionKey);
@@ -283,7 +289,7 @@ final class BlueNodeService extends Thread {
 	                BlueNodeFunctions.getRRNToBeReleasedByVaddr(bn, args[1], socketWriter, sessionKey);
 	            } else if (args.length == 3 && args[0].equals("LEASE_REMOTE_REDNODE")) {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"LEASE_REMOTE_REDNODE"+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
-	                BlueNodeFunctions.getFeedReturnRoute(bluenodeTable, bn, args[1], args[2], socketWriter, sessionKey);
+	                BlueNodeFunctions.getFeedReturnRoute(bn, args[1], args[2], socketWriter, sessionKey);
 	            } else {
 					AppLogger.getInstance().consolePrint(PRE +prebn+"WRONG_COMMAND "+args[0]+" from associated bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
 	            	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey); 
@@ -292,10 +298,12 @@ final class BlueNodeService extends Thread {
 				AppLogger.getInstance().consolePrint(PRE +prebn+"WRONG_COMMAND "+args[0]+" from bn "+blueNodeName+" at "+sessionSocket.getInetAddress().getHostAddress());
             	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);           
             }
-        } catch (Exception ex) {
-        	ex.printStackTrace();
-        }
-    }
+        } catch (GeneralSecurityException | IOException | InterruptedException | IllegalAccessException e) {
+        	AppLogger.getInstance().consolePrint(e.getMessage());
+        }  finally {
+			lock.unlock();
+		}
+	}
 
     private void trackingService() {
     	try {

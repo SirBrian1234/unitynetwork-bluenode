@@ -1,7 +1,11 @@
 package org.kostiskag.unitynetwork.bluenode.routing;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.PublicKey;
+import java.util.concurrent.locks.Lock;
 
+import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.entry.NodeType;
 import org.kostiskag.unitynetwork.common.service.SimpleUnstoppedCyclicService;
@@ -71,86 +75,81 @@ public final class FlyRegister extends SimpleUnstoppedCyclicService {
 
         VirtualAddress sourceAddress = pair.sourceAddress;
         VirtualAddress destAddress = pair.destAddress;
-
         AppLogger.getInstance().consolePrint(PRE + "Seeking to associate "+sourceAddress.asString()+" with "+destAddress.asString());
 
-        if (this.blueNodeTable.checkRemoteRedNodeByVaddress(destAddress.asString())) {
-            //check if it was associated one loop back
-            AppLogger.getInstance().consolePrint(PRE + "Allready associated entry");
-            return;
-        } else {
-            //make stuff
-            TrackerClient tr = new TrackerClient();
-            String BNHostname = tr.checkRnOnlineByVaddr(destAddress.asString());
-            if (BNHostname != null) {
-                if (this.blueNodeTable.checkBlueNode(BNHostname)) {
-                    //we might have him associated but we may not have his rrd
-                    BlueNode bn;
-                    try {
-                        bn = this.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
+        Lock lock = null;
+        try {
+            lock = blueNodeTable.aquireLock();
+
+            if (this.blueNodeTable.getBlueNodeEntryByRemoteRedNode(lock, destAddress).isPresent()) {
+                //check if it was associated one loop back
+                throw new IllegalAccessException("Already associated entry");
+
+            } else {
+                //make stuff
+                TrackerClient tr = new TrackerClient();
+                String BNHostname = tr.checkRnOnlineByVaddr(destAddress.asString());
+                if (BNHostname != null) {
+                    var bno = this.blueNodeTable.getOptionalEntry(lock, BNHostname);
+                    if (bno.isPresent()) {
+                        //we might have him associated but we may not have his rrd
+                        BlueNode bn = bno.get();
                         BlueNodeClient cl = new BlueNodeClient(bn);
-                        String remoteHostname = cl.getRedNodeHostnameByVaddress(destAddress.asString());
+                        String remoteHostname = cl.getRedNodeHostnameByVaddress(destAddress);
                         if (!remoteHostname.equals("OFFLINE")) {
-                            this.blueNodeTable.leaseRRn(bn, remoteHostname, destAddress);
+                            this.blueNodeTable.leaseRemoteRedNode(lock, bn, remoteHostname, destAddress);
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    } else {
+                        //if he is not associated at all, then associate with remote bn
+                        //first collect its ip address and port
+                        tr = new TrackerClient();
+                        String[] args = tr.getPhysicalBn(BNHostname);
+                        if (args[0].equals("OFFLINE")) {
+                            AppLogger.getInstance().trafficPrint(PRE + "FAILED TO ASSOCIATE WITH BLUE NODE, OFFLINE " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
+                            return;
+                        }
+                        String address = args[0];
+                        int port = Integer.parseInt(args[1]);
+
+                        //then, collect its public key
+                        tr = new TrackerClient();
+                        PublicKey pub = tr.getBlueNodesPubKey(BNHostname);
+                        if (pub == null) {
+                            AppLogger.getInstance().trafficPrint(PRE + "FAILED TO ASSOCIATE WITH BLUE NODE, NO PUBLIC KEY " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
+                            return;
+                        }
+
+                        //use the above data to connect
+                        BlueNodeClient cl = new BlueNodeClient(BNHostname, pub, address, port);
+                        cl.associateClient(lock);
+                        AppLogger.getInstance().trafficPrint(PRE + "BLUE NODE " + BNHostname + " ASSOCIATED", MessageType.ROUTING, NodeType.BLUENODE);
+
+                        //we were associated now it's time to feed return route
+                        var obn = this.blueNodeTable.getOptionalEntry(lock, BNHostname);
+                        if (obn.isPresent()) {
+                            //we provide the remote the rednode seeking to make a connection
+                            cl = new BlueNodeClient(obn.get());
+                            cl.feedReturnRoute(this.localRedNodeTable.getRedNodeInstanceByAddr(sourceAddress.asString()).getHostname(), sourceAddress.asString());
+
+                            //and then request the destination rednodes hotsname
+                            cl = new BlueNodeClient(obn.get());
+                            String remoteHostname = cl.getRedNodeHostnameByVaddress(destAddress);
+                            if (!remoteHostname.equals("OFFLINE")) {
+                                var fetched = RemoteRedNode.newInstance(remoteHostname, destAddress, bno.get());
+                                this.blueNodeTable.leaseRemoteRedNode(lock, obn.get(), fetched);
+                            }
+                        } else {
+                            throw new IllegalAccessException("BlueNode was not associated although it should!");
+                        }
                     }
                 } else {
-                    //if he is not associated at all, then associate
-                    //first collect its ip address and port
-                    tr = new TrackerClient();
-                    String[] args = tr.getPhysicalBn(BNHostname);
-                    if (args[0].equals("OFFLINE")) {
-                        AppLogger.getInstance().trafficPrint(PRE + "FAILED TO ASSOCIATE WITH BLUE NODE, OFFLINE " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
-                        return;
-                    }
-                    String address = args[0];
-                    int port = Integer.parseInt(args[1]);
-
-                    //then, collect its public key
-                    tr = new TrackerClient();
-                    PublicKey pub = tr.getBlueNodesPubKey(BNHostname);
-                    if (pub == null) {
-                        AppLogger.getInstance().trafficPrint(PRE + "FAILED TO ASSOCIATE WITH BLUE NODE, NO PUBLIC KEY " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
-                        return;
-                    }
-
-                    //use the above data to connect
-                    BlueNodeClient cl = new BlueNodeClient(BNHostname, pub, address, port);
-                    try {
-                        cl.associateClient();
-                    } catch (Exception e) {
-                        AppLogger.getInstance().trafficPrint(PRE + "FAILED TO ASSOCIATE WITH BLUE NODE " + BNHostname, MessageType.ROUTING, NodeType.BLUENODE);
-                        return;
-                    }
-                    AppLogger.getInstance().trafficPrint(PRE + "BLUE NODE " + BNHostname + " ASSOCIATED", MessageType.ROUTING, NodeType.BLUENODE);
-
-                    //we were associated now it's time to feed return route
-                    BlueNode bn;
-                    try {
-                        bn = this.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
-                        cl = new BlueNodeClient(bn);
-                        cl.feedReturnRoute(this.localRedNodeTable.getRedNodeInstanceByAddr(sourceAddress.asString()).getHostname(), sourceAddress.asString());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    //and then request the dest rn hotsname
-                    try {
-                        bn = this.blueNodeTable.getBlueNodeInstanceByName(BNHostname);
-                        cl = new BlueNodeClient(bn);
-                        String remoteHostname = cl.getRedNodeHostnameByVaddress(destAddress.asString());
-                        if (!remoteHostname.equals("OFFLINE")) {
-                            this.blueNodeTable.leaseRRn(bn, remoteHostname, destAddress);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    AppLogger.getInstance().consolePrint(PRE + "NOT FOUND "+destAddress.asString()+" ON NETWORK");
                 }
-            } else {
-                AppLogger.getInstance().consolePrint(PRE + "NOT FOUND "+destAddress.asString()+" ON NETWORK");
             }
+        } catch (IOException | GeneralSecurityException | InterruptedException | IllegalAccessException e) {
+            AppLogger.getInstance().consolePrint(PRE + " "+e.getMessage());
+        } finally {
+            lock.unlock();
         }
     }
 

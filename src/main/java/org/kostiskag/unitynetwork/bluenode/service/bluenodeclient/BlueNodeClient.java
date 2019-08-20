@@ -8,24 +8,27 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.security.KeyPair;
+import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Collection;
 import java.util.LinkedList;
+import java.util.concurrent.locks.Lock;
 
 import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
+import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.routing.packet.UnityPacket;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
-import org.kostiskag.unitynetwork.bluenode.service.GlobalSocketFunctions;
+import org.kostiskag.unitynetwork.bluenode.service.CommonServiceFunctions;
 
 
 /**
@@ -166,51 +169,58 @@ public final class BlueNodeClient {
 		}
 		return false;
 	}
-	
-	public void associateClient() throws Exception {
+
+
+	public void associateClient(Lock lock) throws IllegalAccessException, IOException, InterruptedException, GeneralSecurityException {
 		if (connected) {
-			
 			if (localBluenodeName.equals(name)) {
 				closeConnection();
 				AppLogger.getInstance().consolePrint(pre + "BNs are not allowed to create a u-turn association");
-				throw new Exception(pre+"BNs are not allowed to create a u-turn association");
-			} else if (BlueNodeClient.blueNodeTable.checkBlueNode(name)) {
-				closeConnection();
-				AppLogger.getInstance().consolePrint(pre+"BN is already an associated memeber.");
-				throw new Exception(pre+"BN is already an associated memeber.");
+				throw new IllegalAccessException(pre + "BNs are not allowed to create a u-turn association");
 			}
-			
-			//ports
-			int downport = 0;
-			int upport = 0;
-			
-			//lease
-	        String[] args = SocketUtilities.sendReceiveAESEncryptedStringData("ASSOCIATE", socketReader, socketWriter, sessionKey);
-	        if (args[0].equals("ERROR")) {
-				AppLogger.getInstance().consolePrint(pre + "Connection error");
-	            closeConnection();
-	            throw new Exception(pre+"ERROR");  
-	        } 
-	        
-	        downport = Integer.parseInt(args[1]);
-            upport = Integer.parseInt(args[2]);
-			AppLogger.getInstance().consolePrint(pre + " upport " + upport + " downport " + downport);
-	        
-	        //build the object
-	    	BlueNode node;
-			try {
-				node = new BlueNode(name, pub, phAddressStr, authPort, upport, downport);
-			} catch (Exception e) {
-				e.printStackTrace();
-				bn.killtasks();
+
+			if (BlueNodeClient.blueNodeTable.getOptionalEntry(lock, name).isPresent()) {
 				closeConnection();
-				return;
-			}       
-			
+				throw new IllegalAccessException(pre + "BN is already an associated memeber.");
+			}
+
+			//lease
+			String[] args = SocketUtilities.sendReceiveAESEncryptedStringData("ASSOCIATE", socketReader, socketWriter, sessionKey);
+			if (args[0].equals("ERROR")) {
+				closeConnection();
+				throw new IOException(pre + "Connection error");
+			}
+
+			//ports
+			int downport = Integer.parseInt(args[1]);
+			int upport = Integer.parseInt(args[2]);
+			AppLogger.getInstance().consolePrint(pre + " upport " + upport + " downport " + downport);
+
+			//build the object
+			BlueNode node;
+			try {
+				node = new BlueNode(name, pub, PhysicalAddress.valueOf(phAddressStr), authPort, upport, downport);
+			} catch (UnknownHostException | IllegalAccessException | InterruptedException e) {
+				AppLogger.getInstance().consolePrint(pre + e.getMessage());
+				bn.killTasks();
+				closeConnection();
+				throw e;
+			}
+
 			//lease to local bn table
-			BlueNodeClient.blueNodeTable.leaseBn(node);
+			BlueNodeClient.blueNodeTable.leaseBlueNode(lock, node);
 			closeConnection();
-			AppLogger.getInstance().consolePrint(pre + "LEASED REMOTE BN "+name);
+			AppLogger.getInstance().consolePrint(pre + "LEASED REMOTE BN " + name);
+		}
+	}
+
+	public void associateClient() throws IllegalAccessException, IOException, InterruptedException, GeneralSecurityException {
+		Lock lock = null;
+		try {
+			lock = BlueNodeClient.blueNodeTable.aquireLock();
+			this.associateClient(lock);
+		} finally {
+			lock.unlock();
 		}
     }		
 		
@@ -298,7 +308,7 @@ public final class BlueNodeClient {
 			if (connected) {
 				try {
 					SocketUtilities.sendAESEncryptedStringData("GET_RED_NODES", socketWriter, sessionKey);
-					GlobalSocketFunctions.getRemoteRedNodes(BlueNodeClient.blueNodeTable, bn, socketReader, sessionKey);
+					CommonServiceFunctions.getRemoteRedNodes(bn, socketReader, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}   
@@ -307,8 +317,8 @@ public final class BlueNodeClient {
 		}
 	}
 	
-	public LinkedList<RemoteRedNode> getRemoteRedNodesObj() {
-		return GlobalSocketFunctions.getRemoteRedNodesObj(bn, socketReader, sessionKey);
+	public Collection<RemoteRedNode> getRemoteRedNodesObj() throws IOException, GeneralSecurityException, InterruptedException, IllegalAccessException {
+		return CommonServiceFunctions.getRemoteRedNodeCollection(bn, socketReader, sessionKey);
 	}
 	
 	public void giveLocalRedNodes() {
@@ -316,7 +326,7 @@ public final class BlueNodeClient {
 			if (connected) {
 				try {
 					SocketUtilities.sendAESEncryptedStringData("GIVE_RED_NODES", socketWriter, sessionKey);
-					GlobalSocketFunctions.sendLocalRedNodes(BlueNodeClient.localRedNodeTable, socketWriter, sessionKey);
+					CommonServiceFunctions.sendLocalRedNodes(BlueNodeClient.localRedNodeTable, socketWriter, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}   
@@ -330,8 +340,8 @@ public final class BlueNodeClient {
 			if (connected) {
 				try {
 					SocketUtilities.sendAESEncryptedStringData("EXCHANGE_RED_NODES", socketWriter, sessionKey);
-					GlobalSocketFunctions.getRemoteRedNodes(BlueNodeClient.blueNodeTable, bn, socketReader, sessionKey);
-			        GlobalSocketFunctions.sendLocalRedNodes(BlueNodeClient.localRedNodeTable, socketWriter, sessionKey);
+					CommonServiceFunctions.getRemoteRedNodes(bn, socketReader, sessionKey);
+			        CommonServiceFunctions.sendLocalRedNodes(BlueNodeClient.localRedNodeTable, socketWriter, sessionKey);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -361,11 +371,11 @@ public final class BlueNodeClient {
 		return null;
 	}
 
-	public String getRedNodeHostnameByVaddress(String vaddress) {
+	public String getRedNodeHostnameByVaddress(VirtualAddress address) {
 		if (bn != null) {
 			if (connected) {
 				try {
-					String[] args = SocketUtilities.sendReceiveAESEncryptedStringData("GET_RED_HOSTNAME "+vaddress, socketReader, socketWriter, sessionKey);
+					String[] args = SocketUtilities.sendReceiveAESEncryptedStringData("GET_RED_HOSTNAME "+address.asString(), socketReader, socketWriter, sessionKey);
 					closeConnection();
 					if (args[0].equals("OFFLINE")) {
 			            return null;

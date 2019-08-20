@@ -1,9 +1,11 @@
 package org.kostiskag.unitynetwork.bluenode.rundata.table;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.concurrent.locks.Lock;
-import java.net.UnknownHostException;
 
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
@@ -52,115 +54,20 @@ public final class BlueNodeTable extends NodeTable<PhysicalAddress, BlueNode> {
 		verbose("INITIALIZED");
 	}
 
+	/*
+		BLUENODE RELATED METHODS
+	 */
+
 	@Locking(LockingScope.NO_LOCK)
-	private Stream<RemoteRedNode> getRemoteRedNodeStreamFromAll() {
-		return super.nodes.stream().map(BlueNode::getTable).flatMap(t -> {
-			Lock lock = null;
-			try {
-				lock = t.aquireLock();
-				return t.getNodeStream(lock);
-			} catch (InterruptedException e) {
-				verbose(e.getLocalizedMessage());
-				return Stream.empty();
-			} finally {
-				lock.unlock();
-			}
-		});
+	private Map<Boolean, List<BlueNode>> splitByIsServer() {
+		return super.getStream().collect(Collectors.partitioningBy(bn -> bn.isServer()));
 	}
 
-	@Deprecated
-	public BlueNode getBlueNodeInstanceByRemoteRedNodeVirtualAddress(String vaddress) {
-		Lock lock = null;
-		try {
-			lock = aquireLock();
-			return getBlueNodeInstanceByRemoteRedNodeVirtualAddress(lock, VirtualAddress.valueOf(vaddress)).get();
-		} catch (InterruptedException | UnknownHostException e) {
-
-		} finally {
-			lock.unlock();
-		}
-		return null;
-	}
-
-	public Optional<BlueNode> getBlueNodeInstanceByRemoteRedNodeVirtualAddress(Lock lock, String vaddress) throws UnknownHostException, InterruptedException {
-		return getBlueNodeInstanceByRemoteRedNodeVirtualAddress(lock, VirtualAddress.valueOf(vaddress));
-	}
-
-	public Optional<BlueNode> getBlueNodeInstanceByRemoteRedNodeVirtualAddress(Lock bnlock, VirtualAddress vaddress) throws InterruptedException {
-		validateLock(bnlock);
-		return getRemoteRedNodeStreamFromAll().filter(r -> r.getAddress().equals(vaddress)).map(RemoteRedNode::getBlueNode).findFirst();
-	}
-
-	public Optional<BlueNode> getBlueNodeInstanceByRRNHostname(Lock bnlock, String hostname) throws InterruptedException {
-		validateLock(bnlock);
-		return getRemoteRedNodeStreamFromAll().filter(r -> r.getHostname().equals(hostname)).map(RemoteRedNode::getBlueNode).findFirst();
-	}
-
-	public Optional<BlueNode> getBlueNodeInstanceByRRNHostname(Lock bnlock, RemoteRedNode rrn) throws InterruptedException {
-		validateLock(bnlock);
-		return getRemoteRedNodeStreamFromAll().filter(r -> r.equals(rrn)).map(RemoteRedNode::getBlueNode).findFirst();
-	}
-
-	@Deprecated
 	@Locking(LockingScope.NO_LOCK)
-	public boolean checkBlueNode(String name) {
-		Lock lock = null;
-		try {
-			lock = aquireLock();
-			Iterator<BlueNode> it = nodes.iterator();
-			while (it.hasNext()) {
-				BlueNode bn = it.next();
-				if (bn.getHostname().equals(name)) {
-					return true;
-				}
-			}
-		} catch (InterruptedException e) {
-			AppLogger.getInstance().consolePrint(e.getLocalizedMessage());
-		} finally {
-			lock.unlock();
-		}
-		return false;
+	private List<BlueNode> getServerBlueNodes() {
+		return splitByIsServer().get(true);
 	}
 
-	@Deprecated
-	public boolean checkRemoteRedNodeByHostname(String hostname) throws InterruptedException {
-		Iterator<BlueNode> it = nodes.iterator();
-		while(it.hasNext()){
-			BlueNode bn = it.next();
-			Lock lock = null;
-			try {
-				lock = bn.getTable().aquireLock();
-				if (bn.getTable().getNodeStream(lock).anyMatch(r -> r.getHostname().equals(hostname))) {
-					return true;
-				}
-			} finally {
-				lock.unlock();
-			}
-		}
-		return false;
-	}
-
-	@Deprecated
-	public boolean checkRemoteRedNodeByVaddress(String vaddress) {
-		Iterator<BlueNode> it = nodes.iterator();
-		while(it.hasNext()) {
-			Lock lock = null;
-			try {
-				BlueNode bn = it.next();
-				lock = bn.getTable().aquireLock();
-				if (bn.getTable().getOptionalNodeEntry(lock, VirtualAddress.valueOf(vaddress)).isPresent()) {
-					return true;
-				}
-			} catch (InterruptedException | UnknownHostException e) {
-				AppLogger.getInstance().consolePrint(e.getMessage());
-			} finally {
-				lock.unlock();
-			}
-		}
-		return false;
-	}
-
-	//lease is applied at the end of the associate process
 	@Locking(LockingScope.EXTERNAL)
 	public void leaseBlueNode(Lock lock, BlueNode blueNode) throws InterruptedException, IllegalAccessException {
 		validateLock(lock);
@@ -176,7 +83,7 @@ public final class BlueNodeTable extends NodeTable<PhysicalAddress, BlueNode> {
 	@Locking(LockingScope.EXTERNAL)
 	public void releaseBlueNode(Lock lock, String name) throws InterruptedException, IllegalAccessException {
 		super.validateLock(lock);
-		var o = super.getOptionalNodeEntry(lock, name);
+		var o = super.getOptionalEntry(lock, name);
 		if (o.isPresent()) {
 			releaseBlueNode(lock, o.get());
 		} else {
@@ -195,28 +102,6 @@ public final class BlueNodeTable extends NodeTable<PhysicalAddress, BlueNode> {
 		}
 	}
 
-	@Locking(LockingScope.EXTERNAL)
-	public void leaseRemoteRedNode(Lock bLock, BlueNode blueNode, String hostname, VirtualAddress vaddress) throws InterruptedException, IllegalAccessException {
-		validateLock(bLock);
-		//check if already exists from all bns
-		if (getRemoteRedNodeStreamFromAll().anyMatch(r -> r.getHostname().equals(hostname) || r.getAddress().equals(vaddress))) {
-			throw new IllegalAccessException(pre+"DUPLICATE ENTRY FOR REMOTE RED NODE "+hostname+" "+vaddress);
-		}
-
-		//if we are clear apply it!
-		Lock lock = null;
-		try {
-			lock = blueNode.getTable().aquireLock();
-			blueNode.getTable().lease(lock, hostname, vaddress);
-			notifyRGUI();
-			verbose("leased Remote Red Node "+hostname+" on BN:"+blueNode.getHostname());
-		} catch (InterruptedException e) {
-			verbose(e.getLocalizedMessage());
-		} finally {
-			lock.unlock();
-		}
-	}
-
 	/**
 	 * This is triggered when a BN needs to exit the network.
 	 * In this case and since the bn may exit bn.killTasks();
@@ -225,7 +110,7 @@ public final class BlueNodeTable extends NodeTable<PhysicalAddress, BlueNode> {
 	 * @Locking(LockingScope.INTERNAL) as it is safe to say this would be a single action!
 	 */
 	@Locking(LockingScope.INTERNAL)
-	public void sendKillSigsAndReleaseForAll() {
+	public void sendKillSigsAndReleaseAll() {
 		Lock lock = null;
 		try {
 			for (var bn : nodes) {
@@ -243,12 +128,43 @@ public final class BlueNodeTable extends NodeTable<PhysicalAddress, BlueNode> {
 		}
 	}
 
+	/*
+		REMOTE REDNODE METHODS
+	 */
+
+	@Locking(LockingScope.NO_LOCK)
+	private Stream<RemoteRedNode> getRemoteRedNodeStreamFromAll() {
+		return super.nodes.stream().map(BlueNode::getTable).flatMap(t -> {
+			Lock lock = null;
+			try {
+				lock = t.aquireLock();
+				return t.getNodeStream(lock);
+			} catch (InterruptedException e) {
+				verbose(e.getLocalizedMessage());
+				return Stream.empty();
+			} finally {
+				lock.unlock();
+			}
+		});
+	}
+
 	@Locking(LockingScope.EXTERNAL)
-	public void releaseLocalRedNodeByHostnameFromAll(Lock lock, String hostname) throws InterruptedException, IllegalAccessException {
-		validateLock(lock);
-		for (BlueNode b: nodes) {
-			b.releaseRRn(hostname);
+	public void leaseRemoteRedNode(Lock bLock, BlueNode blueNode, RemoteRedNode rrn) throws InterruptedException, IllegalAccessException {
+		Lock lock = null;
+		try {
+			lock = blueNode.getTable().aquireLock();
+			blueNode.getTable().lease(lock, rrn);
+			notifyRGUI();
+			verbose("leased Remote Red Node "+rrn.getHostname()+" on BN:"+blueNode.getHostname());
+		} finally {
+			lock.unlock();
 		}
+	}
+
+	@Locking(LockingScope.EXTERNAL)
+	public void leaseRemoteRedNode(Lock bLock, BlueNode blueNode, String hostname, VirtualAddress address) throws InterruptedException, IllegalAccessException {
+		var newRrn = RemoteRedNode.newInstance(hostname, address, blueNode);
+		leaseRemoteRedNode(bLock, blueNode, newRrn);
 	}
 
 	/**
@@ -256,48 +172,67 @@ public final class BlueNodeTable extends NodeTable<PhysicalAddress, BlueNode> {
 	 * for all the associated blue nodes inside the table where the calling bn is
 	 * a server this has to be called in order to detect dead entries and disconnected rrns
 	 */
-	//TODO
-	@Locking(LockingScope.EXTERNAL)
-	public void rebuildTableViaAuthClient(Lock lock) throws InterruptedException {
-		validateLock(lock);
-		for (var element : super.nodes) {
-			if (element.isServer()) {
+	@Locking(LockingScope.INTERNAL)
+	public void rebuildTableViaAuthClient() throws InterruptedException, IllegalAccessException, IOException, GeneralSecurityException {
+		Lock bLock = null;
+		try {
+			bLock = this.aquireLock();
+			for (var bn: nodes) {
+				Lock lock = null;
 				try {
-					Lock lock = null;
-					try {
-						lock = element.getTable().aquireLock();
-						BlueNodeClient cl = new BlueNodeClient(element);
-						if (cl.checkBlueNode()) {
-							verbose("Fetching RNs from BN " + element.getHostname());
-							element.updateTimestamp();
-							cl = new BlueNodeClient(element);
-							Collection<RemoteRedNode> rns = cl.getRemoteRedNodesObj();
-							Stream<RemoteRedNode> in = element.getTable().getNodeStream(lock);
-							Collection<RemoteRedNode> valid = new LinkedList<>();
-
-							in.forEach(remoteRedNode -> {
-								if (rns.contains(remoteRedNode)) {
-									valid.add(remoteRedNode);
-								}
-							});
-
-							element.getTable().updateTable(lock, valid);
-						} else {
-							element.killtasks();
-							verbose("RELEASED NON RESPONDING BLUE NODE " + element.getHostname());
-						}
-					} finally {
-						lock.unlock();
+					lock = bn.getTable().aquireLock();
+					BlueNodeClient cl = new BlueNodeClient(bn);
+					if (cl.checkBlueNode()) {
+						verbose("Fetching RNs from BN " + bn.getHostname());
+						cl = new BlueNodeClient(bn);
+						Collection<RemoteRedNode> fetched = cl.getRemoteRedNodesObj();
+						bn.getTable().renewAll(lock, fetched, false);
+						bn.updateTimestamp();
+						verbose("Fetch complete! "+bn.getHostname()+" on:"+bn.getTimestamp().asDate().toString());
+					} else {
+						bn.killTasks();
+						verbose("RELEASED NON RESPONDING BLUE NODE " + bn.getHostname());
 					}
-				} catch (InterruptedException e) {
-					element.killtasks();
-					verbose("RELEASED BLUE NODE " + element.getHostname() +" FOR "+ e.getLocalizedMessage());
+				} finally {
+					lock.unlock();
 				}
 			}
+			verbose("BN Table rebuilt");
+			notifyGUI();
+			notifyRGUI();
+		} finally {
+			bLock.unlock();
 		}
-		System.out.println(pre+" BN Table rebuilt");
-		notifyGUI();
-		notifyRGUI();
+	}
+
+	/*
+		GET BLUENODE THROUGH REMOTE REDNODE
+	 */
+
+	@Locking(LockingScope.EXTERNAL)
+	public Optional<BlueNode> getBlueNodeEntryByRemoteRedNode(Lock bnlock, RemoteRedNode rrn) throws InterruptedException {
+		validateLock(bnlock);
+		return getRemoteRedNodeStreamFromAll().filter(r -> r.equals(rrn)).map(RemoteRedNode::getBlueNode).findFirst();
+	}
+
+	@Locking(LockingScope.EXTERNAL)
+	public Optional<BlueNode> getBlueNodeEntryByRemoteRedNode(Lock bnlock, String hostname) throws InterruptedException {
+		validateLock(bnlock);
+		return getRemoteRedNodeStreamFromAll().filter(r -> r.getHostname().equals(hostname)).map(RemoteRedNode::getBlueNode).findFirst();
+	}
+
+	@Locking(LockingScope.EXTERNAL)
+	public Optional<BlueNode> getBlueNodeEntryByRemoteRedNode(Lock bnlock, VirtualAddress vaddress) throws InterruptedException {
+		validateLock(bnlock);
+		return getRemoteRedNodeStreamFromAll().filter(r -> r.getAddress().equals(vaddress)).map(RemoteRedNode::getBlueNode).findFirst();
+	}
+
+	@Locking(LockingScope.EXTERNAL)
+	public void releaseLocalRedNodeProjectionFromAll(Lock lock, String hostname) throws InterruptedException, IllegalAccessException {
+		validateLock(lock);
+		for (BlueNode b: nodes) {
+			b.releaseLocalRedNodeProjection(hostname);
+		}
 	}
 
 	@Locking(LockingScope.EXTERNAL)
@@ -307,7 +242,7 @@ public final class BlueNodeTable extends NodeTable<PhysicalAddress, BlueNode> {
 	}
 
 	@Locking(LockingScope.NO_LOCK)
-	public String[][] buildBNGUIObj() {
+	private String[][] buildBNGUIObj() {
 		return (String[][]) super.getStream().map(bn -> new String[]{bn.getHostname(), bn.isTheRemoteAServer(), bn.getAddress().asString(), ""+bn.getRemoteAuthPort(),""+bn.getPortToSend(), ""+bn.getPortToReceive(), bn.getTimestamp().asDate().toString()}).toArray();
 	}
 
@@ -318,7 +253,7 @@ public final class BlueNodeTable extends NodeTable<PhysicalAddress, BlueNode> {
 	}
 
 	@Locking(LockingScope.NO_LOCK)
-	public String[][] buildRRNGUIObj() {
+	private String[][] buildRRNGUIObj() {
 		return (String[][]) this.getRemoteRedNodeStreamFromAll().map(rn -> new String[]{rn.getHostname(), rn.getAddress().asString() , rn.getBlueNode().getHostname(), rn.getTimestamp().asDate().toString()}).toArray();
 	}
 

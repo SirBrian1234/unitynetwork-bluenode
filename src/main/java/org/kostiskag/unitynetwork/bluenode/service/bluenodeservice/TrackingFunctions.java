@@ -1,6 +1,8 @@
 package org.kostiskag.unitynetwork.bluenode.service.bluenodeservice;
 
 import java.io.DataOutputStream;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import javax.crypto.SecretKey;
 
@@ -8,8 +10,7 @@ import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
-import org.kostiskag.unitynetwork.bluenode.service.GlobalSocketFunctions;
+import org.kostiskag.unitynetwork.bluenode.service.CommonServiceFunctions;
 
 /**
  *
@@ -27,8 +28,8 @@ final class TrackingFunctions {
 		}
     }
 
-    public static void getRns(LocalRedNodeTable redNodeTable, DataOutputStream outputWriter, SecretKey sessionKey) {
-    	GlobalSocketFunctions.sendLocalRedNodes(redNodeTable, outputWriter, sessionKey);
+    public static void getRns(LocalRedNodeTable redNodeTable, DataOutputStream outputWriter, SecretKey sessionKey) throws GeneralSecurityException, IOException {
+    	CommonServiceFunctions.sendLocalRedNodes(redNodeTable, outputWriter, sessionKey);
     }
     
     public static void killSig(Runnable terminate) {

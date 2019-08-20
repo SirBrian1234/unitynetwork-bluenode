@@ -19,7 +19,7 @@ import org.kostiskag.unitynetwork.common.table.NodeTable;
  *
  * @author Konstantinos Kagiampakis
  */
-public class RemoteRedNodeTable extends NodeTable<RemoteRedNode> {
+public class RemoteRedNodeTable extends NodeTable<VirtualAddress, RemoteRedNode> {
 
 	private final String pre = "^REDNODE REMOTE TABLE ";
 	private final BlueNode blueNode;
@@ -42,29 +42,30 @@ public class RemoteRedNodeTable extends NodeTable<RemoteRedNode> {
 		verbose("INITIALIZED FOR "+blueNode.getHostname());
 	}
 
+	@Locking(LockingScope.NO_LOCK)
 	public BlueNode getBlueNode() {
 		return blueNode;
 	}
 
+	@Locking(LockingScope.EXTERNAL)
 	public Stream<RemoteRedNode> getNodeStream(Lock lock) throws InterruptedException {
 		validateLock(lock);
 		return nodes.stream();
 	}
 
+	@Locking(LockingScope.EXTERNAL)
 	public int getSize(Lock lock) throws InterruptedException {
 		validateLock(lock);
 		return nodes.size();
 	}
 
-	public void lease(Lock lock, String hostname, String vAddress) throws UnknownHostException, IllegalAccessException, InterruptedException {
-		lease(lock, hostname, VirtualAddress.valueOf(vAddress));
-	}
-
+	@Locking(LockingScope.EXTERNAL)
 	public void lease(Lock lock, String hostname, VirtualAddress vAddress) throws IllegalAccessException, InterruptedException {
 		var r = RemoteRedNode.newInstance(hostname, vAddress, blueNode);
 		lease(lock, r);
 	}
 
+	@Locking(LockingScope.EXTERNAL)
 	public void lease(Lock lock, RemoteRedNode rn) throws IllegalAccessException, InterruptedException {
 		validateLock(lock);
 		if (nodes.add(rn)) {
@@ -75,9 +76,10 @@ public class RemoteRedNodeTable extends NodeTable<RemoteRedNode> {
 		}
 	}
 
+	@Locking(LockingScope.EXTERNAL)
 	public void release(Lock lock , String hostname) throws InterruptedException, IllegalAccessException {
 		validateLock(lock);
-		var opt = super.getOptionalNodeEntry(lock, hostname);
+		var opt = super.getOptionalEntry(lock, hostname);
 		if(opt.isPresent()) {
 			release(lock, opt.get());
 		} else {
@@ -85,13 +87,10 @@ public class RemoteRedNodeTable extends NodeTable<RemoteRedNode> {
 		}
 	}
 
-	public void releaseByVirtualAddress(Lock lock, String vAddress) throws UnknownHostException, IllegalAccessException, InterruptedException {
-		release(lock, VirtualAddress.valueOf(vAddress));
-	}
-
+	@Locking(LockingScope.EXTERNAL)
 	public void release(Lock lock, VirtualAddress vAddress) throws IllegalAccessException, InterruptedException {
 		validateLock(lock);
-		var opt = super.getOptionalNodeEntry(lock, vAddress);
+		var opt = super.getOptionalEntry(lock, vAddress);
 		if(opt.isPresent()) {
 			release(lock, opt.get());
 		} else {
@@ -99,6 +98,7 @@ public class RemoteRedNodeTable extends NodeTable<RemoteRedNode> {
 		}
 	}
 
+	@Locking(LockingScope.EXTERNAL)
 	public void release(Lock lock, RemoteRedNode r) throws IllegalAccessException, InterruptedException {
 		validateLock(lock);
 		if (nodes.remove(r)) {
@@ -109,35 +109,40 @@ public class RemoteRedNodeTable extends NodeTable<RemoteRedNode> {
 		}
 	}
 
-	public void renewAll(Lock lock) throws InterruptedException {
+	@Locking(LockingScope.EXTERNAL)
+	public void renewAll(Lock lock, Collection<RemoteRedNode> rrns, boolean notifyGui) throws IllegalAccessException, InterruptedException {
 		validateLock(lock);
-		nodes.stream().forEach( e -> e.updateTimestamp());
-		verbose("RENEWED ENTRIES FOR BLUENODE "+blueNode.getHostname());
+		if (rrns.stream().distinct().count() != rrns.size()) {
+			throw new IllegalAccessException("duplicate elements found");
+		}
+		nodes.clear();
+		nodes.addAll(rrns);
+		verbose("RENEWED ALL RRN ENTRIES FOR BLUENODE "+blueNode.getHostname());
+		if (notifyGui) {
+			notifyGUI();
+		}
 	}
 
-	public void removeAll(Lock lock) throws InterruptedException {
+	@Locking(LockingScope.EXTERNAL)
+	public void removeAll(Lock lock, boolean notifyGui) throws InterruptedException {
 		validateLock(lock);
 		nodes.clear();
 		verbose("REMOVED ALL ENTRIES FOR BLUENODE "+blueNode.getHostname());
-		notifyGUI();
+		if (notifyGui) {
+			notifyGUI();
+		}
 	}
 
-	public void updateTable(Lock lock, Collection<RemoteRedNode> rrns) throws InterruptedException {
-		validateLock(lock);
-		nodes.clear();
-		nodes.addAll(rrns);
-		verbose("UPDATED ALL RRN ENTRIES FOR BLUENODE "+blueNode.getHostname());
-		notifyGUI();
-	}
-
+	@Locking(LockingScope.NO_LOCK)
 	private void verbose(String message) {
 		if (verbose) {
 			AppLogger.getInstance().consolePrint(pre + message);
 		}
 	}
 
-	//no build guiObj here it will be called from  thhe bns table
-	//here we just notify
+	//Warning the annotation is right!
+	//The lock is for the parent!!!
+	@Locking(LockingScope.NO_LOCK)
 	private void notifyGUI () {
 		if (notifyGui) {
 			Lock lock = null;

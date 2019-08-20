@@ -1,5 +1,7 @@
 package org.kostiskag.unitynetwork.bluenode.service.bluenodeclient;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
@@ -54,6 +56,10 @@ public final class BlueNodeSonarService extends SimpleCyclicService {
     @Override
     protected void cyclicPayload() {
         AppLogger.getInstance().consolePrint(pre+"Updating BN Tables via ping");
-        this.table.rebuildTableViaAuthClient();
+        try {
+            this.table.rebuildTableViaAuthClient();
+        } catch (InterruptedException | IllegalAccessException | IOException | GeneralSecurityException e) {
+            AppLogger.getInstance().consolePrint(pre+" "+e.getMessage());
+        }
     }
 }

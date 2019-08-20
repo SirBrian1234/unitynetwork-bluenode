@@ -15,6 +15,7 @@ import org.kostiskag.unitynetwork.bluenode.ModeOfOperation;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
 import org.kostiskag.unitynetwork.bluenode.Bluenode;
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 
 
 /**
@@ -237,7 +238,7 @@ final class AssociatedBlueNodeClientView {
 		frmAssociatedBlueNode.getContentPane().add(lblName);
 	}
 
-	protected void check() {
+	private void check() {
 		try {
         	BlueNodeClient cl = new BlueNodeClient(bn);
 			if (cl.checkBlueNode()) {
@@ -250,7 +251,7 @@ final class AssociatedBlueNodeClientView {
 		}		
 	}
 	
-	protected void uping() {
+	private void uping() {
 		try {
 			BlueNodeClient cl = new BlueNodeClient(bn);
 			textField_6.setText(cl.uPing()+"");
@@ -259,7 +260,7 @@ final class AssociatedBlueNodeClientView {
 		}
 	}
 	
-	protected void dping() {
+	private void dping() {
 		try {
 			BlueNodeClient cl = new BlueNodeClient(bn);
 			textField_6.setText(cl.dPing()+"");
@@ -268,7 +269,7 @@ final class AssociatedBlueNodeClientView {
 		}
 	}
 
-	protected void removeLocalProject() {		
+	private void removeLocalProject() {
 		try {
 			BlueNodeClient cl = new BlueNodeClient(bn);
 			cl.removeThisBlueNodesProjection();
@@ -277,7 +278,7 @@ final class AssociatedBlueNodeClientView {
 		}
 	}
 
-	protected void getRemoteRNs() {
+	private void getRemoteRNs() {
 		try {
 			BlueNodeClient cl = new BlueNodeClient(bn);
 			cl.getRemoteRedNodes();
@@ -287,7 +288,7 @@ final class AssociatedBlueNodeClientView {
 	}
 	
 
-	protected void giveLocalRNs() {
+	private void giveLocalRNs() {
 		try {
 			BlueNodeClient cl = new BlueNodeClient(bn);
 			cl.giveLocalRedNodes();
@@ -297,7 +298,7 @@ final class AssociatedBlueNodeClientView {
 	}
 
 	
-	protected void exchangeRns() {
+	private void exchangeRns() {
 		try {
 			BlueNodeClient cl = new BlueNodeClient(bn);
 			cl.exchangeRedNodes();
@@ -306,7 +307,7 @@ final class AssociatedBlueNodeClientView {
 		}		
 	}
 
-	protected void feedRetrunRoute() {
+	private void feedRetrunRoute() {
 		String hostname = textField_4.getText();
 		String vaddress = textField_5.getText();
 		
@@ -318,7 +319,7 @@ final class AssociatedBlueNodeClientView {
 		}
 	}
 
-	protected void removeRNprojectByHn() {
+	private void removeRNprojectByHn() {
 		String hostname = textField_2.getText();
 		
 		try {
@@ -329,7 +330,7 @@ final class AssociatedBlueNodeClientView {
 		}
 	}
 
-	protected void removeRNprojectByVaddr() {
+	private void removeRNprojectByVaddr() {
 		String vaddr = textField_3.getText();
 		
 		try {
@@ -340,18 +341,18 @@ final class AssociatedBlueNodeClientView {
 		}
 	}
 
-	protected void getRNHostname() {
+	private void getRNHostname() {
 		String vaddress = textField_1.getText();
 		
 		try {
 			BlueNodeClient cl = new BlueNodeClient(bn);
-			textField_6.setText(cl.getRedNodeHostnameByVaddress(vaddress));
+			textField_6.setText(cl.getRedNodeHostnameByVaddress(VirtualAddress.valueOf(vaddress)));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
 
-	protected void getRNVaddr() {
+	private void getRNVaddr() {
 		String hostname = textField.getText();
 		
 		try {
@@ -365,7 +366,7 @@ final class AssociatedBlueNodeClientView {
 		}
 	}
 
-	protected void releaseBn() {
+	private void releaseBn() {
 		try {
 			releaseBn.run();
 		} catch (Exception ex) {

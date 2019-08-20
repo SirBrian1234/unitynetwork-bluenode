@@ -41,7 +41,7 @@ public class BlueNodeTimeBuilder extends TimeBuilder {
         Lock lock = null;
         try {
             Bluenode.getInstance().blueNodeTable.aquireLock();
-            Bluenode.getInstance().blueNodeTable.releaseBn(lock, bn);
+            Bluenode.getInstance().blueNodeTable.releaseBlueNode(lock, bn);
         } catch (InterruptedException | IllegalAccessException e) {
             AppLogger.getInstance().consolePrint(pre+"BlueNodeTable release exception "+e.getLocalizedMessage());
         } finally {

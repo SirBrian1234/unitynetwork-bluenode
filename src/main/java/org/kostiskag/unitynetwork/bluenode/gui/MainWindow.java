@@ -1,5 +1,6 @@
 package org.kostiskag.unitynetwork.bluenode.gui;
 
+import java.util.concurrent.locks.Lock;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -756,7 +757,7 @@ public final class MainWindow extends JFrame {
         btnOpenBlueNode = new JButton("Open Associated Blue Node Client Funtions");
         btnOpenBlueNode.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		openAssosiatedWindow();
+        		openAssociatedWindow();
         	}
         });
         btnOpenBlueNode.setBackground(new Color(153, 153, 0));
@@ -899,22 +900,37 @@ public final class MainWindow extends JFrame {
         new NonAssociatedBlueNodeClientView(prefs.modeOfOperation, isJoinedNetwork);
     }
 
-    private void openAssosiatedWindow() {
+    private void openAssociatedWindow() {
 		try {
 			int row = remoteBluenodeTable.getSelectedRow();
 			if (row >= 0) {
 				try {
                     var name = (String) remoteBluenodeTable.getValueAt(row, 0);
-                    Runnable r = () -> {
-                        try {
-                            blueNodeTable.releaseBn(name);
-                        } catch (Exception e) {
-                            AppLogger.getInstance().consolePrint("release bn "+e.getLocalizedMessage());
+                    Lock lock = null;
+                    try {
+                        lock = blueNodeTable.aquireLock();
+                        var obn = blueNodeTable.getOptionalEntry(lock, name);
+                        if (obn.isPresent()) {
+                            Runnable r = () -> {
+                                try {
+                                    Lock block = null;
+                                    try {
+                                        block = blueNodeTable.aquireLock();
+                                        blueNodeTable.releaseBlueNode(block, obn.get());
+                                    } finally {
+                                        block.unlock();
+                                    }
+                                } catch (InterruptedException | IllegalAccessException e) {
+                                    AppLogger.getInstance().consolePrint("release bn "+e.getLocalizedMessage());
+                                }
+                            };
+                            new AssociatedBlueNodeClientView(prefs.modeOfOperation, isJoinedNetwork, obn.get(), r);
                         }
-                    };
-					new AssociatedBlueNodeClientView(prefs.modeOfOperation, isJoinedNetwork, blueNodeTable.getBlueNodeInstanceByName(name), r);
-				} catch (Exception e1) {
-					e1.printStackTrace();
+                    } finally {
+                        lock.unlock();
+                    }
+				} catch (InterruptedException e) {
+					AppLogger.getInstance().consolePrint(e.getMessage());
 				}
 			}
 		} catch (ArrayIndexOutOfBoundsException ex){
@@ -993,7 +1009,7 @@ public final class MainWindow extends JFrame {
 		}
     }
 
-    public void updateLocalRns() {
+    private void updateLocalRns() {
         String[][] guiObj = localRedNodeTable.buildGUIObj();
         updateLocalRns(guiObj);
     }
@@ -1011,9 +1027,17 @@ public final class MainWindow extends JFrame {
         }
     }
 
-    public void updateRemoteRns() {
-        String[][] guiObj = blueNodeTable.buildRRNGUIObj();
-        updateRemoteRns(guiObj);
+    private void updateRemoteRns() {
+        Lock lock = null;
+        try {
+            lock = blueNodeTable.aquireLock();
+            String[][] guiObj = blueNodeTable.buildRRNGUIObj(lock);
+            updateRemoteRns(guiObj);
+        } catch (InterruptedException e) {
+            AppLogger.getInstance().consolePrint(e.getLocalizedMessage());
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void updateRemoteRns(String[][] guiObj) {
@@ -1029,9 +1053,17 @@ public final class MainWindow extends JFrame {
         }
     }
 
-    public void updateBNs() {
-        String[][] guiObj = blueNodeTable.buildBNGUIObj();
-        updateBNs(guiObj);
+    private void updateBNs() {
+        Lock lock = null;
+        try {
+            lock = blueNodeTable.aquireLock();
+            String[][] guiObj = blueNodeTable.buildBNGUIObj(lock);
+            updateBNs(guiObj);
+        } catch (InterruptedException e) {
+            AppLogger.getInstance().consolePrint(e.getLocalizedMessage());
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void updateBNs(String[][] guiObj) {

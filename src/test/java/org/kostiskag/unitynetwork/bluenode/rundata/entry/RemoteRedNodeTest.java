@@ -6,6 +6,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
+import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
@@ -20,7 +22,7 @@ public class RemoteRedNodeTest {
 
 	@Test
 	public void test() throws GeneralSecurityException, UnknownHostException, IllegalAccessException, InterruptedException{
-		RemoteRedNode rn = RemoteRedNode.newInstance("ouiou", "10.0.0.200", new BlueNode("Pakis",null, "1.2.3.4", 0));
+		RemoteRedNode rn = RemoteRedNode.newInstance("ouiou", "10.0.0.200", new BlueNode("Pakis",null, PhysicalAddress.valueOf("1.2.3.4"), 0));
 		assertEquals(rn.getHostname(), "ouiou");
 		assertEquals(rn.getAddress().asString(), "10.0.0.200");
 		System.out.println(rn.getTimestamp());

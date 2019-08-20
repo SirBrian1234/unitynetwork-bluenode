@@ -21,7 +21,6 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
 import org.kostiskag.unitynetwork.bluenode.service.trackclient.TrackerClient;
 import org.kostiskag.unitynetwork.bluenode.ModeOfOperation;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
 
 /**
@@ -191,7 +190,7 @@ final class RedNodeFunctions {
             Lock lock = null;
             try {
 				lock = bluenodeTable.aquireLock();
-				bluenodeTable.releaseLocalRedNodeByHostnameFromAll(lock, hostname);
+				bluenodeTable.releaseLocalRedNodeProjectionFromAll(lock, hostname);
 			} catch (IllegalAccessException | InterruptedException e) {
 				AppLogger.getInstance().consolePrint(e.getMessage());
 			} finally {

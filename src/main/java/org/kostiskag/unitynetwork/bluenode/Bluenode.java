@@ -335,7 +335,7 @@ public final class Bluenode {
 			this.blueNodeSonarService.kill();
 
 			new TrackerClient().releaseBn();
-			blueNodeTable.sendKillSigsAndReleaseForAll();
+			blueNodeTable.sendKillSigsAndReleaseAll();
 			joined = false;
 		}
 	}

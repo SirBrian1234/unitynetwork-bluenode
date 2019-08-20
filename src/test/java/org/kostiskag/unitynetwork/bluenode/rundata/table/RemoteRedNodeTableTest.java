@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.service.PortHandle;
+import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 
 import java.net.UnknownHostException;
@@ -24,17 +25,17 @@ public class RemoteRedNodeTableTest {
 
 	@Test
 	public void initTest() throws UnknownHostException, GeneralSecurityException, InterruptedException, IllegalAccessException {
-		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, "1.2.3.4", 0), Collections.emptyList(), true, false);
+		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, PhysicalAddress.valueOf("1.2.3.4"), 0), Collections.emptyList(), true, false);
 
 		Lock lock = null;
 		try {
 			lock = table.aquireLock();
 
 			assertEquals(table.getSize(lock),0);
-			table.lease(lock, "ouiou", "10.0.0.200");
-			table.lease(lock, "ouiou2", "10.0.0.201");
-			table.lease(lock, "ouiou3", "10.0.0.202");
-			table.lease(lock, "ouiou4", "10.0.0.203");
+			table.lease(lock, "ouiou", VirtualAddress.valueOf("10.0.0.200"));
+			table.lease(lock, "ouiou2", VirtualAddress.valueOf("10.0.0.201"));
+			table.lease(lock, "ouiou3", VirtualAddress.valueOf("10.0.0.202"));
+			table.lease(lock, "ouiou4", VirtualAddress.valueOf("10.0.0.203"));
 			assertEquals(table.getSize(lock),4);
 
 		} catch (InterruptedException e) {
@@ -47,19 +48,19 @@ public class RemoteRedNodeTableTest {
 
 	@Test
 	public void getByHost() throws UnknownHostException, GeneralSecurityException, InterruptedException, IllegalAccessException {
-		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, "1.2.3.4", 0), Collections.emptyList(), true, false);
+		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, PhysicalAddress.valueOf("1.2.3.4"), 0), Collections.emptyList(), true, false);
 		Lock lock = null;
 		try {
 			lock = table.aquireLock();
 
 			assertEquals(table.getSize(lock),0);
-			table.lease(lock, "ouiou", "10.0.0.200");
-			table.lease(lock, "ouiou2", "10.0.0.201");
-			table.lease(lock, "ouiou3", "10.0.0.202");
-			table.lease(lock, "ouiou4", "10.0.0.203");
+			table.lease(lock, "ouiou", VirtualAddress.valueOf("10.0.0.200"));
+			table.lease(lock, "ouiou2", VirtualAddress.valueOf("10.0.0.201"));
+			table.lease(lock, "ouiou3", VirtualAddress.valueOf("10.0.0.202"));
+			table.lease(lock, "ouiou4", VirtualAddress.valueOf("10.0.0.203"));
 			assertEquals(table.getSize(lock),4);
 
-			assertEquals(table.getOptionalNodeEntry(lock,"ouiou2").get().getAddress().asString(),"10.0.0.201");
+			assertEquals(table.getOptionalEntry(lock,"ouiou2").get().getAddress().asString(),"10.0.0.201");
 
 		} catch (InterruptedException e) {
 
@@ -71,20 +72,20 @@ public class RemoteRedNodeTableTest {
 	
 	@Test
 	public void getByVaddr() throws UnknownHostException, GeneralSecurityException, InterruptedException, IllegalAccessException{
-		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, "1.2.3.4", 0), Collections.emptyList(), true, false);
+		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, PhysicalAddress.valueOf("1.2.3.4"), 0), Collections.emptyList(), true, false);
 
 		Lock lock = null;
 		try {
 			lock = table.aquireLock();
 
 			assertEquals(table.getSize(lock),0);
-			table.lease(lock, "ouiou", "10.0.0.200");
-			table.lease(lock, "ouiou2", "10.0.0.201");
-			table.lease(lock, "ouiou3", "10.0.0.202");
-			table.lease(lock, "ouiou4", "10.0.0.203");
+			table.lease(lock, "ouiou", VirtualAddress.valueOf("10.0.0.200"));
+			table.lease(lock, "ouiou2", VirtualAddress.valueOf("10.0.0.201"));
+			table.lease(lock, "ouiou3", VirtualAddress.valueOf("10.0.0.202"));
+			table.lease(lock, "ouiou4", VirtualAddress.valueOf("10.0.0.203"));
 			assertEquals(table.getSize(lock),4);
 
-			assertEquals(table.getOptionalNodeEntry(lock, VirtualAddress.valueOf("10.0.0.203")).get().getHostname(),"ouiou4");
+			assertEquals(table.getOptionalEntry(lock, VirtualAddress.valueOf("10.0.0.203")).get().getHostname(),"ouiou4");
 
 		} catch (InterruptedException e) {
 
@@ -95,22 +96,22 @@ public class RemoteRedNodeTableTest {
 	
 	@Test
 	public void releaseByHost() throws UnknownHostException, GeneralSecurityException, InterruptedException, IllegalAccessException {
-		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, "1.2.3.4", 0), Collections.emptyList(), true, false);
+		RemoteRedNodeTable table = new RemoteRedNodeTable(new BlueNode("Pakis",null, PhysicalAddress.valueOf("1.2.3.4"), 0), Collections.emptyList(), true, false);
 		Lock lock = null;
 		try {
 			lock = table.aquireLock();
 
 			assertEquals(table.getSize(lock),0);
-			table.lease(lock, "ouiou", "10.0.0.200");
-			table.lease(lock, "ouiou2", "10.0.0.201");
-			table.lease(lock, "ouiou3", "10.0.0.202");
-			table.lease(lock, "ouiou4", "10.0.0.203");
+			table.lease(lock, "ouiou", VirtualAddress.valueOf("10.0.0.200"));
+			table.lease(lock, "ouiou2", VirtualAddress.valueOf("10.0.0.201"));
+			table.lease(lock, "ouiou3", VirtualAddress.valueOf("10.0.0.202"));
+			table.lease(lock, "ouiou4", VirtualAddress.valueOf("10.0.0.203"));
 			assertEquals(table.getSize(lock),4);
 
 			table.release(lock, "ouiou3");
 
 			assertEquals(table.getSize(lock),3);
-			assertFalse(table.getOptionalNodeEntry(lock, "ouiou3").isPresent());
+			assertFalse(table.getOptionalEntry(lock, "ouiou3").isPresent());
 
 		} catch (InterruptedException e) {
 

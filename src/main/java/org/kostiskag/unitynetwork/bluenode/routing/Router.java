@@ -99,7 +99,7 @@ public class Router<A extends NodeEntry> extends SimpleUnstoppedCyclicService {
 				Lock lock = null;
 				try {
 					lock = bnt.aquireLock();
-					var opt = bnt.getBlueNodeInstanceByRRNVaddr(lock, destAddress);
+					var opt = bnt.getBlueNodeEntryByRemoteRedNode(lock, destAddress);
 					if (opt.isPresent()) {
 						var bn = opt.get();
 						bn.getSendQueue().offer(data);

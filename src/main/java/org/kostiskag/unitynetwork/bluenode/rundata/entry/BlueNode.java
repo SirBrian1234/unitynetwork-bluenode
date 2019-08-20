@@ -172,12 +172,12 @@ public class BlueNode extends NodeEntry<PhysicalAddress> {
     public void setDping(boolean dping) {
         this.dPing.set(dping);
     }
-    
+
     public void resetIdleTime() {
 		idleTime.set(0);
 	}
 
-    public void killtasks() { 
+    public void killTasks() {
         //ka.kill();
         send.kill();
         receive.kill();
@@ -200,33 +200,18 @@ public class BlueNode extends NodeEntry<PhysicalAddress> {
     public void release() throws IllegalAccessException, InterruptedException {
         BlueNodeClient cl = new BlueNodeClient(this);
         cl.removeThisBlueNodesProjection();
-        this.killtasks();
+        this.killTasks();
     }
 
     /**
-     * Releases a RemoteRedNode only if it's found!
+     * Releases a RemoteRedNode Projection from the Bluenode on the other end!
      *
      * @param hostname
      * @throws IllegalAccessException
      * @throws InterruptedException
      */
-    public void releaseRRn(String hostname) throws IllegalAccessException, InterruptedException {
-        //do not be confused, the lock for the inner RemoteRedNodeTable is different
-        //from that of BlueNode Table
-        Lock lock = null;
-        try {
-            lock = this.getTable().aquireLock();
-            var o = this.getTable().getOptionalNodeEntry(lock, hostname);
-            if (o.isPresent()) {
-                BlueNodeClient cl = new BlueNodeClient(this);
-                cl.removeRedNodeProjectionByHn(hostname);
-
-                this.getTable().release(lock, o.get());
-            } else {
-                throw new IllegalAccessError("no RRN with hostname " + hostname);
-            }
-        } finally {
-            lock.unlock();
-        }
+    public void releaseLocalRedNodeProjection(String hostname) throws IllegalAccessException, InterruptedException {
+        BlueNodeClient cl = new BlueNodeClient(this);
+        cl.removeRedNodeProjectionByHn(hostname);
     }
 }
