@@ -171,8 +171,7 @@ final class BlueNodeFunctions {
 		//if associated reset idleTime and update timestamp as well
 		var o = blueNodeTable.getOptionalEntry(lock, blueNodeName);
 		if (o.isPresent()) {
-			o.get().resetIdleTime();
-			o.get().updateTimestamp();
+			o.get().renew();
 			SocketUtilities.sendAESEncryptedStringData("OK", socketWriter, sessionKey);
 		} else {
 			SocketUtilities.sendAESEncryptedStringData("FAILED", socketWriter, sessionKey);

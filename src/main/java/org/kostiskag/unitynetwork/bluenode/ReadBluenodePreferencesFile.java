@@ -1,8 +1,8 @@
 package org.kostiskag.unitynetwork.bluenode;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.nio.file.Path;
 import java.nio.file.Files;
 import java.io.IOException;
 import java.security.GeneralSecurityException;

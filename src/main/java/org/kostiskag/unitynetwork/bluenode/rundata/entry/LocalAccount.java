@@ -1,12 +1,12 @@
 package org.kostiskag.unitynetwork.bluenode.rundata.entry;
 
-
 import java.util.Objects;
 import java.security.GeneralSecurityException;
 
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.HashUtilities;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
+
 
 /**
  * An object of the accounts instance loads the user details when a host.list is

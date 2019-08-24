@@ -1,21 +1,18 @@
 package org.kostiskag.unitynetwork.bluenode.service;
 
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.security.GeneralSecurityException;
+import java.util.concurrent.locks.Lock;
 import java.util.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.util.concurrent.locks.Lock;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.security.GeneralSecurityException;
 
 import javax.crypto.SecretKey;
 
-import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
-import org.kostiskag.unitynetwork.bluenode.rundata.table.BlueNodeTable;
 import org.kostiskag.unitynetwork.bluenode.rundata.table.LocalRedNodeTable;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;

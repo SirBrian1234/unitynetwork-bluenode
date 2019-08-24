@@ -1,8 +1,6 @@
 package org.kostiskag.unitynetwork.bluenode.rundata.entry;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
 import java.net.UnknownHostException;
 import java.security.PublicKey;
 
@@ -40,7 +38,6 @@ public class BlueNode extends NodeEntry<PhysicalAddress> {
     private final UploadManager uploadMan;
     private final Router router;
     //triggers
-    public final AtomicInteger idleTime = new AtomicInteger(0);
     private final AtomicBoolean uPing = new AtomicBoolean(false);
     private final AtomicBoolean dPing = new AtomicBoolean(false);
 
@@ -173,10 +170,6 @@ public class BlueNode extends NodeEntry<PhysicalAddress> {
         this.dPing.set(dping);
     }
 
-    public void resetIdleTime() {
-		idleTime.set(0);
-	}
-
     public void killTasks() {
         //ka.kill();
         send.kill();
@@ -190,6 +183,10 @@ public class BlueNode extends NodeEntry<PhysicalAddress> {
         sendQueue.clear();
     }
 
+    public void renew() {
+        this.timeBuilder.resetClock();
+        this.updateTimestamp();
+    }
 
     /**
      * release performs all the inner BlueNode operations for a logical release.

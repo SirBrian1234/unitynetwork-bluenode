@@ -5,9 +5,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
+import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalAccount;
-import org.kostiskag.unitynetwork.common.address.VirtualAddress;
 
 
 /**
@@ -16,7 +16,7 @@ import org.kostiskag.unitynetwork.common.address.VirtualAddress;
  *
  * @author Konstantinos Kagiampakis
  */
-public class AccountTable {
+public class AccountTable { //todo extend simpleTable
     private final String pre = "^AccountsTable ";
     private final List<LocalAccount> list;
 

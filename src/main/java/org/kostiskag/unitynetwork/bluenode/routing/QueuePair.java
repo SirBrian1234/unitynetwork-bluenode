@@ -1,7 +1,9 @@
 package org.kostiskag.unitynetwork.bluenode.routing;
 
-import java.util.LinkedList;
+import java.util.Queue;
+import java.util.PriorityQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 
 /**
  *
@@ -9,19 +11,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class QueuePair extends Thread {
     private final int maxCapacity;
-    private final LinkedList<SourceDestPair> queue;
+    private final Queue<SourceDestPair> queue;
     private final AtomicBoolean kill = new AtomicBoolean(false);
     
     /**
      * This constructor can be used from the bluenode and for each 
      * local rednode or bluenode instance.
      * 
-     * @param blueNode
      * @param maxCapacity
      */
     public QueuePair(int maxCapacity) {
         this.maxCapacity = maxCapacity;
-        queue = new LinkedList<SourceDestPair>();
+        queue = new PriorityQueue<>();
     }
     
     public synchronized int getlen() {

@@ -16,7 +16,7 @@ import org.kostiskag.unitynetwork.bluenode.rundata.entry.LocalRedNode;
  *
  * @author Konstantinos Kagiampakis
  */
-public final class LocalRedNodeTable {
+public final class LocalRedNodeTable { //todo extend to NodeTable
 
     private static final String PRE = "^LOCAL RN TABLE ";
     private static boolean INSTANTIATED;
