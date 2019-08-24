@@ -19,7 +19,7 @@ public class BlueNodeTableTest {
     public static void before() {
         PortHandle.newInstance(10,100);
         AppLogger.newInstance(false, null,false,false);
-        table = BlueNodeTable.newInstance(null);
+        table = BlueNodeTable.newInstance((bnObj) -> System.out.println(bnObj), (rrnObj)-> System.out.println(rrnObj));
     }
 
     @Test
@@ -33,5 +33,9 @@ public class BlueNodeTableTest {
         } finally {
             lock.unlock();
         }
+    }
+
+    @Test
+    public void leaseTest() {
     }
 }

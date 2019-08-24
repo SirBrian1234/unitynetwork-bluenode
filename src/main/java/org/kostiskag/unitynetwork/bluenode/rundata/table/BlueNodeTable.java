@@ -1,11 +1,12 @@
 package org.kostiskag.unitynetwork.bluenode.rundata.table;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.function.Consumer;
 import java.util.concurrent.locks.Lock;
+import java.util.*;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.address.VirtualAddress;
@@ -14,7 +15,6 @@ import org.kostiskag.unitynetwork.common.table.NodeTable;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.BlueNode;
 import org.kostiskag.unitynetwork.bluenode.rundata.entry.RemoteRedNode;
 import org.kostiskag.unitynetwork.bluenode.service.bluenodeclient.BlueNodeClient;
-import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
 
 
@@ -28,29 +28,33 @@ public final class BlueNodeTable extends NodeTable<PhysicalAddress, BlueNode> {
 	private static boolean INSTANTIATED;
 
 	private final boolean verbose;
+
 	private final boolean notifyGui;
-	private final MainWindow window;
+	private final Consumer<String[][]> BNconsumer;
+	private final Consumer<String[][]> RRNconsumer;
+
 
 	/**
 	 * Similar to a singleton, this pattern ensures that only one object of this class may be instantiated
 	 * the difference is that it will only create one object reference as well and give it to the first caller!
 	 *
-	 * @param window either provide the MainWindow or null
+	 *
 	 * @return
 	 */
-	public static BlueNodeTable newInstance(MainWindow window) {
+	public static BlueNodeTable newInstance(Consumer<String[][]> BNconsumer, Consumer<String[][]> RRNconsumer) {
 		//the only one who can get the only one reference is the first caller
 		if (!INSTANTIATED) {
 			INSTANTIATED = true;
-			return new BlueNodeTable(true, window);
+			return new BlueNodeTable(true, BNconsumer, RRNconsumer);
 		}
 		return null;
 	}
 
-	private BlueNodeTable(boolean verbose, MainWindow window) {
+	private BlueNodeTable(boolean verbose, Consumer<String[][]> BNconsumer, Consumer<String[][]> RRNconsumer) {
 		this.verbose = verbose;
-		this.notifyGui = window != null;
-		this.window = window;
+		this.notifyGui = BNconsumer != null && RRNconsumer != null;
+		this.BNconsumer = BNconsumer;
+		this.RRNconsumer = RRNconsumer;
 		verbose("INITIALIZED");
 	}
 
@@ -266,7 +270,8 @@ public final class BlueNodeTable extends NodeTable<PhysicalAddress, BlueNode> {
 	@Locking(LockingScope.NO_LOCK)
 	private void notifyGUI() {
 		if (notifyGui) {
-			window.updateBNs(buildBNGUIObj());
+			BNconsumer.accept(buildBNGUIObj());
+			//window.updateBNs(buildBNGUIObj());
 		}
 	}
 
@@ -279,7 +284,8 @@ public final class BlueNodeTable extends NodeTable<PhysicalAddress, BlueNode> {
 	@Locking(LockingScope.NO_LOCK)
 	private void notifyRGUI () {
 		if (notifyGui) {
-			window.updateRemoteRns(buildRRNGUIObj());
+			RRNconsumer.accept(buildRRNGUIObj());
+			//window.updateRemoteRns(buildRRNGUIObj());
 		}
 	}
 
