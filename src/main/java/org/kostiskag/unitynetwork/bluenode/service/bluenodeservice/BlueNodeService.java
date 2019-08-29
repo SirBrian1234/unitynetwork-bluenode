@@ -11,6 +11,7 @@ import java.util.concurrent.locks.Lock;
 
 import javax.crypto.SecretKey;
 
+import org.kostiskag.unitynetwork.common.serviceoperations.TrackerToBlueNode;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
@@ -330,19 +331,19 @@ final class BlueNodeService extends Thread {
     	
     		args = SocketUtilities.receiveAESEncryptedStringData(socketReader, sessionKey);
     		//options
-            if (args.length == 1 && args[0].equals("CHECK")) {
-				AppLogger.getInstance().consolePrint(PRE +pretr+"CHECK"+" from "+sessionSocket.getInetAddress().getHostAddress());
+            if (args.length == 1 && args[0].equals(TrackerToBlueNode.CHECK_IF_ALIVE.value())) {
+				AppLogger.getInstance().consolePrint(PRE +pretr+TrackerToBlueNode.CHECK_IF_ALIVE.value()+" from "+sessionSocket.getInetAddress().getHostAddress());
                 TrackingFunctions.check(trackerTimeBuilder, socketWriter, sessionKey);
-            } else if (args.length == 1 && args[0].equals("GETREDNODES")) {
-				AppLogger.getInstance().consolePrint(PRE +pretr+"GETREDNODES"+" from "+sessionSocket.getInetAddress().getHostAddress());
+            } else if (args.length == 1 && args[0].equals(TrackerToBlueNode.GET_ALL_LEASED_REDNODES.value())) {
+				AppLogger.getInstance().consolePrint(PRE +pretr+TrackerToBlueNode.GET_ALL_LEASED_REDNODES.value()+" from "+sessionSocket.getInetAddress().getHostAddress());
                 TrackingFunctions.getRns(rednodeTable, socketWriter, sessionKey);
-            } else if (args.length == 1 && args[0].equals("KILLSIG")) {
-				AppLogger.getInstance().consolePrint(PRE +pretr+"KILLSIG"+" from "+sessionSocket.getInetAddress().getHostAddress());
+            } else if (args.length == 1 && args[0].equals(TrackerToBlueNode.KILLING_SIGNAL.value())) {
+				AppLogger.getInstance().consolePrint(PRE +pretr+TrackerToBlueNode.KILLING_SIGNAL.value()+" from "+sessionSocket.getInetAddress().getHostAddress());
                 TrackingFunctions.killSig(blunodeTerminate);
             } else {
-				AppLogger.getInstance().consolePrint(PRE +pretr+"WRONG_COMMAND: "+args[0]+" from "+sessionSocket.getInetAddress().getHostAddress());
-            	SocketUtilities.sendAESEncryptedStringData("WRONG_COMMAND", socketWriter, sessionKey);  
-            }
+				AppLogger.getInstance().consolePrint(PRE +pretr+TrackerToBlueNode.WRONG_OPTION.value()+": "+args[0]+" from "+sessionSocket.getInetAddress().getHostAddress());
+				SocketUtilities.sendAESEncryptedStringData(TrackerToBlueNode.WRONG_OPTION.value(), socketWriter, sessionKey);
+			}
         } catch (GeneralSecurityException | IOException ex) {
         	ex.printStackTrace();
         }

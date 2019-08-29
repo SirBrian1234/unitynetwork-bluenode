@@ -13,13 +13,13 @@ import javax.crypto.SecretKey;
 
 import org.kostiskag.unitynetwork.common.address.PhysicalAddress;
 import org.kostiskag.unitynetwork.common.calculated.NumericConstraints;
+import org.kostiskag.unitynetwork.common.serviceoperations.BlueNodeToTracker;
 import org.kostiskag.unitynetwork.common.state.PublicKeyState;
 import org.kostiskag.unitynetwork.common.utilities.CryptoUtilities;
 import org.kostiskag.unitynetwork.common.utilities.SocketUtilities;
 
 import org.kostiskag.unitynetwork.bluenode.gui.MainWindow;
 import org.kostiskag.unitynetwork.bluenode.AppLogger;
-import org.kostiskag.unitynetwork.bluenode.Bluenode;
 
 
 /**
@@ -133,10 +133,10 @@ public final class TrackerClient {
 		if (connected) {
 			String[] args = null;
 			try {
-				AppLogger.getInstance().consolePrint(PRE +"LEASE"+" at "+socket.getInetAddress().getHostAddress());
-				args = SocketUtilities.sendReceiveAESEncryptedStringData("LEASE"+" "+authport, reader, writer, sessionKey);
+				AppLogger.getInstance().consolePrint(PRE +BlueNodeToTracker.LEASE.value()+" at "+socket.getInetAddress().getHostAddress());
+				args = SocketUtilities.sendReceiveAESEncryptedStringData(BlueNodeToTracker.LEASE.value()+" "+authport, reader, writer, sessionKey);
 				closeCon();
-				if (args[0].equals("LEASED")) {
+				if (args[0].equals(BlueNodeToTracker.LEASE_SUCCESS_RESPONSE.value())) {
 					MainWindow.getInstance().setEchoIpAddress(args[1]);
 					AppLogger.getInstance().consolePrint(PRE + "ECHO ADDRESS IS " + args[1]);
 					return true;
@@ -155,10 +155,10 @@ public final class TrackerClient {
 		if (connected) {
 			String[] args;
 			try {
-				AppLogger.getInstance().consolePrint(PRE +"RELEASE"+" at "+socket.getInetAddress().getHostAddress());
-				args = SocketUtilities.sendReceiveAESEncryptedStringData("RELEASE", reader, writer, sessionKey);
+				AppLogger.getInstance().consolePrint(PRE +BlueNodeToTracker.RELEASE.value()+" at "+socket.getInetAddress().getHostAddress());
+				args = SocketUtilities.sendReceiveAESEncryptedStringData(BlueNodeToTracker.RELEASE.value(), reader, writer, sessionKey);
 				closeCon();
-				if (args[0].equals("RELEASED")) {
+				if (args[0].equals(BlueNodeToTracker.RELEASE_SUCCESS_RESPONSE.value())) {
 					return true;
 				} else {
 					return false;
@@ -181,8 +181,8 @@ public final class TrackerClient {
 		if (connected) {
 			String[] args;
 			try {
-				AppLogger.getInstance().consolePrint(PRE +"GETPH"+" at "+socket.getInetAddress().getHostAddress());
-				args = SocketUtilities.sendReceiveAESEncryptedStringData("GETPH"+" "+BNHostname, reader, writer, sessionKey);
+				AppLogger.getInstance().consolePrint(PRE +BlueNodeToTracker.GETPH.value()+" at "+socket.getInetAddress().getHostAddress());
+				args = SocketUtilities.sendReceiveAESEncryptedStringData(BlueNodeToTracker.GETPH.value()+" "+BNHostname, reader, writer, sessionKey);
 				closeCon();
 				if (!args[0].equals("NOT_FOUND")) {
 					return args;
@@ -211,8 +211,8 @@ public final class TrackerClient {
 		if (connected) {
 	    	String[] args;
 			try {
-				AppLogger.getInstance().consolePrint(PRE +"LEASE_RN"+" at "+socket.getInetAddress().getHostAddress());
-				args = SocketUtilities.sendReceiveAESEncryptedStringData("LEASE_RN"+" "+Hostname+" "+Username+" "+Password, reader, writer, sessionKey);
+				AppLogger.getInstance().consolePrint(PRE +BlueNodeToTracker.LEASE_RN.value()+" at "+socket.getInetAddress().getHostAddress());
+				args = SocketUtilities.sendReceiveAESEncryptedStringData(BlueNodeToTracker.LEASE_RN.value()+" "+Hostname+" "+Username+" "+Password, reader, writer, sessionKey);
 				closeCon();
 		        if (args[0].equals("LEASED")) {
 		            return args[1];
@@ -235,8 +235,8 @@ public final class TrackerClient {
     public void releaseRnByHostname(String hostname) {
     	if (connected) {
 	        try {
-				AppLogger.getInstance().consolePrint(PRE +"RELEASE_RN"+" at "+socket.getInetAddress().getHostAddress());
-				SocketUtilities.sendAESEncryptedStringData("RELEASE_RN"+" "+hostname, writer, sessionKey);
+				AppLogger.getInstance().consolePrint(PRE +BlueNodeToTracker.RELEASE_RN.value()+" at "+socket.getInetAddress().getHostAddress());
+				SocketUtilities.sendAESEncryptedStringData(BlueNodeToTracker.RELEASE_RN.value()+" "+hostname, writer, sessionKey);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}       
@@ -255,13 +255,13 @@ public final class TrackerClient {
     	if (connected) {
 	    	String[] args;
 			try {
-				AppLogger.getInstance().consolePrint(PRE +"CHECK_RN"+" at "+socket.getInetAddress().getHostAddress());
-				args = SocketUtilities.sendReceiveAESEncryptedStringData("CHECK_RN"+" "+hostanme, reader, writer, sessionKey);
+				AppLogger.getInstance().consolePrint(PRE +BlueNodeToTracker.CHECK_RN.value()+" at "+socket.getInetAddress().getHostAddress());
+				args = SocketUtilities.sendReceiveAESEncryptedStringData(BlueNodeToTracker.CHECK_RN.value()+" "+hostanme, reader, writer, sessionKey);
 				closeCon();
-		        if (args[0].equals("OFFLINE")) {
+		        if (args[0].equals(BlueNodeToTracker.CHECK_RN_FAIL_RESPONSE.value())) {
 		            return null;
 		        } else {
-		            return args[1];
+		            return args[0];
 		        }
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -282,13 +282,13 @@ public final class TrackerClient {
     	if (connected) {
 	        String[] args = null;
 			try {
-				AppLogger.getInstance().consolePrint(PRE +"CHECK_RNA"+" at "+socket.getInetAddress().getHostAddress());
-				args = SocketUtilities.sendReceiveAESEncryptedStringData("CHECK_RNA"+" "+vaddress, reader, writer, sessionKey);
+				AppLogger.getInstance().consolePrint(PRE +BlueNodeToTracker.CHECK_RNA.value()+" at "+socket.getInetAddress().getHostAddress());
+				args = SocketUtilities.sendReceiveAESEncryptedStringData(BlueNodeToTracker.CHECK_RNA.value()+" "+vaddress, reader, writer, sessionKey);
 				closeCon();
-				if (args[0].equals("OFFLINE")) {
+				if (args[0].equals(BlueNodeToTracker.CHECK_RNA_FAIL_RESPONSE.value())) {
 		            return null;
 		        } else {
-		            return args[1];
+		            return args[0];
 		        }
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -302,8 +302,8 @@ public final class TrackerClient {
     	if (connected) {
 	        String[] args = null;
 			try {
-				AppLogger.getInstance().consolePrint(PRE +"GETBNPUB"+" at "+socket.getInetAddress().getHostAddress());
-				args = SocketUtilities.sendReceiveAESEncryptedStringData("GETBNPUB"+" "+name, reader, writer, sessionKey);
+				AppLogger.getInstance().consolePrint(PRE +BlueNodeToTracker.GETBNPUB.value()+" at "+socket.getInetAddress().getHostAddress());
+				args = SocketUtilities.sendReceiveAESEncryptedStringData(BlueNodeToTracker.GETBNPUB.value()+" "+name, reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("NONE")) {
 		            return null;
@@ -322,8 +322,8 @@ public final class TrackerClient {
     	if (connected) {
 	        String[] args = null;
 			try {
-				AppLogger.getInstance().consolePrint(PRE +"GETRNPUB"+" at "+socket.getInetAddress().getHostAddress());
-				args = SocketUtilities.sendReceiveAESEncryptedStringData("GETRNPUB"+" "+hostname, reader, writer, sessionKey);
+				AppLogger.getInstance().consolePrint(PRE +BlueNodeToTracker.GETRNPUB.value()+" at "+socket.getInetAddress().getHostAddress());
+				args = SocketUtilities.sendReceiveAESEncryptedStringData(BlueNodeToTracker.GETRNPUB.value()+" "+hostname, reader, writer, sessionKey);
 				closeCon();
 				if (args[0].equals("NONE")) {
 		            return null;
