@@ -66,9 +66,6 @@ Edit **bluenode.conf** file with a text editor to define the bluenode's behaviou
 java -jar UnityNetwork_BlueNode-1.0.jar 
 ```
 
-## Authorship
-The source code was written by Konstantinos Kagiampakis
-
 ## License
 The project's article and source code are licensed under Creative Commons Atribution 4.0 International: https://creativecommons.org/licenses/by/4.0/
 
