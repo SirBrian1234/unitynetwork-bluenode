@@ -44,15 +44,7 @@ mvn package
 ```
 
 ## Option B - Download and use a pre-built version
-You can download, unzip and use a pre-built version of Red Node from this url:
-https://drive.google.com/file/d/0BzPrI7NjFz2SdWlrQW1NNVV2RWc/view?usp=sharing
-
-In order to establish data integrity, you should verify the zip file's signature to be:
-
-| Algorithm | Hash Signature |
-| --- | --- |
-| MD5 | 88738eafa3de851bd851d5c53d64e26a |
-| SHA256 | 5dca33c145242a729d4093e64fab46b8d15ed9e85c300877be959304d25b9b56 |
+`not available`
 
 ## Run
 ```
