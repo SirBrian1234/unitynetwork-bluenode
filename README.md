@@ -38,7 +38,7 @@ Bluenode hosts are responsible to forward the network traffic from rednode to bl
 ## Option A - Build from source code
 In order to build this project, Java JDK 1.7 or greater and Apache Maven have to already be installed on your system.
 ```
-git clone https://github.com/kostiskag/unitynetwork-bluenode.git
+git clone https://github.com/SirBrian1234/unitynetwork-bluenode.git
 cd unitynetwork-bluenode
 mvn package
 ```
